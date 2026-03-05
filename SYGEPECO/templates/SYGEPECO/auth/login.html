@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYGEPECO — Connexion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
+</head>
+<body>
+<div class="login-page">
+  <!-- Arrière-plan animé -->
+  <div class="login-bg-shapes">
+    <div class="login-shape login-shape-1"></div>
+    <div class="login-shape login-shape-2"></div>
+  </div>
+
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="login-logo-icon">🏢</div>
+      <div>
+        <div class="login-logo-name">SYGEPECO</div>
+        <div class="login-logo-sub">Système de Gestion du Personnel Contractuel</div>
+      </div>
+    </div>
+
+    <h1 class="login-title">Connexion</h1>
+    <p class="login-subtitle">Entrez vos identifiants pour accéder au tableau de bord.</p>
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger" style="margin-bottom:20px;">
+      ✗ {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="id_username">Nom d'utilisateur</label>
+        {{ form.username }}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_password">Mot de passe</label>
+        {{ form.password }}
+      </div>
+      <button type="submit" class="btn btn-primary login-btn">
+        🔐 Se connecter
+      </button>
+    </form>
+
+    <div class="login-footer">
+      © {{ today.year }} SYGEPECO — Tous droits réservés
+    </div>
+  </div>
+</div>
+<script>
+  // Petit effet: focus sur le champ username
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('id_username')?.focus();
+    // Date
+    const today = new Date();
+    const y = today.getFullYear();
+    document.querySelectorAll('.year').forEach(el => el.textContent = y);
+  });
+</script>
+</body>
+</html>

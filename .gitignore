@@ -1,0 +1,74 @@
+# ── Secrets & configuration sensible ───────────────────────────
+.env
+.env.*
+!.env.example
+*.env
+
+# ── Base de données locale ───────────────────────────────────────
+db.sqlite3
+*.sqlite3
+
+# ── Scripts d'import avec identifiants / mots de passe ──────────
+import_nbig_mdp.py
+import_azing_ivoir_mdp.py
+import_azing1.py
+import_cafor.py
+import_ivoir_gardiennage.py
+
+# ── Fichiers Excel générés (identifiants) ────────────────────────
+Identifiants_*.xlsx
+*_Export.xlsx
+presences_*.xlsx
+conges_*.xlsx
+permissions_*.xlsx
+contractuels_*.xlsx
+
+# ── Médias uploadés (photos contractuels) ───────────────────────
+media/
+
+# ── Cache Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# ── Environnement virtuel ────────────────────────────────────────
+.env/
+env/
+venv/
+.venv/
+ENV/
+
+# ── Migrations (optionnel — garder si travail en équipe) ─────────
+# SYGEPECO/migrations/
+
+# ── Fichiers système ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Claude AI (fichiers internes de l'assistant) ─────────────────
+.claude/
+
+# ── IDE & éditeurs ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Fichiers de build / distribution ────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# ── Couverture de tests ──────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/

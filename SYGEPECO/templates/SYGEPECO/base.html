@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SYGEPECO{% endblock %} — Gestion du Personnel Contractuel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/fr.global.min.js"></script>
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% include 'SYGEPECO/partials/_sidebar.html' %}
+
+<div class="main-content" id="mainContent">
+  {% include 'SYGEPECO/partials/_navbar.html' %}
+
+  <!-- Messages Django -->
+  {% if messages %}
+  <div class="django-messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" data-auto-dismiss>
+      <span>
+        {% if message.tags == 'success' %}✓{% elif message.tags == 'error' or message.tags == 'danger' %}✗{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
+      </span>
+      <span>{{ message }}</span>
+      <button class="alert-close" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;font-size:1rem;">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="page-content fade-in">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{% static 'SYGEPECO/js/main.js' %}"></script>
+<script src="{% static 'SYGEPECO/js/dashboard-3d.js' %}"></script>
+<script src="{% static 'SYGEPECO/js/charts.js' %}"></script>
+<script src="{% static 'SYGEPECO/js/calendar.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

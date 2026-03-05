@@ -1,0 +1,106 @@
+{% extends 'SYGEPECO/espace/base_espace.html' %}
+{% block title %}Demander une permission{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'espace_mes_permissions' %}" class="breadcrumb-item">Mes permissions</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Nouvelle demande</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Nouvelle permission de sortie</h1>
+    <p class="page-subtitle">Remplissez le formulaire ci-dessous</p>
+  </div>
+  <a href="{% url 'espace_mes_permissions' %}" class="btn btn-secondary">← Retour</a>
+</div>
+
+<div style="max-width:600px;">
+  <div class="card" style="padding:32px;">
+    <form method="post" id="permForm">
+      {% csrf_token %}
+
+      <!-- Date -->
+      <div class="form-group">
+        <label class="form-label">Date de la permission <span style="color:var(--accent-red);">*</span></label>
+        {{ form.date }}
+        {% if form.date.errors %}
+        <div class="field-error">{{ form.date.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Horaires -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Heure de départ <span style="color:var(--accent-red);">*</span></label>
+          {{ form.heure_debut }}
+          {% if form.heure_debut.errors %}
+          <div class="field-error">{{ form.heure_debut.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure de retour <span style="color:var(--accent-red);">*</span></label>
+          {{ form.heure_fin }}
+          {% if form.heure_fin.errors %}
+          <div class="field-error">{{ form.heure_fin.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Durée calculée -->
+      <div id="dureeCalc" style="display:none;margin-top:-8px;margin-bottom:16px;padding:10px 14px;background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);border-radius:var(--radius-sm);font-size:0.875rem;color:var(--espace-accent);">
+        <strong id="dureeText"></strong>
+      </div>
+
+      <!-- Motif -->
+      <div class="form-group">
+        <label class="form-label">Motif <span style="color:var(--accent-red);">*</span></label>
+        {{ form.motif }}
+        {% if form.motif.errors %}
+        <div class="field-error">{{ form.motif.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger" style="margin-bottom:16px;">
+        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <div style="display:flex;gap:12px;margin-top:24px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Soumettre la demande</button>
+        <a href="{% url 'espace_mes_permissions' %}" class="btn btn-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+
+  <div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:var(--radius);font-size:0.8125rem;color:var(--text-muted);line-height:1.6;">
+    ℹ️ Votre demande de permission sera examinée par le service RH. Merci de soumettre votre demande au moins 24h à l'avance.
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const heureDebut = document.getElementById('id_heure_debut');
+const heureFin   = document.getElementById('id_heure_fin');
+const dureeDiv   = document.getElementById('dureeCalc');
+const dureeText  = document.getElementById('dureeText');
+
+function calcDuree() {
+  if (!heureDebut.value || !heureFin.value) { dureeDiv.style.display = 'none'; return; }
+  const [h1, m1] = heureDebut.value.split(':').map(Number);
+  const [h2, m2] = heureFin.value.split(':').map(Number);
+  const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+  if (mins <= 0) { dureeDiv.style.display = 'none'; return; }
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  dureeText.textContent = `Durée : ${h > 0 ? h + 'h' : ''}${m > 0 ? m + 'min' : ''}`;
+  dureeDiv.style.display = 'block';
+}
+
+heureDebut.addEventListener('change', calcDuree);
+heureFin.addEventListener('change', calcDuree);
+</script>
+{% endblock %}

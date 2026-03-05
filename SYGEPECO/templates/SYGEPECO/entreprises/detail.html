@@ -1,0 +1,101 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ entreprise.nom }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--accent-gold),#F97316);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#000;">
+      {% if entreprise.logo %}<img src="{{ entreprise.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">
+      {% else %}{{ entreprise.sigle|default:entreprise.nom|slice:":2"|upper }}{% endif %}
+    </div>
+    <div>
+      <h1 class="page-title" style="margin-bottom:4px;">{{ entreprise.nom }}</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        {% if entreprise.sigle %}<span style="color:var(--text-muted);">{{ entreprise.sigle }}</span>{% endif %}
+        <span style="padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;background:rgba(212,168,83,.12);color:var(--accent-gold);">{{ entreprise.get_secteur_display }}</span>
+        {% if entreprise.active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="{% url 'entreprise_update' entreprise.pk %}" class="btn btn-secondary">✏ Modifier</a>
+    <a href="{% url 'entreprise_list' %}" class="btn btn-secondary">← Retour</a>
+  </div>
+</div>
+
+<!-- Stats rapides -->
+<div class="mini-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
+    <div><div class="mini-stat-value" style="color:var(--accent-green);">{{ entreprise.nb_contractuels }}</div><div class="mini-stat-label">Agents actifs</div></div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--accent-gold);"></div>
+    <div><div class="mini-stat-value" style="color:var(--accent-gold);">{{ contractuels.count }}</div><div class="mini-stat-label">Total agents</div></div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:#4A6CF7;"></div>
+    <div><div class="mini-stat-value" style="color:#4A6CF7;">{{ entreprise.created_at|date:"Y" }}</div><div class="mini-stat-label">Année enregistrement</div></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;align-items:start;">
+
+  <!-- Infos entreprise -->
+  <div class="card" style="padding:24px;">
+    <div class="card-header" style="margin-bottom:16px;"><h3 class="card-title">Informations</h3></div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      {% if entreprise.telephone %}
+      <div><div style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Téléphone</div><div>📞 {{ entreprise.telephone }}</div></div>
+      {% endif %}
+      {% if entreprise.email %}
+      <div><div style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Email</div><div>✉ {{ entreprise.email }}</div></div>
+      {% endif %}
+      {% if entreprise.adresse %}
+      <div><div style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Adresse</div><div style="color:var(--text-secondary);">📍 {{ entreprise.adresse }}</div></div>
+      {% endif %}
+      {% if entreprise.description %}
+      <div><div style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Description</div><div style="font-size:.875rem;color:var(--text-secondary);line-height:1.5;">{{ entreprise.description }}</div></div>
+      {% endif %}
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+      <a href="{% url 'entreprise_delete' entreprise.pk %}" class="btn btn-sm" style="background:rgba(239,68,68,.12);color:var(--accent-red);width:100%;text-align:center;">Supprimer l'entreprise</a>
+    </div>
+  </div>
+
+  <!-- Liste des contractuels -->
+  <div class="card" style="padding:24px;">
+    <div class="card-header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <h3 class="card-title">Personnel contractuel</h3>
+      <a href="{% url 'contractuel_create' %}?entreprise={{ entreprise.pk }}" class="btn btn-sm btn-primary">+ Ajouter</a>
+    </div>
+    {% if contractuels %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Matricule</th><th>Nom & Prénom</th><th>Poste</th><th>Statut</th></tr></thead>
+        <tbody>
+          {% for c in contractuels %}
+          <tr>
+            <td><a href="{% url 'contractuel_detail' c.pk %}" style="color:var(--accent-gold);font-weight:600;">{{ c.matricule }}</a></td>
+            <td>{{ c.nom }} {{ c.prenom }}</td>
+            <td style="color:var(--text-muted);font-size:.875rem;">{{ c.poste.titre|default:"—" }}</td>
+            <td>
+              {% if c.statut == 'ACTIF' %}<span class="badge badge-success">Actif</span>
+              {% elif c.statut == 'INACTIF' %}<span class="badge badge-danger">Inactif</span>
+              {% else %}<span class="badge badge-warning">{{ c.get_statut_display }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:30px 0;">
+      <div class="empty-state-icon" style="font-size:2rem;">👥</div>
+      <div class="empty-state-title">Aucun contractuel rattaché</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

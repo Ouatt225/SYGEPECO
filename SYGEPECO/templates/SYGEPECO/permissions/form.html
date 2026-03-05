@@ -1,0 +1,31 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Demande de permission{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'permission_list' %}" style="color:var(--text-muted);">Permissions</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Nouvelle demande</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Demande de permission</h1>
+  <a href="{% url 'permission_list' %}" class="btn btn-secondary">← Retour</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  <div class="card" style="max-width:600px;">
+    <div class="form-group"><label class="form-label">Contractuel *</label>{{ form.contractuel }}</div>
+    <div class="form-group"><label class="form-label">Date *</label>{{ form.date }}</div>
+    <div class="form-grid-2">
+      <div class="form-group"><label class="form-label">Heure de début *</label>{{ form.heure_debut }}</div>
+      <div class="form-group"><label class="form-label">Heure de fin *</label>{{ form.heure_fin }}</div>
+    </div>
+    <div class="form-group"><label class="form-label">Motif *</label>{{ form.motif }}</div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+      <a href="{% url 'permission_list' %}" class="btn btn-secondary">Annuler</a>
+      <button type="submit" class="btn btn-primary">📨 Soumettre</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

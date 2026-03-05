@@ -1,0 +1,43 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Historique RH{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Historique RH</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Historique RH</h1>
+    <p class="page-subtitle">Journal des {{ logs.count }} dernières actions</p>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  {% if logs %}
+  <table class="data-table">
+    <thead><tr><th>Date & Heure</th><th>Utilisateur</th><th>Action</th><th>Module</th></tr></thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color:var(--text-muted);white-space:nowrap;">{{ log.created_at|date:"d/m/Y H:i" }}</td>
+        <td>
+          <div style="font-weight:600;">{{ log.utilisateur.get_full_name|default:log.utilisateur.username }}</div>
+        </td>
+        <td style="color:var(--text-primary);">{{ log.action }}</td>
+        <td>
+          {% if log.modele_concerne %}
+          <span class="badge badge-gold">{{ log.modele_concerne }}</span>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📜</div>
+    <div class="empty-state-title">Aucune action enregistrée</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

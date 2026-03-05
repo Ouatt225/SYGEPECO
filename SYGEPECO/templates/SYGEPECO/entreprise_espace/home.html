@@ -1,0 +1,154 @@
+{% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
+{% block title %}Tableau de bord{% endblock %}
+{% block breadcrumb %}Tableau de bord{% endblock %}
+
+{% block extra_css %}
+<style>
+.ent-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.ent-kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .25s, box-shadow .25s;
+}
+.ent-kpi:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
+.ent-kpi::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: var(--ent-accent-dim);
+}
+.kpi-icon { font-size: 1.6rem; }
+.kpi-val {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--ent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.kpi-lbl { font-size: .78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+.dept-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.dept-fill {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ent-gradient);
+  transition: width .6s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      {% if entreprise %}{{ entreprise.nom }}{% else %}Toutes les entreprises{% endif %}
+    </h1>
+    <p class="page-subtitle">Tableau de bord — vue gestionnaire</p>
+  </div>
+  <a href="{% url 'entreprise_espace_agents' %}" class="btn-ent">👥 Voir les agents</a>
+</div>
+
+<!-- KPIs -->
+<div class="ent-kpi-grid">
+  <div class="ent-kpi">
+    <span class="kpi-icon">👥</span>
+    <div class="kpi-val">{{ total }}</div>
+    <div class="kpi-lbl">Total agents</div>
+  </div>
+  <div class="ent-kpi">
+    <span class="kpi-icon">✅</span>
+    <div class="kpi-val">{{ actifs }}</div>
+    <div class="kpi-lbl">Agents actifs</div>
+  </div>
+  <div class="ent-kpi">
+    <span class="kpi-icon">🕐</span>
+    <div class="kpi-val">{{ presences_today }}</div>
+    <div class="kpi-lbl">Présents aujourd'hui</div>
+  </div>
+  <div class="ent-kpi">
+    <span class="kpi-icon">🌴</span>
+    <div class="kpi-val">{{ conges_attente }}</div>
+    <div class="kpi-lbl">Congés en attente</div>
+  </div>
+  <div class="ent-kpi">
+    <span class="kpi-icon">📋</span>
+    <div class="kpi-val">{{ permissions_attente }}</div>
+    <div class="kpi-lbl">Permissions en attente</div>
+  </div>
+</div>
+
+<!-- Répartition par département -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
+
+  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:18px;">Répartition par département</h3>
+    {% if dept_stats %}
+      {% for d in dept_stats %}
+      <div class="dept-bar">
+        <span style="font-size:.82rem;color:var(--text-muted);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          {{ d.departement__nom|default:"—" }}
+        </span>
+        <div style="flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:8px;">
+          <div class="dept-fill" style="width:{% if total %}{% widthratio d.total total 100 %}%{% else %}0%{% endif %};"></div>
+        </div>
+        <span style="font-size:.82rem;font-weight:700;color:var(--ent-accent-light);min-width:28px;text-align:right;">{{ d.total }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.875rem;">Aucune donnée disponible.</p>
+    {% endif %}
+  </div>
+
+  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:18px;">Accès rapides</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <a href="{% url 'entreprise_espace_conges' %}?statut=EN_ATTENTE" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
+        <span style="font-size:1.3rem;">🌴</span>
+        <div>
+          <div style="font-weight:600;font-size:.875rem;">Congés en attente</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ conges_attente }} demande{{ conges_attente|pluralize }}</div>
+        </div>
+        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+      </a>
+      <a href="{% url 'entreprise_espace_permissions' %}?statut=EN_ATTENTE" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
+        <span style="font-size:1.3rem;">📋</span>
+        <div>
+          <div style="font-weight:600;font-size:.875rem;">Permissions en attente</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ permissions_attente }} demande{{ permissions_attente|pluralize }}</div>
+        </div>
+        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+      </a>
+      <a href="{% url 'entreprise_espace_presences' %}" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
+        <span style="font-size:1.3rem;">🕐</span>
+        <div>
+          <div style="font-weight:600;font-size:.875rem;">Présences du mois</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">Voir le suivi de présence</div>
+        </div>
+        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'SYGEPECO/espace/base_espace.html' %}
+{% block title %}Mes permissions{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mes permissions</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mes permissions</h1>
+    <p class="page-subtitle">{{ permissions.count }} demande{{ permissions.count|pluralize }} au total</p>
+  </div>
+  <a href="{% url 'espace_demander_permission' %}" class="btn btn-primary">+ Nouvelle demande</a>
+</div>
+
+<!-- Résumé rapide -->
+<div class="mini-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
+    <div>
+      <div class="mini-stat-value" style="color:var(--accent-green);">{{ permissions|length }}</div>
+      <div class="mini-stat-label">Total demandes</div>
+    </div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:#F97316;"></div>
+    <div>
+      <div class="mini-stat-value" style="color:#F97316;">
+        {% for p in permissions %}{% if p.statut == 'EN_ATTENTE' %}1{% endif %}{% endfor %}
+      </div>
+      <div class="mini-stat-label">En attente</div>
+    </div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--espace-accent);"></div>
+    <div>
+      <div class="mini-stat-value" style="color:var(--espace-accent);">
+        {% for p in permissions %}{% if p.statut == 'APPROUVE' %}1{% endif %}{% endfor %}
+      </div>
+      <div class="mini-stat-label">Approuvées</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+  <a href="{% url 'espace_mes_permissions' %}" class="btn btn-sm btn-secondary">Toutes</a>
+  <a href="?statut=EN_ATTENTE" class="btn btn-sm btn-secondary">En attente</a>
+  <a href="?statut=APPROUVE"   class="btn btn-sm btn-secondary">Approuvées</a>
+  <a href="?statut=REJETE"     class="btn btn-sm btn-secondary">Rejetées</a>
+</div>
+
+{% if permissions %}
+<div style="display:flex;flex-direction:column;gap:12px;">
+  {% for perm in permissions %}
+  <div class="card" style="padding:20px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:1.1rem;">🕐</span>
+          <span style="font-weight:700;font-size:1rem;">Permission de sortie</span>
+          {% if perm.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">⏳ En attente</span>
+          {% elif perm.statut == 'APPROUVE' %}<span class="badge badge-success">✓ Approuvée</span>
+          {% elif perm.statut == 'REJETE' %}<span class="badge badge-danger">✗ Rejetée</span>
+          {% else %}<span class="badge badge-muted">Annulée</span>{% endif %}
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div style="font-size:0.875rem;color:var(--text-secondary);">
+            📅 Le <strong>{{ perm.date|date:"d/m/Y" }}</strong>
+            <span style="color:var(--text-muted);">
+              de <strong>{{ perm.heure_debut|time:"H:i" }}</strong>
+              à <strong>{{ perm.heure_fin|time:"H:i" }}</strong>
+            </span>
+          </div>
+          <div style="font-size:0.875rem;color:var(--text-muted);">Soumis le {{ perm.created_at|date:"d/m/Y" }}</div>
+        </div>
+        {% if perm.motif %}
+        <div style="margin-top:8px;font-size:0.8125rem;color:var(--text-muted);">
+          <em>"{{ perm.motif|truncatechars:100 }}"</em>
+        </div>
+        {% endif %}
+        {% if perm.commentaire_rh %}
+        <div style="margin-top:8px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:0.8125rem;">
+          <span style="color:var(--text-muted);">Commentaire RH : </span>{{ perm.commentaire_rh }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">🕐</div>
+  <div class="empty-state-title">Aucune demande de permission</div>
+  <a href="{% url 'espace_demander_permission' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Faire une demande</a>
+</div>
+{% endif %}
+{% endblock %}

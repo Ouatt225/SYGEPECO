@@ -1,0 +1,169 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ contractuel.get_full_name }}{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'contractuel_list' %}" style="color:var(--text-muted);">Contractuels</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">{{ contractuel.get_full_name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div></div>
+  <div class="page-header-actions">
+    <a href="{% url 'contractuel_update' contractuel.pk %}" class="btn btn-secondary">✏ Modifier</a>
+    <a href="{% url 'contrat_create' %}" class="btn btn-primary">+ Nouveau contrat</a>
+  </div>
+</div>
+
+<!-- Header profil -->
+<div class="detail-header">
+  {% if contractuel.photo %}
+  <img src="{{ contractuel.photo.url }}" class="detail-avatar">
+  {% else %}
+  <div class="avatar-placeholder avatar-lg">{{ contractuel.nom|slice:":1" }}{{ contractuel.prenom|slice:":1" }}</div>
+  {% endif %}
+  <div class="detail-info">
+    <div class="detail-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
+    <div class="detail-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} • {{ contractuel.departement|default:"Département non défini" }}</div>
+    <div class="detail-meta">
+      <div class="detail-meta-item"><span>Matricule : </span><strong>{{ contractuel.matricule }}</strong></div>
+      <div class="detail-meta-item"><span>Email : </span>{{ contractuel.email }}</div>
+      <div class="detail-meta-item"><span>Tél : </span>{{ contractuel.telephone }}</div>
+      <div class="detail-meta-item"><span>Embauche : </span>{{ contractuel.date_embauche|date:"d/m/Y" }}</div>
+    </div>
+    <div style="margin-top:12px;">
+      {% if contractuel.statut == 'ACTIF' %}<span class="badge badge-success">● Actif</span>
+      {% elif contractuel.statut == 'INACTIF' %}<span class="badge badge-muted">● Inactif</span>
+      {% else %}<span class="badge badge-warning">● Suspendu</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Grille infos -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h3 class="card-title">📋 Informations personnelles</h3></div>
+  <div class="info-grid">
+    <div class="info-item"><div class="info-item-label">Genre</div><div class="info-item-value">{{ contractuel.get_genre_display }}</div></div>
+    <div class="info-item"><div class="info-item-label">Date de naissance</div><div class="info-item-value">{{ contractuel.date_naissance|date:"d/m/Y" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Lieu de naissance</div><div class="info-item-value">{{ contractuel.lieu_naissance|default:"—" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Nationalité</div><div class="info-item-value">{{ contractuel.nationalite }}</div></div>
+    <div class="info-item"><div class="info-item-label">Adresse</div><div class="info-item-value">{{ contractuel.adresse|default:"—" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Créé le</div><div class="info-item-value">{{ contractuel.created_at|date:"d/m/Y" }}</div></div>
+  </div>
+</div>
+
+<!-- Contrats -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <h3 class="card-title">📋 Contrats ({{ contrats.count }})</h3>
+    <a href="{% url 'contrat_create' %}" class="btn btn-secondary btn-sm">+ Nouveau</a>
+  </div>
+  {% if contrats %}
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Type</th><th>Début</th><th>Fin</th><th>Salaire</th><th>Statut</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for c in contrats %}
+        <tr>
+          <td>{{ c.type_contrat }}</td>
+          <td>{{ c.date_debut|date:"d/m/Y" }}</td>
+          <td>{{ c.date_fin|date:"d/m/Y"|default:"—" }}</td>
+          <td>{{ c.salaire|floatformat:0 }} FCFA</td>
+          <td>
+            {% if c.statut == 'EN_COURS' %}<span class="badge badge-success">En cours</span>
+            {% elif c.statut == 'EXPIRE' %}<span class="badge badge-danger">Expiré</span>
+            {% elif c.statut == 'RESILIE' %}<span class="badge badge-warning">Résilié</span>
+            {% else %}<span class="badge badge-info">Renouvelé</span>{% endif %}
+          </td>
+          <td><a href="{% url 'contrat_detail' c.pk %}" class="btn btn-secondary btn-sm">Voir</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucun contrat</div></div>
+  {% endif %}
+</div>
+
+<!-- Présences récentes -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <h3 class="card-title">📅 Présences récentes</h3>
+    <a href="{% url 'presence_list' %}" class="btn btn-secondary btn-sm">Voir tout</a>
+  </div>
+  {% if presences %}
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Arrivée</th><th>Départ</th><th>Statut</th></tr></thead>
+      <tbody>
+        {% for p in presences %}
+        <tr>
+          <td>{{ p.date|date:"d/m/Y" }}</td>
+          <td>{{ p.heure_arrivee|default:"—" }}</td>
+          <td>{{ p.heure_depart|default:"—" }}</td>
+          <td>
+            {% if p.statut == 'PRESENT' %}<span class="badge badge-success">Présent</span>
+            {% elif p.statut == 'ABSENT' %}<span class="badge badge-danger">Absent</span>
+            {% elif p.statut == 'RETARD' %}<span class="badge badge-warning">Retard</span>
+            {% else %}<span class="badge badge-info">{{ p.get_statut_display }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">Aucune présence enregistrée</div></div>
+  {% endif %}
+</div>
+
+<div style="display:flex;gap:16px;">
+  <!-- Congés -->
+  <div class="card" style="flex:1;">
+    <div class="card-header">
+      <h3 class="card-title">🏖 Congés récents</h3>
+      <a href="{% url 'conge_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>
+    </div>
+    {% if conges %}
+    {% for cg in conges %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:0.875rem;font-weight:500;">{{ cg.get_type_conge_display }}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">{{ cg.date_debut|date:"d/m" }} → {{ cg.date_fin|date:"d/m/Y" }} ({{ cg.nb_jours }}j)</div>
+      </div>
+      {% if cg.statut == 'APPROUVE' %}<span class="badge badge-success">Approuvé</span>
+      {% elif cg.statut == 'REJETE' %}<span class="badge badge-danger">Rejeté</span>
+      {% else %}<span class="badge badge-warning">En attente</span>{% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state" style="padding:20px;"><div class="empty-state-icon">🏖</div><div class="empty-state-title">Aucun congé</div></div>
+    {% endif %}
+  </div>
+
+  <!-- Permissions -->
+  <div class="card" style="flex:1;">
+    <div class="card-header">
+      <h3 class="card-title">🎫 Permissions récentes</h3>
+      <a href="{% url 'permission_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>
+    </div>
+    {% if permissions %}
+    {% for pm in permissions %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:0.875rem;font-weight:500;">{{ pm.date|date:"d/m/Y" }}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">{{ pm.heure_debut }} → {{ pm.heure_fin }}</div>
+      </div>
+      {% if pm.statut == 'APPROUVE' %}<span class="badge badge-success">Approuvé</span>
+      {% elif pm.statut == 'REJETE' %}<span class="badge badge-danger">Rejeté</span>
+      {% else %}<span class="badge badge-warning">En attente</span>{% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state" style="padding:20px;"><div class="empty-state-icon">🎫</div><div class="empty-state-title">Aucune permission</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

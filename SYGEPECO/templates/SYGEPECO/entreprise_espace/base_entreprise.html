@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Espace Entreprise{% endblock %} — SYGEPECO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
+
+  <style>
+  /* ── Palette Entreprise (bleu corporate) ─────────────────── */
+  :root {
+    --ent-accent:      #2563EB;
+    --ent-accent-dim:  rgba(37,99,235,.14);
+    --ent-accent-light:#60A5FA;
+    --ent-gradient:    linear-gradient(135deg, #1D4ED8 0%, #2563EB 60%, #3B82F6 100%);
+  }
+
+  /* Sidebar */
+  .sidebar { background: #0D1B3E; border-right: 1px solid rgba(37,99,235,.18); }
+  .sidebar-logo { color: #F1F5F9; }
+  .sidebar-logo span { color: var(--ent-accent-light); }
+  .nav-link { color: #94A3B8; }
+  .nav-link:hover, .nav-link.active {
+    background: var(--ent-accent-dim);
+    color: var(--ent-accent-light);
+  }
+  .nav-link.active { border-left: 3px solid var(--ent-accent); }
+  .nav-section { color: #475569; }
+
+  /* Badge entreprise */
+  .badge-espace {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 20px; font-size: .78rem;
+    font-weight: 700; letter-spacing: .04em;
+    background: var(--ent-accent-dim);
+    color: var(--ent-accent-light);
+    border: 1px solid rgba(37,99,235,.3);
+  }
+
+  /* Boutons accent */
+  .btn-ent {
+    background: var(--ent-gradient);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .875rem;
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+  }
+  .btn-ent:hover { opacity: .9; transform: translateY(-1px); }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        🏢 <span>{% if entreprise %}{{ entreprise.sigle|default:entreprise.nom }}{% else %}SYGEPECO{% endif %}</span>
+      </div>
+      <div style="font-size:.72rem;color:#475569;margin-top:4px;padding-left:28px;">
+        Espace Entreprise
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Navigation</div>
+
+      <a href="{% url 'entreprise_espace_home' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_home' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Tableau de bord
+      </a>
+
+      <a href="{% url 'entreprise_espace_agents' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_agents' %}active{% endif %}">
+        <span class="nav-icon">👥</span> Mes agents
+      </a>
+
+      <a href="{% url 'entreprise_espace_conges' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_conges' %}active{% endif %}">
+        <span class="nav-icon">🌴</span> Congés
+      </a>
+
+      <a href="{% url 'entreprise_espace_permissions' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_permissions' %}active{% endif %}">
+        <span class="nav-icon">📋</span> Permissions
+      </a>
+
+      <a href="{% url 'entreprise_espace_presences' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_presences' %}active{% endif %}">
+        <span class="nav-icon">🕐</span> Présences
+      </a>
+
+      <div class="nav-section" style="margin-top:16px;">Compte</div>
+      <a href="{% url 'logout' %}" class="nav-link" style="color:#EF4444;">
+        <span class="nav-icon">🚪</span> Déconnexion
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="font-size:.75rem;color:#475569;">
+        Connecté en tant que<br>
+        <strong style="color:#94A3B8;">{{ request.user.get_full_name|default:request.user.username }}</strong>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Navbar top -->
+    <header class="navbar">
+      <div class="navbar-left">
+        <button class="sidebar-toggle" onclick="document.querySelector('.app-layout').classList.toggle('sidebar-collapsed')">☰</button>
+        <div style="font-size:.9rem;color:var(--text-muted);">
+          {% block breadcrumb %}Espace Entreprise{% endblock %}
+        </div>
+      </div>
+      <div class="navbar-right">
+        <span class="badge-espace">🏢 Gestionnaire</span>
+      </div>
+    </header>
+
+    <!-- Messages Django -->
+    {% if messages %}
+    <div style="padding:0 28px;margin-top:12px;">
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}" style="margin-bottom:8px;">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Contenu -->
+    <div class="page-content" style="padding:28px;">
+      {% block content %}{% endblock %}
+    </div>
+
+  </main>
+</div>
+
+{% load static %}
+<script src="{% static 'SYGEPECO/js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

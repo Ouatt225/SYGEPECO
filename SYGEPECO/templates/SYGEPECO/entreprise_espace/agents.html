@@ -1,0 +1,106 @@
+{% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
+{% block title %}Mes agents{% endblock %}
+{% block breadcrumb %}Mes agents{% endblock %}
+
+{% block extra_css %}
+<style>
+.agent-table { width:100%; border-collapse:collapse; }
+.agent-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.agent-table td {
+  padding: 13px 16px;
+  font-size: .875rem;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: middle;
+}
+.agent-table tr:hover td { background: rgba(37,99,235,.04); }
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--ent-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: .85rem; color: #fff;
+  flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Agents</h1>
+    <p class="page-subtitle">{{ total }} agent{{ total|pluralize }} au total</p>
+  </div>
+</div>
+
+<!-- Filtres -->
+<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (nom, matricule…)" class="form-control" style="max-width:280px;">
+  <select name="statut" class="form-control" style="max-width:160px;">
+    <option value="">Tous les statuts</option>
+    <option value="ACTIF" {% if statut == 'ACTIF' %}selected{% endif %}>Actif</option>
+    <option value="INACTIF" {% if statut == 'INACTIF' %}selected{% endif %}>Inactif</option>
+    <option value="SUSPENDU" {% if statut == 'SUSPENDU' %}selected{% endif %}>Suspendu</option>
+  </select>
+  <button type="submit" class="btn-ent">Filtrer</button>
+  {% if q or statut %}<a href="{% url 'entreprise_espace_agents' %}" class="btn btn-secondary btn-sm" style="align-self:center;">✕ Réinitialiser</a>{% endif %}
+</form>
+
+<!-- Tableau -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+  <table class="agent-table">
+    <thead>
+      <tr>
+        <th>Agent</th>
+        <th>Matricule</th>
+        <th>Poste</th>
+        <th>Département</th>
+        <th>Statut</th>
+        <th>Embauché le</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in agents %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="avatar">{{ a.nom|slice:":1" }}{{ a.prenom|slice:":1" }}</div>
+            <div>
+              <div style="font-weight:600;">{{ a.nom }} {{ a.prenom }}</div>
+              <div style="font-size:.75rem;color:var(--text-muted);">{{ a.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td><code style="font-size:.8rem;background:rgba(255,255,255,.05);padding:3px 8px;border-radius:6px;">{{ a.matricule }}</code></td>
+        <td>{{ a.poste.titre|default:"—" }}</td>
+        <td>{{ a.departement.nom|default:"—" }}</td>
+        <td>
+          {% if a.statut == 'ACTIF' %}
+            <span class="badge badge-success">● Actif</span>
+          {% elif a.statut == 'INACTIF' %}
+            <span class="badge badge-danger">● Inactif</span>
+          {% else %}
+            <span class="badge badge-warning">● Suspendu</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--text-muted);">{{ a.date_embauche|date:"d/m/Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
+          Aucun agent trouvé.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Mon Espace{% endblock %} — SYGEPECO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
+  <style>
+    /* Palette espace contractuel : accent violet/indigo */
+    :root {
+      --espace-accent: #7C6AF7;
+      --espace-accent-dim: rgba(124, 106, 247, 0.15);
+      --espace-accent-light: #9B8BFF;
+    }
+    .sidebar { border-right-color: rgba(124,106,247,0.15); }
+    .nav-item.active { background: var(--espace-accent-dim); color: var(--espace-accent); }
+    .nav-item.active::before { background: var(--espace-accent); }
+    .logo-icon { background: linear-gradient(135deg, var(--espace-accent) 0%, #4A3CB5 100%); box-shadow: 0 4px 12px rgba(124,106,247,0.3); }
+    .btn-primary { background: linear-gradient(135deg, var(--espace-accent) 0%, #5340CC 100%); box-shadow: 0 8px 24px rgba(124,106,247,0.25); }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--espace-accent-light) 0%, var(--espace-accent) 100%); color: #fff; }
+
+    /* Badge "Mon Espace" */
+    .espace-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--espace-accent-dim);
+      color: var(--espace-accent);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar simplifiée -->
+<aside class="sidebar" id="sidebar">
+  <a href="{% url 'espace_home' %}" class="sidebar-logo">
+    <div class="logo-icon">👤</div>
+    <div class="logo-text">
+      <div class="logo-name">Mon Espace</div>
+      <div class="logo-tagline">{{ request.user.contractuel.get_full_name }}</div>
+    </div>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Navigation</div>
+      <a href="{% url 'espace_home' %}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Tableau de bord</span>
+      </a>
+      <a href="{% url 'espace_profil' %}" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Mon profil</span>
+      </a>
+      <a href="{% url 'espace_mon_contrat' %}" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Mon contrat</span>
+      </a>
+      <a href="{% url 'espace_mes_presences' %}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Mes présences</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Demandes</div>
+      <a href="{% url 'espace_mes_conges' %}" class="nav-item">
+        <span class="nav-icon">🏖</span>
+        <span class="nav-label">Mes congés</span>
+      </a>
+      <a href="{% url 'espace_demander_conge' %}" class="nav-item">
+        <span class="nav-icon">＋</span>
+        <span class="nav-label">Demander congé</span>
+      </a>
+      <a href="{% url 'espace_mes_permissions' %}" class="nav-item">
+        <span class="nav-icon">🎫</span>
+        <span class="nav-label">Mes permissions</span>
+      </a>
+      <a href="{% url 'espace_demander_permission' %}" class="nav-item">
+        <span class="nav-icon">＋</span>
+        <span class="nav-label">Demander permission</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      {% with c=request.user.contractuel %}
+      {% if c.photo %}
+      <img src="{{ c.photo.url }}" class="avatar">
+      {% else %}
+      <div class="avatar-placeholder">{{ c.nom|slice:":1" }}{{ c.prenom|slice:":1" }}</div>
+      {% endif %}
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ c.get_full_name }}</div>
+        <div class="sidebar-user-role">{{ c.poste.titre|default:"Contractuel" }}</div>
+      </div>
+      {% endwith %}
+    </div>
+    <a href="{% url 'logout' %}" class="nav-item" style="color:var(--accent-red);margin-top:4px;">
+      <span class="nav-icon">🚪</span>
+      <span class="nav-label">Déconnexion</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Contenu principal -->
+<div class="main-content" id="mainContent">
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-left">
+      <button class="btn-sidebar-toggle" id="btnSidebarToggle">☰</button>
+      <div class="navbar-breadcrumb">
+        <span class="breadcrumb-item"><a href="{% url 'espace_home' %}" style="color:var(--text-muted);text-decoration:none;">Mon Espace</a></span>
+        {% block breadcrumb %}{% endblock %}
+        <span class="espace-badge">👤 Contractuel</span>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <span class="navbar-date" id="navbarDate"></span>
+      <a href="{% url 'espace_profil_modifier' %}" class="btn btn-secondary btn-sm">⚙ Mon profil</a>
+    </div>
+  </nav>
+
+  <!-- Messages Django -->
+  {% if messages %}
+  <div class="django-messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" data-auto-dismiss>
+      <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✗{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}</span>
+      <span>{{ message }}</span>
+      <button class="alert-close" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="page-content fade-in">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{% static 'SYGEPECO/js/main.js' %}"></script>
+<script src="{% static 'SYGEPECO/js/dashboard-3d.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

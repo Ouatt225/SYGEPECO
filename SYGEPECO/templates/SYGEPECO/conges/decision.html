@@ -1,0 +1,26 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ action|capfirst }} congé{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{{ action|capfirst }} le congé</h1>
+  <a href="{% url 'conge_detail' conge.pk %}" class="btn btn-secondary">← Retour</a>
+</div>
+<div class="card" style="max-width:560px;">
+  <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;">
+    <div style="font-weight:600;">{{ conge.contractuel.get_full_name }}</div>
+    <div style="font-size:0.875rem;color:var(--text-muted);">{{ conge.get_type_conge_display }} — {{ conge.date_debut|date:"d/m/Y" }} → {{ conge.date_fin|date:"d/m/Y" }} ({{ conge.nb_jours }}j)</div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group"><label class="form-label">Commentaire (optionnel)</label>{{ form.commentaire_rh }}</div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <a href="{% url 'conge_detail' conge.pk %}" class="btn btn-secondary">Annuler</a>
+      {% if action == 'approuver' %}
+      <button type="submit" class="btn btn-success">✓ Approuver</button>
+      {% else %}
+      <button type="submit" class="btn btn-danger">✗ Rejeter</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<nav class="navbar" id="navbar">
+  <div class="navbar-left">
+    <button class="btn-sidebar-toggle" id="btnSidebarToggle" title="Toggle sidebar">
+      ☰
+    </button>
+    <div class="navbar-breadcrumb">
+      <span class="breadcrumb-item"><a href="{% url 'dashboard' %}" style="color:var(--text-muted);text-decoration:none;">SYGEPECO</a></span>
+      {% block breadcrumb %}{% endblock %}
+    </div>
+  </div>
+
+  <div class="navbar-right">
+    <span class="navbar-date" id="navbarDate"></span>
+
+    <button class="btn-notif" title="Notifications">
+      🔔
+      {% if total_notifications > 0 %}<span class="notif-dot"></span>{% endif %}
+    </button>
+
+    <a href="#" class="navbar-profile">
+      <div class="avatar-placeholder" style="width:30px;height:30px;font-size:0.75rem;">
+        {{ request.user.get_full_name|default:request.user.username|slice:":2"|upper }}
+      </div>
+      <div>
+        <div class="navbar-profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="navbar-profile-role">{% if request.user.profile %}{{ request.user.profile.get_role_display }}{% else %}Utilisateur{% endif %}</div>
+      </div>
+    </a>
+  </div>
+</nav>

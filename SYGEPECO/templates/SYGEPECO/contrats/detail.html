@@ -1,0 +1,45 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Contrat {{ contrat.pk }}{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'contrat_list' %}" style="color:var(--text-muted);">Contrats</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Contrat #{{ contrat.pk }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Contrat #{{ contrat.pk }}</h1>
+    <p class="page-subtitle">{{ contrat.contractuel.get_full_name }} — {{ contrat.type_contrat }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'contrat_update' contrat.pk %}" class="btn btn-secondary">✏ Modifier</a>
+    {% if contrat.statut == 'EN_COURS' %}
+    <a href="{% url 'contrat_renouveler' contrat.pk %}" class="btn btn-primary">🔄 Renouveler</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="info-item"><div class="info-item-label">Contractuel</div><div class="info-item-value"><a href="{% url 'contractuel_detail' contrat.contractuel.pk %}">{{ contrat.contractuel.get_full_name }}</a></div></div>
+    <div class="info-item"><div class="info-item-label">Type de contrat</div><div class="info-item-value">{{ contrat.type_contrat }}</div></div>
+    <div class="info-item"><div class="info-item-label">Statut</div><div class="info-item-value">
+      {% if contrat.statut == 'EN_COURS' %}<span class="badge badge-success">En cours</span>
+      {% elif contrat.statut == 'EXPIRE' %}<span class="badge badge-danger">Expiré</span>
+      {% elif contrat.statut == 'RESILIE' %}<span class="badge badge-warning">Résilié</span>
+      {% else %}<span class="badge badge-info">Renouvelé</span>{% endif %}
+    </div></div>
+    <div class="info-item"><div class="info-item-label">Date de début</div><div class="info-item-value">{{ contrat.date_debut|date:"d/m/Y" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Date de fin</div><div class="info-item-value">{{ contrat.date_fin|date:"d/m/Y"|default:"Indéterminé" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Salaire mensuel</div><div class="info-item-value" style="color:var(--accent-gold);font-weight:700;">{{ contrat.salaire|floatformat:0 }} FCFA</div></div>
+    <div class="info-item"><div class="info-item-label">Créé par</div><div class="info-item-value">{{ contrat.created_by|default:"—" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Créé le</div><div class="info-item-value">{{ contrat.created_at|date:"d/m/Y" }}</div></div>
+  </div>
+  {% if contrat.observations %}
+  <div class="divider"></div>
+  <div class="info-item"><div class="info-item-label">Observations</div><div class="info-item-value" style="white-space:pre-line;">{{ contrat.observations }}</div></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'contractuel_list' %}" style="color:var(--text-muted);">Contractuels</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">{{ titre }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titre }}</h1>
+    <p class="page-subtitle">Remplissez les informations du contractuel.</p>
+  </div>
+  <a href="{% url 'contractuel_list' %}" class="btn btn-secondary">← Retour</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-header"><h3 class="card-title">👤 Informations personnelles</h3></div>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label class="form-label">Matricule *</label>
+        {{ form.matricule }}
+        {% if form.matricule.errors %}<small style="color:var(--accent-red);">{{ form.matricule.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom *</label>
+        {{ form.nom }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prénom *</label>
+        {{ form.prenom }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genre *</label>
+        {{ form.genre }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de naissance *</label>
+        {{ form.date_naissance }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lieu de naissance</label>
+        {{ form.lieu_naissance }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nationalité</label>
+        {{ form.nationalite }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        {{ form.email }}
+        {% if form.email.errors %}<small style="color:var(--accent-red);">{{ form.email.errors.0 }}</small>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Téléphone *</label>
+        {{ form.telephone }}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adresse</label>
+      {{ form.adresse }}
+    </div>
+    <div class="form-group">
+      <label class="form-label">Photo</label>
+      {% if obj and obj.photo %}
+      <div style="margin-bottom:10px;">
+        <img src="{{ obj.photo.url }}" id="photoPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
+      </div>
+      {% else %}
+      <img id="photoPreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);display:none;">
+      {% endif %}
+      <input type="file" id="photoInput" name="photo" class="form-control" accept="image/*" style="margin-top:8px;">
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-header"><h3 class="card-title">🏢 Informations professionnelles</h3></div>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label class="form-label">Département</label>
+        {{ form.departement }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Poste</label>
+        {{ form.poste }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date d'embauche *</label>
+        {{ form.date_embauche }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        {{ form.statut }}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end;">
+    <a href="{% url 'contractuel_list' %}" class="btn btn-secondary">Annuler</a>
+    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+  </div>
+</form>
+{% endblock %}

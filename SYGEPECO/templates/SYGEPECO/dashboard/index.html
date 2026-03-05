@@ -1,0 +1,189 @@
+{% extends 'SYGEPECO/base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Tableau de bord</span>
+{% endblock %}
+
+{% block content %}
+<!-- Canvas background subtil -->
+<canvas id="bgCanvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:0;opacity:0.4;"></canvas>
+
+<div style="position:relative;z-index:1;">
+
+  <!-- En-tête page -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Tableau de bord</h1>
+      <p class="page-subtitle">Vue d'ensemble — {{ today|date:"l d F Y" }}</p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{% url 'presence_create' %}" class="btn btn-secondary btn-sm">📅 Pointer une présence</a>
+      <a href="{% url 'contractuel_create' %}" class="btn btn-primary btn-sm">+ Nouveau contractuel</a>
+    </div>
+  </div>
+
+  <!-- Stats principales (4 cartes 3D) -->
+  <div class="stats-grid">
+
+    <div class="stat-card gold">
+      <div class="stat-card-icon">👥</div>
+      <div class="stat-card-value"><span class="counter-value">{{ total_actifs }}</span></div>
+      <div class="stat-card-label">Employés actifs</div>
+      <span class="stat-card-badge" style="background:var(--accent-gold-dim);color:var(--accent-gold);">↑ Total effectif</span>
+    </div>
+
+    <div class="stat-card blue">
+      <div class="stat-card-icon">📅</div>
+      <div class="stat-card-value"><span class="counter-value">{{ presences_today }}</span></div>
+      <div class="stat-card-label">Présents aujourd'hui</div>
+      <span class="stat-card-badge" style="background:var(--accent-blue-dim);color:var(--accent-blue);">{{ taux_presence }}% de présence</span>
+    </div>
+
+    <div class="stat-card green">
+      <div class="stat-card-icon">☁</div>
+      <div class="stat-card-value"><span class="counter-value">{{ conges_attente }}</span></div>
+      <div class="stat-card-label">Congés en attente</div>
+      {% if conges_attente == 0 %}
+      <span class="stat-card-badge" style="background:var(--accent-green-dim);color:var(--accent-green);">✓ À jour</span>
+      {% else %}
+      <span class="stat-card-badge" style="background:var(--accent-orange-dim);color:var(--accent-orange);">↓ À traiter</span>
+      {% endif %}
+    </div>
+
+    <div class="stat-card red">
+      <div class="stat-card-icon">🎫</div>
+      <div class="stat-card-value"><span class="counter-value">{{ permissions_attente }}</span></div>
+      <div class="stat-card-label">Permissions en attente</div>
+      {% if permissions_attente == 0 %}
+      <span class="stat-card-badge" style="background:var(--accent-green-dim);color:var(--accent-green);">✓ À jour</span>
+      {% else %}
+      <span class="stat-card-badge" style="background:var(--accent-red-dim);color:var(--accent-red);">↓ À traiter</span>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Mini stats (2e rangée) -->
+  <div class="mini-stats-grid">
+    <div class="mini-stat-card">
+      <div class="mini-stat-dot" style="background:var(--accent-orange);"></div>
+      <div>
+        <div class="mini-stat-value" style="color:var(--accent-orange);"><span class="counter-value">{{ absents_today }}</span></div>
+        <div class="mini-stat-label">Absents enregistrés</div>
+      </div>
+    </div>
+    <div class="mini-stat-card">
+      <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
+      <div>
+        <div class="mini-stat-value" style="color:var(--accent-green);"><span class="counter-value">{{ en_conge_today }}</span></div>
+        <div class="mini-stat-label">En congé aujourd'hui</div>
+      </div>
+    </div>
+    <div class="mini-stat-card">
+      <div class="mini-stat-dot" style="background:var(--accent-blue);"></div>
+      <div>
+        <div class="mini-stat-value" style="color:var(--accent-blue);"><span class="counter-value">{{ en_permission_today }}</span></div>
+        <div class="mini-stat-label">En permission aujourd'hui</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard grid: graphique + alertes -->
+  <div class="dashboard-grid">
+
+    <!-- Graphique présences -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">📊 Présences — 7 derniers jours</h3>
+        <a href="{% url 'presence_list' %}" class="btn btn-secondary btn-sm">Voir tout</a>
+      </div>
+      <div class="chart-container">
+        <canvas id="chartPresences"></canvas>
+      </div>
+    </div>
+
+    <!-- Alertes RH -->
+    <div class="alerts-panel">
+      <div class="alerts-header">
+        <span style="font-size:1.1rem;">⚠</span>
+        <span class="alerts-header-title" style="color:var(--accent-gold);">Alertes RH</span>
+      </div>
+
+      {% if anniversaires %}
+        {% for item in anniversaires %}
+        <div class="alert-item">
+          <div class="alert-item-icon" style="background:rgba(212,168,83,0.1);color:var(--accent-gold);">🎂</div>
+          <div class="alert-item-text">
+            <strong>{{ item.contractuel.get_full_name }}</strong>
+            fête son anniversaire
+            {% if item.jours == 0 %}aujourd'hui !
+            {% elif item.jours == 1 %}demain ({{ item.date|date:"d/m" }}).
+            {% else %}dans {{ item.jours }} jours ({{ item.date|date:"d/m" }}).
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if contrats_expirer %}
+        {% for contrat in contrats_expirer %}
+        <div class="alert-item">
+          <div class="alert-item-icon" style="background:rgba(239,68,68,0.1);color:var(--accent-red);">📋</div>
+          <div class="alert-item-text">
+            <strong>{{ contrat.contractuel.get_full_name }}</strong> — contrat expire le {{ contrat.date_fin|date:"d/m/Y" }}
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if conges_attente > 0 %}
+      <div class="alert-item">
+        <div class="alert-item-icon" style="background:rgba(249,115,22,0.1);color:var(--accent-orange);">🏖</div>
+        <div class="alert-item-text">
+          <strong>{{ conges_attente }} demande{{ conges_attente|pluralize }} de congé</strong> en attente de traitement.
+          <a href="{% url 'conge_list' %}?statut=EN_ATTENTE" style="color:var(--accent-gold);">Traiter →</a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if permissions_attente > 0 %}
+      <div class="alert-item">
+        <div class="alert-item-icon" style="background:rgba(74,108,247,0.1);color:var(--accent-blue);">🎫</div>
+        <div class="alert-item-text">
+          <strong>{{ permissions_attente }} permission{{ permissions_attente|pluralize }}</strong> en attente.
+          <a href="{% url 'permission_list' %}?statut=EN_ATTENTE" style="color:var(--accent-gold);">Traiter →</a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not anniversaires and not contrats_expirer and conges_attente == 0 and permissions_attente == 0 %}
+      <div class="empty-state" style="padding:30px;">
+        <div style="font-size:1.5rem;margin-bottom:8px;">✓</div>
+        <p style="color:var(--accent-green);font-size:0.875rem;">Aucune alerte en cours</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Accès rapides -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">⚡ Accès rapides</h3>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+      <a href="{% url 'contractuel_create' %}" class="btn btn-secondary" style="justify-content:center;">👥 Nouveau contractuel</a>
+      <a href="{% url 'contrat_create' %}" class="btn btn-secondary" style="justify-content:center;">📋 Nouveau contrat</a>
+      <a href="{% url 'conge_create' %}" class="btn btn-secondary" style="justify-content:center;">🏖 Demande congé</a>
+      <a href="{% url 'permission_create' %}" class="btn btn-secondary" style="justify-content:center;">🎫 Demande permission</a>
+      <a href="{% url 'presence_create' %}" class="btn btn-secondary" style="justify-content:center;">📅 Pointer présence</a>
+      <a href="{% url 'rapports_exporter' %}" class="btn btn-secondary" style="justify-content:center;">📥 Export Excel</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

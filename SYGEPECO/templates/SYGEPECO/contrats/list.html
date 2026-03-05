@@ -1,0 +1,63 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Contrats{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Contrats</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Contrats</h1>
+    <p class="page-subtitle">{{ contrats.count }} contrat{{ contrats.count|pluralize }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'contrat_create' %}" class="btn btn-primary">+ Nouveau contrat</a>
+  </div>
+</div>
+
+<!-- Filtres statut -->
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+  <a href="{% url 'contrat_list' %}" class="btn btn-sm {% if not statut %}btn-primary{% else %}btn-secondary{% endif %}">Tous</a>
+  <a href="?statut=EN_COURS" class="btn btn-sm {% if statut == 'EN_COURS' %}btn-primary{% else %}btn-secondary{% endif %}">En cours</a>
+  <a href="?statut=EXPIRE"   class="btn btn-sm {% if statut == 'EXPIRE' %}btn-primary{% else %}btn-secondary{% endif %}">Expirés</a>
+  <a href="?statut=RESILIE"  class="btn btn-sm {% if statut == 'RESILIE' %}btn-primary{% else %}btn-secondary{% endif %}">Résiliés</a>
+  <a href="?statut=RENOUVELE" class="btn btn-sm {% if statut == 'RENOUVELE' %}btn-primary{% else %}btn-secondary{% endif %}">Renouvelés</a>
+</div>
+
+<div class="table-wrapper">
+  {% if contrats %}
+  <table class="data-table">
+    <thead><tr><th>Contractuel</th><th>Type</th><th>Début</th><th>Fin</th><th>Salaire</th><th>Statut</th><th style="text-align:center;">Actions</th></tr></thead>
+    <tbody>
+      {% for c in contrats %}
+      <tr>
+        <td>
+          <div style="font-weight:600;">{{ c.contractuel.get_full_name }}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">{{ c.contractuel.matricule }}</div>
+        </td>
+        <td><span class="badge badge-gold">{{ c.type_contrat }}</span></td>
+        <td>{{ c.date_debut|date:"d/m/Y" }}</td>
+        <td>{{ c.date_fin|date:"d/m/Y"|default:"Indéterminé" }}</td>
+        <td style="font-weight:600;">{{ c.salaire|floatformat:0 }} <span style="color:var(--text-muted);font-size:0.75rem;">FCFA</span></td>
+        <td>
+          {% if c.statut == 'EN_COURS' %}<span class="badge badge-success">En cours</span>
+          {% elif c.statut == 'EXPIRE' %}<span class="badge badge-danger">Expiré</span>
+          {% elif c.statut == 'RESILIE' %}<span class="badge badge-warning">Résilié</span>
+          {% else %}<span class="badge badge-info">Renouvelé</span>{% endif %}
+        </td>
+        <td style="text-align:center;">
+          <div style="display:flex;gap:6px;justify-content:center;">
+            <a href="{% url 'contrat_detail' c.pk %}" class="btn btn-secondary btn-sm">👁</a>
+            <a href="{% url 'contrat_update' c.pk %}" class="btn btn-secondary btn-sm">✏</a>
+            {% if c.statut == 'EN_COURS' %}<a href="{% url 'contrat_renouveler' c.pk %}" class="btn btn-secondary btn-sm" title="Renouveler">🔄</a>{% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucun contrat</div></div>
+  {% endif %}
+</div>
+{% endblock %}

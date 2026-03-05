@@ -1,0 +1,133 @@
+{% extends 'SYGEPECO/espace/base_espace.html' %}
+{% block title %}Mes présences{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mes présences</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mes présences</h1>
+    <p class="page-subtitle">{{ mois_label }} — {{ presences.count }} enregistrement{{ presences.count|pluralize }}</p>
+  </div>
+</div>
+
+<!-- Navigation mois -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+  <a href="?mois={{ mois_prev }}&annee={{ annee_prev }}" class="btn btn-sm btn-secondary">← Mois précédent</a>
+  <span style="font-weight:600;color:var(--text-primary);">{{ mois_label }}</span>
+  {% if not is_current_month %}
+  <a href="?mois={{ mois_next }}&annee={{ annee_next }}" class="btn btn-sm btn-secondary">Mois suivant →</a>
+  {% else %}
+  <span class="btn btn-sm btn-secondary" style="opacity:.4;cursor:default;">Mois suivant →</span>
+  {% endif %}
+</div>
+
+<!-- Stats du mois -->
+<div class="mini-stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
+    <div>
+      <div class="mini-stat-value" style="color:var(--accent-green);">{{ nb_presents }}</div>
+      <div class="mini-stat-label">Présent(s)</div>
+    </div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:var(--accent-red);"></div>
+    <div>
+      <div class="mini-stat-value" style="color:var(--accent-red);">{{ nb_absents }}</div>
+      <div class="mini-stat-label">Absent(s)</div>
+    </div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:#F97316;"></div>
+    <div>
+      <div class="mini-stat-value" style="color:#F97316;">{{ nb_retards }}</div>
+      <div class="mini-stat-label">Retard(s)</div>
+    </div>
+  </div>
+  <div class="mini-stat-card">
+    <div class="mini-stat-dot" style="background:#3B82F6;"></div>
+    <div>
+      <div class="mini-stat-value" style="color:#3B82F6;">{{ nb_justifies }}</div>
+      <div class="mini-stat-label">Justifié(s)</div>
+    </div>
+  </div>
+</div>
+
+{% if presences %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Arrivée</th>
+        <th>Départ</th>
+        <th>Durée</th>
+        <th>Statut</th>
+        <th>Observations</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in presences %}
+      <tr>
+        <td style="white-space:nowrap;font-weight:600;">{{ p.date|date:"D d/m" }}</td>
+        <td>
+          {% if p.heure_arrivee %}
+            <span style="color:var(--accent-green);">{{ p.heure_arrivee|time:"H:i" }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if p.heure_depart %}
+            <span style="color:var(--text-secondary);">{{ p.heure_depart|time:"H:i" }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="color:var(--text-muted);font-size:0.875rem;">
+          {% if p.heure_arrivee and p.heure_depart %}
+            <span id="dur_{{ forloop.counter }}"
+              data-h1="{{ p.heure_arrivee|time:'H:i' }}"
+              data-h2="{{ p.heure_depart|time:'H:i' }}">—</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if p.statut == 'PRESENT' %}<span class="badge badge-success">Présent</span>
+          {% elif p.statut == 'ABSENT' %}<span class="badge badge-danger">Absent</span>
+          {% elif p.statut == 'RETARD' %}<span class="badge badge-warning">Retard</span>
+          {% elif p.statut == 'JUSTIFIE' %}<span class="badge" style="background:rgba(59,130,246,.15);color:#3B82F6;">Justifié</span>
+          {% elif p.statut == 'CONGE' %}<span class="badge" style="background:rgba(124,106,247,.15);color:var(--espace-accent);">Congé</span>
+          {% elif p.statut == 'PERMISSION' %}<span class="badge" style="background:rgba(249,115,22,.15);color:#F97316;">Permission</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="color:var(--text-muted);font-size:0.8125rem;">
+          {{ p.observations|default:"—"|truncatechars:40 }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">📅</div>
+  <div class="empty-state-title">Aucune présence enregistrée ce mois</div>
+  <div class="empty-state-subtitle">Les pointages apparaîtront ici une fois saisis par le service RH</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[id^="dur_"]').forEach(el => {
+    const [h1, m1] = el.dataset.h1.split(':').map(Number);
+    const [h2, m2] = el.dataset.h2.split(':').map(Number);
+    const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (mins > 0) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      el.textContent = `${h}h${m > 0 ? String(m).padStart(2,'0') : '00'}`;
+    }
+  });
+});
+</script>
+{% endblock %}

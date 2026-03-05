@@ -1,0 +1,63 @@
+{% extends 'SYGEPECO/espace/base_espace.html' %}
+{% block title %}Mon profil{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mon profil</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Mon profil</h1>
+  <a href="{% url 'espace_profil_modifier' %}" class="btn btn-primary">✏ Modifier mes infos</a>
+</div>
+
+<!-- En-tête profil -->
+<div class="detail-header" style="margin-bottom:20px;">
+  {% if contractuel.photo %}
+  <img src="{{ contractuel.photo.url }}" class="detail-avatar">
+  {% else %}
+  <div class="avatar-placeholder avatar-lg">{{ contractuel.nom|slice:":1" }}{{ contractuel.prenom|slice:":1" }}</div>
+  {% endif %}
+  <div class="detail-info">
+    <div class="detail-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
+    <div class="detail-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} • {{ contractuel.departement|default:"Département non défini" }}</div>
+    <div class="detail-meta">
+      <div class="detail-meta-item"><span>Matricule : </span><strong>{{ contractuel.matricule }}</strong></div>
+      <div class="detail-meta-item"><span>Embauche : </span>{{ contractuel.date_embauche|date:"d/m/Y" }}</div>
+    </div>
+    <div style="margin-top:12px;">
+      {% if contractuel.statut == 'ACTIF' %}<span class="badge badge-success">● Actif</span>
+      {% elif contractuel.statut == 'INACTIF' %}<span class="badge badge-muted">● Inactif</span>
+      {% else %}<span class="badge badge-warning">● Suspendu</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Infos détaillées -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h3 class="card-title">📋 Informations personnelles</h3></div>
+  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="info-item"><div class="info-item-label">Genre</div><div class="info-item-value">{{ contractuel.get_genre_display }}</div></div>
+    <div class="info-item"><div class="info-item-label">Date de naissance</div><div class="info-item-value">{{ contractuel.date_naissance|date:"d/m/Y" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Lieu de naissance</div><div class="info-item-value">{{ contractuel.lieu_naissance|default:"—" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Nationalité</div><div class="info-item-value">{{ contractuel.nationalite }}</div></div>
+    <div class="info-item"><div class="info-item-label">Email</div><div class="info-item-value">{{ contractuel.email }}</div></div>
+    <div class="info-item"><div class="info-item-label">Téléphone</div><div class="info-item-value">{{ contractuel.telephone }}</div></div>
+    <div class="info-item" style="grid-column:span 3;"><div class="info-item-label">Adresse</div><div class="info-item-value">{{ contractuel.adresse|default:"—" }}</div></div>
+  </div>
+</div>
+
+<!-- Contrat actif -->
+{% if contrat_actif %}
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">📋 Contrat actif</h3>
+    <a href="{% url 'espace_mon_contrat' %}" class="btn btn-secondary btn-sm">Détails</a>
+  </div>
+  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="info-item"><div class="info-item-label">Type</div><div class="info-item-value"><span class="badge badge-gold">{{ contrat_actif.type_contrat }}</span></div></div>
+    <div class="info-item"><div class="info-item-label">Début</div><div class="info-item-value">{{ contrat_actif.date_debut|date:"d/m/Y" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Fin</div><div class="info-item-value">{{ contrat_actif.date_fin|date:"d/m/Y"|default:"Indéterminé" }}</div></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

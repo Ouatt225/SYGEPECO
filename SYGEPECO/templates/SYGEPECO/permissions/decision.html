@@ -1,0 +1,26 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ action|capfirst }} permission{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{{ action|capfirst }} la permission</h1>
+  <a href="{% url 'permission_detail' permission.pk %}" class="btn btn-secondary">← Retour</a>
+</div>
+<div class="card" style="max-width:560px;">
+  <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;">
+    <div style="font-weight:600;">{{ permission.contractuel.get_full_name }}</div>
+    <div style="font-size:0.875rem;color:var(--text-muted);">{{ permission.date|date:"d/m/Y" }} de {{ permission.heure_debut }} à {{ permission.heure_fin }}</div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group"><label class="form-label">Commentaire (optionnel)</label>{{ form.commentaire_rh }}</div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <a href="{% url 'permission_detail' permission.pk %}" class="btn btn-secondary">Annuler</a>
+      {% if action == 'approuver' %}
+      <button type="submit" class="btn btn-success">✓ Approuver</button>
+      {% else %}
+      <button type="submit" class="btn btn-danger">✗ Rejeter</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

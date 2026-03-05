@@ -1,0 +1,56 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Présences{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Présences</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Présences</h1>
+    <p class="page-subtitle">{{ date_filtre|date:"l d F Y" }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'presence_rapport' %}" class="btn btn-secondary">📊 Rapport mensuel</a>
+    <a href="{% url 'presence_create' %}" class="btn btn-primary">+ Enregistrer présence</a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:12px;align-items:flex-end;">
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Date</label>
+      <input type="date" name="date" value="{{ date_filtre|date:'Y-m-d' }}" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+  </form>
+</div>
+
+<div class="table-wrapper">
+  {% if presences %}
+  <table class="data-table">
+    <thead><tr><th>Contractuel</th><th>Arrivée</th><th>Départ</th><th>Statut</th><th>Observations</th></tr></thead>
+    <tbody>
+      {% for p in presences %}
+      <tr>
+        <td><div style="font-weight:600;">{{ p.contractuel.get_full_name }}</div><div style="font-size:0.75rem;color:var(--text-muted);">{{ p.contractuel.matricule }}</div></td>
+        <td>{{ p.heure_arrivee|default:"—" }}</td>
+        <td>{{ p.heure_depart|default:"—" }}</td>
+        <td>
+          {% if p.statut == 'PRESENT' %}<span class="badge badge-success">Présent</span>
+          {% elif p.statut == 'ABSENT' %}<span class="badge badge-danger">Absent</span>
+          {% elif p.statut == 'RETARD' %}<span class="badge badge-warning">Retard</span>
+          {% elif p.statut == 'CONGE' %}<span class="badge badge-info">Congé</span>
+          {% elif p.statut == 'PERMISSION' %}<span class="badge badge-gold">Permission</span>
+          {% else %}<span class="badge badge-muted">{{ p.get_statut_display }}</span>{% endif %}
+        </td>
+        <td style="color:var(--text-muted);">{{ p.observations|default:"—"|truncatechars:40 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">Aucune présence ce jour</div><p><a href="{% url 'presence_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px;">Enregistrer</a></p></div>
+  {% endif %}
+</div>
+{% endblock %}

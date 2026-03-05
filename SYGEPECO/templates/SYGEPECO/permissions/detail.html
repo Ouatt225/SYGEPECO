@@ -1,0 +1,45 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Permission #{{ permission.pk }}{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'permission_list' %}" style="color:var(--text-muted);">Permissions</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Permission #{{ permission.pk }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Permission #{{ permission.pk }}</h1>
+    <p class="page-subtitle">{{ permission.contractuel.get_full_name }}</p>
+  </div>
+  <div class="page-header-actions">
+    {% if permission.statut == 'EN_ATTENTE' %}
+    <a href="{% url 'permission_approuver' permission.pk %}" class="btn btn-success">✓ Approuver</a>
+    <a href="{% url 'permission_rejeter' permission.pk %}" class="btn btn-danger">✗ Rejeter</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="info-grid">
+    <div class="info-item"><div class="info-item-label">Contractuel</div><div class="info-item-value"><a href="{% url 'contractuel_detail' permission.contractuel.pk %}">{{ permission.contractuel.get_full_name }}</a></div></div>
+    <div class="info-item"><div class="info-item-label">Statut</div><div class="info-item-value">
+      {% if permission.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">En attente</span>
+      {% elif permission.statut == 'APPROUVE' %}<span class="badge badge-success">Approuvée</span>
+      {% else %}<span class="badge badge-danger">Rejetée</span>{% endif %}
+    </div></div>
+    <div class="info-item"><div class="info-item-label">Date</div><div class="info-item-value">{{ permission.date|date:"d/m/Y" }}</div></div>
+    <div class="info-item"><div class="info-item-label">Heure de début</div><div class="info-item-value">{{ permission.heure_debut }}</div></div>
+    <div class="info-item"><div class="info-item-label">Heure de fin</div><div class="info-item-value">{{ permission.heure_fin }}</div></div>
+    <div class="info-item"><div class="info-item-label">Créé le</div><div class="info-item-value">{{ permission.created_at|date:"d/m/Y H:i" }}</div></div>
+    <div class="info-item" style="grid-column:span 3;"><div class="info-item-label">Motif</div><div class="info-item-value" style="white-space:pre-line;">{{ permission.motif }}</div></div>
+    {% if permission.approuve_par %}
+    <div class="info-item"><div class="info-item-label">Traité par</div><div class="info-item-value">{{ permission.approuve_par.get_full_name }}</div></div>
+    {% endif %}
+    {% if permission.commentaire_rh %}
+    <div class="info-item" style="grid-column:span 3;"><div class="info-item-label">Commentaire RH</div><div class="info-item-value">{{ permission.commentaire_rh }}</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

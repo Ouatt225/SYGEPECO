@@ -1,0 +1,19 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Supprimer {{ obj.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="confirm-box card">
+  <div class="confirm-icon">⚠</div>
+  <h2 style="margin-bottom:12px;color:var(--accent-red);">Confirmer la suppression</h2>
+  <p style="color:var(--text-secondary);margin-bottom:24px;">
+    Vous êtes sur le point de supprimer définitivement le contractuel<br>
+    <strong style="color:var(--text-primary);">{{ obj.get_full_name }} ({{ obj.matricule }})</strong>.
+    <br><br>Cette action est <strong>irréversible</strong> et supprimera également toutes les données associées (contrats, présences, congés, permissions).
+  </p>
+  <form method="post" style="display:flex;gap:12px;justify-content:center;">
+    {% csrf_token %}
+    <a href="{% url 'contractuel_detail' obj.pk %}" class="btn btn-secondary">← Annuler</a>
+    <button type="submit" class="btn btn-danger">🗑 Supprimer définitivement</button>
+  </form>
+</div>
+{% endblock %}

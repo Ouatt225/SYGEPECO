@@ -1,0 +1,110 @@
+{% load static %}
+<aside class="sidebar" id="sidebar">
+
+  <!-- Logo -->
+  <a href="{% url 'dashboard' %}" class="sidebar-logo">
+    <div class="logo-icon">🏢</div>
+    <div class="logo-text">
+      <div class="logo-name">SYGEPECO</div>
+      <div class="logo-tagline">Gestion Contractuels</div>
+    </div>
+  </a>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+
+    <!-- Principal -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Principal</div>
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Tableau de bord</span>
+      </a>
+    </div>
+
+    <!-- Entreprises -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Entreprises</div>
+      <a href="{% url 'entreprise_list' %}" class="nav-item">
+        <span class="nav-icon">🏢</span>
+        <span class="nav-label">Entreprises</span>
+      </a>
+    </div>
+
+    <!-- Ressources Humaines -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Ressources Humaines</div>
+      <a href="{% url 'contractuel_list' %}" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Contractuels</span>
+      </a>
+      <a href="{% url 'contrat_list' %}" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Contrats</span>
+      </a>
+      <a href="{% url 'presence_list' %}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Présences</span>
+      </a>
+      <a href="{% url 'conge_list' %}" class="nav-item">
+        <span class="nav-icon">🏖</span>
+        <span class="nav-label">Congés</span>
+        {% if conges_attente_count > 0 %}
+        <span class="nav-badge">{{ conges_attente_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'permission_list' %}" class="nav-item">
+        <span class="nav-icon">🎫</span>
+        <span class="nav-label">Permissions</span>
+        {% if permissions_attente_count > 0 %}
+        <span class="nav-badge">{{ permissions_attente_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'calendrier' %}" class="nav-item">
+        <span class="nav-icon">🗓</span>
+        <span class="nav-label">Calendrier</span>
+      </a>
+    </div>
+
+    <!-- Outils -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Outils</div>
+      <a href="{% url 'rapports' %}" class="nav-item">
+        <span class="nav-icon">📈</span>
+        <span class="nav-label">Rapports</span>
+      </a>
+      <a href="{% url 'historique' %}" class="nav-item">
+        <span class="nav-icon">📜</span>
+        <span class="nav-label">Historique RH</span>
+      </a>
+    </div>
+
+    <!-- Compte -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Compte</div>
+      <a href="/admin/" class="nav-item">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Administration</span>
+      </a>
+    </div>
+
+  </nav>
+
+  <!-- Profil footer -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="avatar-placeholder">{{ request.user.get_full_name|default:request.user.username|slice:":2"|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sidebar-user-role">
+          {% if request.user.profile %}{{ request.user.profile.get_role_display }}{% else %}Utilisateur{% endif %}
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="nav-item" style="margin-top:4px; color: var(--accent-red);">
+      <span class="nav-icon">🚪</span>
+      <span class="nav-label">Déconnexion</span>
+    </a>
+  </div>
+
+</aside>

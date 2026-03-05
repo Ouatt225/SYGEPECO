@@ -1,0 +1,64 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Rapport de présences{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<a href="{% url 'presence_list' %}" style="color:var(--text-muted);">Présences</a>
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Rapport</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Rapport de présences</h1>
+  <a href="{% url 'rapports_exporter' %}?mois={{ form.data.mois|default:'' }}&annee={{ form.data.annee|default:'' }}" class="btn btn-primary">📥 Export Excel</a>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Mois</label>{{ form.mois }}
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Année</label>{{ form.annee }}
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Département</label>{{ form.departement }}
+    </div>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+  </form>
+</div>
+
+{% if data %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead><tr><th>Matricule</th><th>Nom</th><th>Département</th><th>Présents</th><th>Absents</th><th>Retards</th><th>Taux</th></tr></thead>
+    <tbody>
+      {% for row in data %}
+      <tr>
+        <td><code style="background:var(--bg-input);padding:3px 8px;border-radius:4px;font-size:0.8rem;">{{ row.contractuel.matricule }}</code></td>
+        <td>{{ row.contractuel.get_full_name }}</td>
+        <td>{{ row.contractuel.departement|default:"—" }}</td>
+        <td style="color:var(--accent-green);font-weight:600;">{{ row.present }}</td>
+        <td style="color:var(--accent-red);font-weight:600;">{{ row.absent }}</td>
+        <td style="color:var(--accent-orange);font-weight:600;">{{ row.retard }}</td>
+        <td>
+          {% with total=row.present|add:row.absent|add:row.retard %}
+          {% if total > 0 %}
+          <div class="stat-bar">
+            <div class="stat-bar-track" style="width:100px;">
+              <div class="stat-bar-fill" style="width:{% widthratio row.present total 100 %}%;"></div>
+            </div>
+            <span class="stat-bar-value">{% widthratio row.present total 100 %}%</span>
+          </div>
+          {% else %}—{% endif %}
+          {% endwith %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">Sélectionnez une période pour voir le rapport</div></div>
+{% endif %}
+{% endblock %}

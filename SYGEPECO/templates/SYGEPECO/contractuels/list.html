@@ -1,0 +1,110 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Contractuels{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span>
+<span class="breadcrumb-item active">Contractuels</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Contractuels</h1>
+    <p class="page-subtitle">{{ contractuels.count }} contractuel{{ contractuels.count|pluralize }} trouvé{{ contractuels.count|pluralize }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'contractuel_create' %}" class="btn btn-primary">+ Nouveau contractuel</a>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+    <div class="search-bar" style="flex:1;min-width:200px;">
+      <span class="search-icon">🔍</span>
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom, matricule…">
+    </div>
+    <select name="departement" class="form-select" style="width:200px;">
+      <option value="">Tous les départements</option>
+      {% for d in departements %}<option value="{{ d.pk }}" {% if dept == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.nom }}</option>{% endfor %}
+    </select>
+    <select name="statut" class="form-select" style="width:150px;">
+      <option value="">Tous statuts</option>
+      <option value="ACTIF" {% if statut == 'ACTIF' %}selected{% endif %}>Actif</option>
+      <option value="INACTIF" {% if statut == 'INACTIF' %}selected{% endif %}>Inactif</option>
+      <option value="SUSPENDU" {% if statut == 'SUSPENDU' %}selected{% endif %}>Suspendu</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+    {% if q or dept or statut %}<a href="{% url 'contractuel_list' %}" class="btn btn-secondary">✕ Effacer</a>{% endif %}
+  </form>
+</div>
+
+<!-- Table -->
+<div class="table-wrapper">
+  {% if contractuels %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Contractuel</th>
+        <th>Matricule</th>
+        <th>Département</th>
+        <th>Poste</th>
+        <th>Embauche</th>
+        <th>Contrat actif</th>
+        <th>Statut</th>
+        <th style="text-align:center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contractuels %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            {% if c.photo %}
+            <img src="{{ c.photo.url }}" class="avatar" alt="{{ c.get_full_name }}">
+            {% else %}
+            <div class="avatar-placeholder">{{ c.nom|slice:":1" }}{{ c.prenom|slice:":1" }}</div>
+            {% endif %}
+            <div>
+              <div style="font-weight:600;">{{ c.nom }} {{ c.prenom }}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">{{ c.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td><code style="background:var(--bg-input);padding:3px 8px;border-radius:4px;font-size:0.8rem;">{{ c.matricule }}</code></td>
+        <td>{{ c.departement|default:"—" }}</td>
+        <td>{{ c.poste.titre|default:"—" }}</td>
+        <td>{{ c.date_embauche|date:"d/m/Y" }}</td>
+        <td>
+          {% with contrat=c.get_contrat_actif %}
+          {% if contrat %}
+          <span class="badge badge-gold">{{ contrat.type_contrat }}</span>
+          {% else %}
+          <span class="badge badge-muted">Aucun</span>
+          {% endif %}
+          {% endwith %}
+        </td>
+        <td>
+          {% if c.statut == 'ACTIF' %}<span class="badge badge-success">Actif</span>
+          {% elif c.statut == 'INACTIF' %}<span class="badge badge-muted">Inactif</span>
+          {% else %}<span class="badge badge-warning">Suspendu</span>{% endif %}
+        </td>
+        <td style="text-align:center;">
+          <div style="display:flex;gap:6px;justify-content:center;">
+            <a href="{% url 'contractuel_detail' c.pk %}" class="btn btn-secondary btn-sm" title="Voir">👁</a>
+            <a href="{% url 'contractuel_update' c.pk %}" class="btn btn-secondary btn-sm" title="Modifier">✏</a>
+            <a href="{% url 'contractuel_delete' c.pk %}" class="btn btn-secondary btn-sm" title="Supprimer" style="color:var(--accent-red);" data-confirm="Supprimer {{ c.get_full_name }} ?">🗑</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">👥</div>
+    <div class="empty-state-title">Aucun contractuel trouvé</div>
+    <p style="margin-top:8px;"><a href="{% url 'contractuel_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px;">+ Ajouter le premier contractuel</a></p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

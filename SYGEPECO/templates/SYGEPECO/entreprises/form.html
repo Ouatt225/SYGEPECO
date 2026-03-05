@@ -1,0 +1,64 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{{ titre }}</h1>
+  <a href="{% url 'entreprise_list' %}" class="btn btn-secondary">← Retour</a>
+</div>
+
+<div style="max-width:700px;">
+  <div class="card" style="padding:32px;">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Raison sociale <span style="color:var(--accent-red);">*</span></label>
+          {{ form.nom }}{% if form.nom.errors %}<div class="field-error">{{ form.nom.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sigle / Abréviation</label>
+          {{ form.sigle }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Secteur d'activité</label>
+          {{ form.secteur }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          {{ form.telephone }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          {{ form.email }}{% if form.email.errors %}<div class="field-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Adresse</label>
+          {{ form.adresse }}
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Description</label>
+          {{ form.description }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logo</label>
+          {{ form.logo }}
+          {% if entreprise.logo %}
+          <div style="margin-top:8px;"><img src="{{ entreprise.logo.url }}" style="height:60px;border-radius:8px;"></div>
+          {% endif %}
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:28px;">
+          {{ form.active }}
+          <label style="cursor:pointer;color:var(--text-secondary);">Entreprise active</label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Enregistrer</button>
+        <a href="{% url 'entreprise_list' %}" class="btn btn-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

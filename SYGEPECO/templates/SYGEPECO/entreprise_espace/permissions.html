@@ -1,0 +1,75 @@
+{% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
+{% block title %}Permissions{% endblock %}
+{% block breadcrumb %}Permissions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Permissions</h1>
+    <p class="page-subtitle">{{ permissions|length }} demande{{ permissions|length|pluralize }}</p>
+  </div>
+</div>
+
+<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+  <select name="statut" class="form-control" style="max-width:200px;">
+    <option value="">Tous les statuts</option>
+    <option value="EN_ATTENTE" {% if statut == 'EN_ATTENTE' %}selected{% endif %}>En attente</option>
+    <option value="APPROUVE" {% if statut == 'APPROUVE' %}selected{% endif %}>Approuvé</option>
+    <option value="REJETE" {% if statut == 'REJETE' %}selected{% endif %}>Rejeté</option>
+  </select>
+  <button type="submit" class="btn-ent">Filtrer</button>
+  {% if statut %}<a href="{% url 'entreprise_espace_permissions' %}" class="btn btn-secondary btn-sm" style="align-self:center;">✕ Tout voir</a>{% endif %}
+</form>
+
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        {% for h in 'Agent,Date,Horaire,Motif,Statut,Actions'|split:',' %}
+        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in permissions %}
+      <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+        <td style="padding:13px 16px;font-size:.875rem;">
+          <div style="font-weight:600;">{{ p.contractuel.nom }} {{ p.contractuel.prenom }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ p.contractuel.matricule }}</div>
+        </td>
+        <td style="padding:13px 16px;font-size:.875rem;color:var(--text-muted);">{{ p.date|date:"d/m/Y" }}</td>
+        <td style="padding:13px 16px;font-size:.875rem;color:var(--text-muted);">
+          {{ p.heure_debut|time:"H:i" }} – {{ p.heure_fin|time:"H:i" }}
+        </td>
+        <td style="padding:13px 16px;font-size:.875rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ p.motif|default:"—" }}
+        </td>
+        <td style="padding:13px 16px;">
+          {% if p.statut == 'EN_ATTENTE' %}
+            <span class="badge badge-warning">⏳ En attente</span>
+          {% elif p.statut == 'APPROUVE' %}
+            <span class="badge badge-success">✅ Approuvé</span>
+          {% else %}
+            <span class="badge badge-danger">❌ Rejeté</span>
+          {% endif %}
+        </td>
+        <td style="padding:13px 16px;">
+          {% if p.statut == 'EN_ATTENTE' %}
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'permission_approuver' p.pk %}" class="btn btn-sm btn-primary" style="font-size:.75rem;">✅</a>
+            <a href="{% url 'permission_rejeter' p.pk %}" class="btn btn-sm" style="font-size:.75rem;background:rgba(239,68,68,.15);color:var(--accent-red);">❌</a>
+          </div>
+          {% else %}
+            <span style="font-size:.75rem;color:var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Aucune demande de permission.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

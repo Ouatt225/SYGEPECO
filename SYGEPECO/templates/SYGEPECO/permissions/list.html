@@ -1,0 +1,57 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Permissions{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Permissions</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Permissions</h1>
+    <p class="page-subtitle">{{ permissions.count }} demande{{ permissions.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'permission_create' %}" class="btn btn-primary">+ Nouvelle demande</a>
+</div>
+
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+  <a href="{% url 'permission_list' %}" class="btn btn-sm {% if not statut %}btn-primary{% else %}btn-secondary{% endif %}">Tous</a>
+  <a href="?statut=EN_ATTENTE" class="btn btn-sm {% if statut == 'EN_ATTENTE' %}btn-primary{% else %}btn-secondary{% endif %}">En attente</a>
+  <a href="?statut=APPROUVE"   class="btn btn-sm {% if statut == 'APPROUVE' %}btn-primary{% else %}btn-secondary{% endif %}">Approuvées</a>
+  <a href="?statut=REJETE"     class="btn btn-sm {% if statut == 'REJETE' %}btn-primary{% else %}btn-secondary{% endif %}">Rejetées</a>
+</div>
+
+<div class="table-wrapper">
+  {% if permissions %}
+  <table class="data-table">
+    <thead><tr><th>Contractuel</th><th>Date</th><th>De</th><th>À</th><th>Motif</th><th>Statut</th><th style="text-align:center;">Actions</th></tr></thead>
+    <tbody>
+      {% for p in permissions %}
+      <tr>
+        <td><div style="font-weight:600;">{{ p.contractuel.get_full_name }}</div></td>
+        <td>{{ p.date|date:"d/m/Y" }}</td>
+        <td>{{ p.heure_debut }}</td>
+        <td>{{ p.heure_fin }}</td>
+        <td style="color:var(--text-muted);">{{ p.motif|truncatechars:40 }}</td>
+        <td>
+          {% if p.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">En attente</span>
+          {% elif p.statut == 'APPROUVE' %}<span class="badge badge-success">Approuvée</span>
+          {% else %}<span class="badge badge-danger">Rejetée</span>{% endif %}
+        </td>
+        <td style="text-align:center;">
+          <div style="display:flex;gap:6px;justify-content:center;">
+            <a href="{% url 'permission_detail' p.pk %}" class="btn btn-secondary btn-sm">👁</a>
+            {% if p.statut == 'EN_ATTENTE' %}
+            <a href="{% url 'permission_approuver' p.pk %}" class="btn btn-success btn-sm">✓</a>
+            <a href="{% url 'permission_rejeter' p.pk %}" class="btn btn-danger btn-sm">✗</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">🎫</div><div class="empty-state-title">Aucune demande de permission</div></div>
+  {% endif %}
+</div>
+{% endblock %}

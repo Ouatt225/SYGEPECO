@@ -1,0 +1,26 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Calendrier{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Calendrier</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Calendrier RH</h1>
+    <p class="page-subtitle">Congés, permissions et événements du personnel</p>
+  </div>
+</div>
+
+<!-- Légende -->
+<div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+  <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:var(--text-secondary);">
+    <span style="width:12px;height:12px;border-radius:3px;background:#22C55E;display:inline-block;"></span> Congés approuvés
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:var(--text-secondary);">
+    <span style="width:12px;height:12px;border-radius:3px;background:#4A6CF7;display:inline-block;"></span> Permissions approuvées
+  </div>
+</div>
+
+<div id="calendar"></div>
+{% endblock %}

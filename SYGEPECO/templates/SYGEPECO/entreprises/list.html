@@ -1,0 +1,313 @@
+{% extends 'SYGEPECO/base.html' %}
+{% block title %}Entreprises{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Scène 3D ─────────────────────────────────────────────── */
+.entreprise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 24px;
+  perspective: 1200px;
+}
+
+.card-3d-wrapper {
+  perspective: 900px;
+}
+
+.card-entreprise {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform-style: preserve-3d;
+  transform: rotateX(4deg) rotateY(0deg);
+  transition: transform .35s cubic-bezier(.17,.67,.35,1.2),
+              box-shadow .35s ease,
+              border-color .35s ease;
+  cursor: pointer;
+  will-change: transform;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35),
+              0 2px 8px rgba(0,0,0,.2),
+              inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.card-entreprise:hover {
+  transform: rotateX(-4deg) rotateY(4deg) translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0,0,0,.5),
+              0 8px 20px rgba(212,168,83,.2),
+              inset 0 1px 0 rgba(255,255,255,.1);
+  border-color: rgba(212,168,83,.4);
+}
+
+/* Reflet lumineux en haut de la carte */
+.card-entreprise::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Bordure lumineuse au survol */
+.card-entreprise::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 19px;
+  background: linear-gradient(135deg,
+    rgba(212,168,83,.5) 0%,
+    transparent 50%,
+    rgba(74,108,247,.3) 100%);
+  opacity: 0;
+  transition: opacity .35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.card-entreprise:hover::after { opacity: 1; }
+
+/* Contenu au-dessus des pseudo-éléments */
+.card-entreprise > * { position: relative; z-index: 2; }
+
+/* Logo / icône */
+.card-logo {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #F97316 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; font-weight: 900; color: #000;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(212,168,83,.4), 0 0 0 1px rgba(212,168,83,.2);
+  transform: translateZ(16px);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.card-entreprise:hover .card-logo {
+  transform: translateZ(28px) scale(1.08);
+  box-shadow: 0 8px 28px rgba(212,168,83,.6), 0 0 0 2px rgba(212,168,83,.4);
+}
+
+/* Badge secteur */
+.secteur-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: rgba(212,168,83,.1);
+  border: 1px solid rgba(212,168,83,.2);
+  color: var(--accent-gold);
+  width: fit-content;
+  transform: translateZ(8px);
+  transition: transform .35s ease;
+}
+.card-entreprise:hover .secteur-badge { transform: translateZ(18px); }
+
+/* Barre stat */
+.stat-bar {
+  display: flex;
+  gap: 0;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  transform: translateZ(6px);
+}
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 4px 0;
+}
+.stat-item:first-child { border-right: 1px solid rgba(255,255,255,.06); }
+.stat-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--accent-gold), #F97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-val.secondary {
+  background: linear-gradient(135deg, #94A3B8, #64748B);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.stat-lbl { font-size: .72rem; color: var(--text-muted); margin-top: 2px; }
+
+/* Actions */
+.card-actions {
+  display: flex; gap: 8px; margin-top: auto;
+  transform: translateZ(12px);
+  transition: transform .35s ease;
+}
+.card-entreprise:hover .card-actions { transform: translateZ(22px); }
+
+/* Particules flottantes sur la carte */
+.card-spark {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  animation: sparkFloat 3s ease-in-out infinite;
+}
+.card-spark:nth-child(1){ top:15%; left:80%; animation-delay:0s; }
+.card-spark:nth-child(2){ top:60%; left:90%; animation-delay:1s; width:3px; height:3px; }
+.card-spark:nth-child(3){ top:80%; left:70%; animation-delay:2s; width:2px; height:2px; background:#4A6CF7; }
+
+.card-entreprise:hover .card-spark { opacity: .6; }
+
+@keyframes sparkFloat {
+  0%,100%{ transform:translateY(0) scale(1); opacity:.4; }
+  50%     { transform:translateY(-12px) scale(1.4); opacity:.9; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Entreprises</h1>
+    <p class="page-subtitle">{{ entreprises.count }} entreprise{{ entreprises.count|pluralize }} enregistrée{{ entreprises.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'entreprise_create' %}" class="btn btn-primary">+ Nouvelle entreprise</a>
+</div>
+
+<!-- Barre de recherche -->
+<form method="get" style="margin-bottom:28px;display:flex;gap:10px;max-width:420px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Rechercher une entreprise…" class="form-control">
+  <button type="submit" class="btn btn-secondary">Rechercher</button>
+</form>
+
+<!-- Grille 3D -->
+<div class="entreprise-grid">
+  {% for e in entreprises %}
+  <div class="card-3d-wrapper">
+    <div class="card-entreprise" data-id="{{ e.pk }}">
+
+      <!-- Particules -->
+      <span class="card-spark"></span>
+      <span class="card-spark"></span>
+      <span class="card-spark"></span>
+
+      <!-- En-tête -->
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="card-logo">
+          {% if e.logo %}
+            <img src="{{ e.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">
+          {% else %}
+            {{ e.sigle|default:e.nom|slice:":2"|upper }}
+          {% endif %}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;">
+            {{ e.nom }}
+          </div>
+          {% if e.sigle %}
+          <div style="font-size:0.8125rem;color:var(--text-muted);margin-top:2px;">{{ e.sigle }}</div>
+          {% endif %}
+        </div>
+        {% if e.active %}
+          <span class="badge badge-success" style="flex-shrink:0;">● Actif</span>
+        {% else %}
+          <span class="badge badge-danger" style="flex-shrink:0;">● Inactif</span>
+        {% endif %}
+      </div>
+
+      <!-- Fonction principale -->
+      <div class="secteur-badge">
+        <span>💼</span> {{ e.description|default:e.get_secteur_display }}
+      </div>
+
+      <!-- Stats 3D -->
+      <div class="stat-bar">
+        <div class="stat-item">
+          <div class="stat-val">{{ e.nb_contractuels }}</div>
+          <div class="stat-lbl">Agents actifs</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val secondary">{{ e.contractuels.count }}</div>
+          <div class="stat-lbl">Total agents</div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      {% if e.telephone or e.email %}
+      <div style="font-size:0.8125rem;color:var(--text-muted);display:flex;flex-direction:column;gap:5px;transform:translateZ(4px);">
+        {% if e.telephone %}<span>📞 {{ e.telephone }}</span>{% endif %}
+        {% if e.email %}<span>✉ {{ e.email }}</span>{% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <a href="{% url 'entreprise_detail' e.pk %}" class="btn btn-sm btn-primary" style="flex:1;text-align:center;">Voir détails</a>
+        <a href="{% url 'entreprise_update' e.pk %}" class="btn btn-sm btn-secondary" title="Modifier">✏</a>
+        <a href="{% url 'entreprise_delete' e.pk %}" class="btn btn-sm" style="background:rgba(239,68,68,.15);color:var(--accent-red);" title="Supprimer">🗑</a>
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state" style="grid-column:1/-1;">
+    <div class="empty-state-icon">🏢</div>
+    <div class="empty-state-title">Aucune entreprise trouvée</div>
+    <a href="{% url 'entreprise_create' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Ajouter une entreprise</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Effet tilt 3D dynamique au mouvement de la souris
+document.querySelectorAll('.card-entreprise').forEach(card => {
+  const wrapper = card.parentElement;
+
+  wrapper.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width  / 2);  // -1 à +1
+    const dy = (e.clientY - cy) / (rect.height / 2);  // -1 à +1
+
+    const rotX = -dy * 14;   // inclinaison verticale max ±14°
+    const rotY =  dx * 14;   // inclinaison horizontale max ±14°
+
+    card.style.transform =
+      `rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-8px) scale(1.02)`;
+
+    // Reflet dynamique suivant la souris
+    const px = ((e.clientX - rect.left) / rect.width)  * 100;
+    const py = ((e.clientY - rect.top)  / rect.height) * 100;
+    card.style.background =
+      `radial-gradient(circle at ${px}% ${py}%,
+        rgba(212,168,83,.08) 0%,
+        var(--bg-card) 60%)`;
+  });
+
+  wrapper.addEventListener('mouseleave', () => {
+    card.style.transform  = 'rotateX(4deg) rotateY(0deg)';
+    card.style.background = '';
+    card.style.transition = 'transform .5s cubic-bezier(.17,.67,.35,1.2), box-shadow .5s ease, border-color .5s ease, background .5s ease';
+    setTimeout(() => card.style.transition = '', 500);
+  });
+
+  wrapper.addEventListener('mouseenter', () => {
+    card.style.transition = 'transform .1s ease, box-shadow .2s ease, border-color .2s ease';
+  });
+});
+</script>
+{% endblock %}
