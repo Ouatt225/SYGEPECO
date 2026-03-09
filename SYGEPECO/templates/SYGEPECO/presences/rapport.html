@@ -10,10 +10,20 @@
 {% block content %}
 <div class="page-header">
   <h1 class="page-title">Rapport de présences</h1>
-  <a href="{% url 'rapports_exporter' %}?mois={{ form.data.mois|default:'' }}&annee={{ form.data.annee|default:'' }}" class="btn btn-primary">📥 Export Excel</a>
+  {% if is_manager and manager_dir %}
+  <a href="{% url 'rapports_exporter' %}?mois={{ form.data.mois|default:'' }}&annee={{ form.data.annee|default:'' }}&direction={{ manager_dir.pk }}" class="btn btn-primary">📥 Export Excel</a>
+  {% else %}
+  <a href="{% url 'rapports_exporter' %}?mois={{ form.data.mois|default:'' }}&annee={{ form.data.annee|default:'' }}{% if form.data.direction %}&direction={{ form.data.direction }}{% endif %}" class="btn btn-primary">📥 Export Excel</a>
+  {% endif %}
 </div>
 
 <div class="card" style="margin-bottom:20px;">
+  {% if is_manager and manager_dir %}
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <span style="font-size:0.8rem;color:var(--text-muted);">Données filtrées sur :</span>
+    <span class="badge badge-gold">📂 {{ manager_dir.nom }}</span>
+  </div>
+  {% endif %}
   <form method="get" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">Mois</label>{{ form.mois }}
@@ -21,9 +31,11 @@
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">Année</label>{{ form.annee }}
     </div>
+    {% if not is_manager %}
     <div class="form-group" style="margin-bottom:0;">
-      <label class="form-label">Département</label>{{ form.departement }}
+      <label class="form-label">Direction</label>{{ form.direction }}
     </div>
+    {% endif %}
     <button type="submit" class="btn btn-secondary">Filtrer</button>
   </form>
 </div>
@@ -31,13 +43,13 @@
 {% if data %}
 <div class="table-wrapper">
   <table class="data-table">
-    <thead><tr><th>Matricule</th><th>Nom</th><th>Département</th><th>Présents</th><th>Absents</th><th>Retards</th><th>Taux</th></tr></thead>
+    <thead><tr><th>Matricule</th><th>Nom</th><th>Direction</th><th>Présents</th><th>Absents</th><th>Retards</th><th>Taux</th></tr></thead>
     <tbody>
       {% for row in data %}
       <tr>
         <td><code style="background:var(--bg-input);padding:3px 8px;border-radius:4px;font-size:0.8rem;">{{ row.contractuel.matricule }}</code></td>
         <td>{{ row.contractuel.get_full_name }}</td>
-        <td>{{ row.contractuel.departement|default:"—" }}</td>
+        <td>{{ row.contractuel.direction|default:"—" }}</td>
         <td style="color:var(--accent-green);font-weight:600;">{{ row.present }}</td>
         <td style="color:var(--accent-red);font-weight:600;">{{ row.absent }}</td>
         <td style="color:var(--accent-orange);font-weight:600;">{{ row.retard }}</td>

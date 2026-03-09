@@ -52,5 +52,7 @@
   {% else %}
   <div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">Aucune présence ce jour</div><p><a href="{% url 'presence_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px;">Enregistrer</a></p></div>
   {% endif %}
+
+{% include "SYGEPECO/partials/_pagination.html" %}
 </div>
 {% endblock %}

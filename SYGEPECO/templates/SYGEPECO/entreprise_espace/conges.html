@@ -2,78 +2,180 @@
 {% block title %}Congés{% endblock %}
 {% block breadcrumb %}Congés{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Pills de statut (filtre) */
+.status-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.status-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 20px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  color: var(--txt-2);
+  background: transparent;
+  transition: all .18s;
+}
+.status-tab:hover { border-color: var(--line-mid); color: var(--txt); background: var(--gold-soft); }
+.status-tab.tab-active {
+  background: var(--gold-soft);
+  border-color: var(--line-mid);
+  color: var(--gold-light);
+}
+
+/* Période cell */
+.period-cell {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.period-start { font-size: .8rem; color: var(--txt); font-weight: 600; }
+.period-arrow { font-size: .65rem; color: var(--txt-3); }
+.period-end   { font-size: .8rem; color: var(--txt-2); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
+<!-- En-tête -------------------------------------------------------->
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Congés</h1>
-    <p class="page-subtitle">{{ conges|length }} demande{{ conges|length|pluralize }}</p>
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Gestion RH</div>
+    <h1 class="pg-title">Congés</h1>
+    <p class="pg-sub">{{ conges|length }} demande{{ conges|length|pluralize }} au total</p>
   </div>
 </div>
 
-<!-- Filtre statut -->
-<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
-  <select name="statut" class="form-control" style="max-width:200px;">
-    <option value="">Tous les statuts</option>
-    <option value="EN_ATTENTE" {% if statut == 'EN_ATTENTE' %}selected{% endif %}>En attente</option>
-    <option value="APPROUVE" {% if statut == 'APPROUVE' %}selected{% endif %}>Approuvé</option>
-    <option value="REJETE" {% if statut == 'REJETE' %}selected{% endif %}>Rejeté</option>
-  </select>
-  <button type="submit" class="btn-ent">Filtrer</button>
-  {% if statut %}<a href="{% url 'entreprise_espace_conges' %}" class="btn btn-secondary btn-sm" style="align-self:center;">✕ Tout voir</a>{% endif %}
-</form>
+<!-- Filtres en pills --------------------------------------------->
+<div class="status-tabs rise rise-1">
+  <a href="{% url 'entreprise_espace_conges' %}"
+     class="status-tab {% if not statut %}tab-active{% endif %}">
+    Tous
+  </a>
+  <a href="?statut=EN_ATTENTE"
+     class="status-tab {% if statut == 'EN_ATTENTE' %}tab-active{% endif %}">
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--amber);display:inline-block;"></span>
+    En attente
+    {% if conges_attente %}<span style="background:var(--rose);color:#fff;font-size:.55rem;padding:1px 6px;border-radius:10px;">{{ conges_attente }}</span>{% endif %}
+  </a>
+  <a href="?statut=VALIDE_MANAGER"
+     class="status-tab {% if statut == 'VALIDE_MANAGER' %}tab-active{% endif %}">
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--teal);display:inline-block;"></span>
+    À approuver
+    {% if conges_a_approuver %}<span style="background:var(--rose);color:#fff;font-size:.55rem;padding:1px 6px;border-radius:10px;">{{ conges_a_approuver }}</span>{% endif %}
+  </a>
+  <a href="?statut=APPROUVE"
+     class="status-tab {% if statut == 'APPROUVE' %}tab-active{% endif %}">
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--emerald);display:inline-block;"></span>
+    Approuvé
+  </a>
+  <a href="?statut=REJETE"
+     class="status-tab {% if statut == 'REJETE' %}tab-active{% endif %}">
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--rose);display:inline-block;"></span>
+    Rejeté
+  </a>
+</div>
 
-<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
-  <table style="width:100%;border-collapse:collapse;">
+<!-- Table ---------------------------------------------------------->
+<div class="table-wrap rise rise-2">
+  {% if conges %}
+  <table class="data-table">
     <thead>
       <tr>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Agent</th>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Type</th>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Période</th>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Motif</th>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Statut</th>
-        <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);">Actions</th>
+        <th>Agent</th>
+        <th>Type</th>
+        <th>Période</th>
+        <th>Motif</th>
+        <th>Statut</th>
+        <th>Justificatif</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for c in conges %}
-      <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
-        <td style="padding:13px 16px;font-size:.875rem;">
-          <div style="font-weight:600;">{{ c.contractuel.nom }} {{ c.contractuel.prenom }}</div>
-          <div style="font-size:.75rem;color:var(--text-muted);">{{ c.contractuel.matricule }}</div>
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--txt);">{{ c.contractuel.nom }} {{ c.contractuel.prenom }}</div>
+          <div style="font-size:.7rem;color:var(--txt-2);margin-top:1px;">{{ c.contractuel.matricule }}</div>
         </td>
-        <td style="padding:13px 16px;font-size:.875rem;">{{ c.get_type_conge_display }}</td>
-        <td style="padding:13px 16px;font-size:.875rem;color:var(--text-muted);">
-          {{ c.date_debut|date:"d/m/Y" }} → {{ c.date_fin|date:"d/m/Y" }}
+        <td style="font-size:.82rem;color:var(--txt-2);">{{ c.get_type_conge_display }}</td>
+        <td>
+          <div class="period-cell">
+            <span class="period-start">{{ c.date_debut|date:"d/m/Y" }}</span>
+            <span class="period-arrow">&#8594;</span>
+            <span class="period-end">{{ c.date_fin|date:"d/m/Y" }}</span>
+          </div>
         </td>
-        <td style="padding:13px 16px;font-size:.875rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        <td style="font-size:.8rem;color:var(--txt-2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
           {{ c.motif|default:"—" }}
         </td>
-        <td style="padding:13px 16px;">
+        <td>
           {% if c.statut == 'EN_ATTENTE' %}
-            <span class="badge badge-warning">⏳ En attente</span>
+            <span class="badge b-amber">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0;"></span>
+              En attente manager
+            </span>
+          {% elif c.statut == 'VALIDE_MANAGER' %}
+            <span class="badge" style="background:var(--teal-soft,rgba(20,184,166,.1));border:1px solid rgba(20,184,166,.3);color:var(--teal,#14b8a6);">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0;"></span>
+              En attente entreprise
+            </span>
           {% elif c.statut == 'APPROUVE' %}
-            <span class="badge badge-success">✅ Approuvé</span>
+            <span class="badge b-green">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0;"></span>
+              Approuvé
+            </span>
           {% else %}
-            <span class="badge badge-danger">❌ Rejeté</span>
+            <span class="badge b-red">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0;"></span>
+              Rejeté
+            </span>
           {% endif %}
         </td>
-        <td style="padding:13px 16px;">
-          {% if c.statut == 'EN_ATTENTE' %}
+        <td>
+          {% if c.document_medical %}
+          <a href="{% url 'conge_document_medical' c.pk %}" target="_blank"
+             title="Télécharger le justificatif médical"
+             style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;border:1px solid rgba(20,184,166,.25);background:var(--teal-soft,rgba(20,184,166,.1));color:var(--teal,#14b8a6);text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+          </a>
+          {% else %}
+            <span style="font-size:.75rem;color:var(--txt-3);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if c.statut == 'VALIDE_MANAGER' or c.statut == 'EN_ATTENTE' %}
           <div style="display:flex;gap:6px;">
-            <a href="{% url 'conge_approuver' c.pk %}" class="btn btn-sm btn-primary" style="font-size:.75rem;">✅ Approuver</a>
-            <a href="{% url 'conge_rejeter' c.pk %}" class="btn btn-sm" style="font-size:.75rem;background:rgba(239,68,68,.15);color:var(--accent-red);">❌ Rejeter</a>
+            <a href="{% url 'entreprise_conge_approuver' c.pk %}" class="act-approve">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Approuver
+            </a>
+            <a href="{% url 'entreprise_conge_rejeter' c.pk %}" class="act-reject">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Rejeter
+            </a>
           </div>
           {% else %}
-            <span style="font-size:.75rem;color:var(--text-muted);">—</span>
+            <span style="font-size:.75rem;color:var(--txt-3);">—</span>
           {% endif %}
         </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Aucune demande de congé.</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <p>Aucune demande de congé{% if statut %} avec ce statut{% endif %}.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

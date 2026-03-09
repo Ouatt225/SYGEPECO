@@ -1,7 +1,47 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Contractuel, Contrat, Presence, Conge, Permission, Departement, Poste, TypeContrat, Entreprise
+from .constants import (
+    QUOTA_CONGE_ANNUEL, PREVIS_MINIMUM_JOURS, CONGE_MATERNITE_MAX,
+    CONGE_PATERNITE_MAX, PERMISSION_MAX_HEURES,
+)
+from .models import Contractuel, Contrat, Presence, Conge, Permission, Direction, Poste, TypeContrat, Entreprise
 
+
+
+# ─── Validation MIME côté serveur ───────────────────────────────────
+_MAGIC = {
+    b'\x25\x50\x44\x46': 'application/pdf',    # %PDF
+    b'\xff\xd8\xff':       'image/jpeg',
+    b'\x89\x50\x4e\x47': 'image/png',           # \x89PNG
+    b'\x47\x49\x46\x38': 'image/gif',           # GIF8
+    b'\x52\x49\x46\x46': 'image/webp',          # RIFF (WebP)
+}
+_ALLOWED_DOC  = {'application/pdf', 'image/jpeg', 'image/png'}
+_ALLOWED_IMG  = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+
+
+def _check_upload_mime(file_obj, allowed_mimes: set, label: str):
+    """
+    Lit les 8 premiers octets et compare aux signatures connues.
+    Lève forms.ValidationError si le type MIME détecté n'est pas autorisé.
+    """
+    if file_obj is None:
+        return
+    file_obj.seek(0)
+    header = file_obj.read(8)
+    file_obj.seek(0)
+    detected = None
+    for sig, mime in _MAGIC.items():
+        if header[:len(sig)] == sig:
+            detected = mime
+            break
+    if detected not in allowed_mimes:
+        friendly = ', '.join(sorted(allowed_mimes))
+        raise forms.ValidationError(
+            f"Le fichier {label!r} n'est pas d'un type autorise. "
+            f"Types acceptes : {friendly}. "
+            f"Type detecte : {detected or 'inconnu'}."
+        )
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
@@ -20,12 +60,19 @@ class LoginForm(AuthenticationForm):
 
 
 class ContractuelForm(forms.ModelForm):
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and hasattr(photo, 'read'):
+            _check_upload_mime(photo, _ALLOWED_IMG, photo.name)
+        return photo
+
     class Meta:
         model = Contractuel
         fields = [
             'matricule', 'nom', 'prenom', 'genre', 'date_naissance', 'lieu_naissance',
             'nationalite', 'email', 'telephone', 'adresse', 'photo',
-            'poste', 'departement', 'date_embauche', 'statut',
+            'poste', 'direction', 'date_embauche', 'statut',
         ]
         widgets = {
             'matricule': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: CTR-001'}),
@@ -40,7 +87,7 @@ class ContractuelForm(forms.ModelForm):
             'adresse': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'poste': forms.Select(attrs={'class': 'form-select'}),
-            'departement': forms.Select(attrs={'class': 'form-select'}),
+            'direction': forms.Select(attrs={'class': 'form-select'}),
             'date_embauche': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'statut': forms.Select(attrs={'class': 'form-select'}),
         }
@@ -100,12 +147,11 @@ class CongeDecisionForm(forms.ModelForm):
 class PermissionForm(forms.ModelForm):
     class Meta:
         model = Permission
-        fields = ['contractuel', 'date', 'heure_debut', 'heure_fin', 'motif']
+        fields = ['contractuel', 'date_debut', 'date_fin', 'motif']
         widgets = {
             'contractuel': forms.Select(attrs={'class': 'form-select'}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'heure_debut': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'heure_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'motif': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
@@ -125,10 +171,10 @@ class RapportFiltreForm(forms.Form):
 
     mois = forms.ChoiceField(choices=MOIS_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
     annee = forms.ChoiceField(choices=ANNEE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
-    departement = forms.ModelChoiceField(
-        queryset=Departement.objects.all(),
+    direction = forms.ModelChoiceField(
+        queryset=Direction.objects.all(),
         required=False,
-        empty_label="Tous les départements",
+        empty_label="Toutes les directions",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
@@ -136,27 +182,201 @@ class RapportFiltreForm(forms.Form):
 # ─── Formulaires Espace Contractuel ─────────────────────────
 
 class EspaceProfilForm(forms.ModelForm):
-    """Le contractuel ne peut modifier que ses infos de contact."""
+    """L'agent peut modifier ses informations personnelles et de contact uniquement.
+    Les champs administratifs (matricule, poste, direction, entreprise, date d'embauche)
+    sont en lecture seule et gérés exclusivement par les RH.
+    """
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and hasattr(photo, 'read'):
+            _check_upload_mime(photo, _ALLOWED_IMG, photo.name)
+        return photo
+
+    # Champ salaire hors modèle Contractuel (lié au contrat actif)
+    salaire = forms.DecimalField(
+        required=False,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        label="Salaire (FCFA)",
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'placeholder': 'Ex: 150000'}),
+    )
+
     class Meta:
         model = Contractuel
-        fields = ['photo', 'email', 'telephone', 'adresse']
+        fields = [
+            # Photo
+            'photo',
+            # Identité personnelle (non administrative)
+            'nom', 'prenom', 'genre', 'date_naissance', 'lieu_naissance', 'nationalite',
+            # Contact
+            'email', 'telephone', 'adresse',
+            # Infos sociales
+            'commune', 'ville', 'situation_famille', 'nombre_enfants', 'numero_cnps',
+        ]
         widgets = {
-            'photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'telephone': forms.TextInput(attrs={'class': 'form-control'}),
-            'adresse': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'photo':             forms.FileInput(attrs={'accept': 'image/*'}),
+            # Identité
+            'nom':               forms.TextInput(),
+            'prenom':            forms.TextInput(),
+            'genre':             forms.Select(),
+            'date_naissance':    forms.DateInput(attrs={'type': 'date'}),
+            'lieu_naissance':    forms.TextInput(),
+            'nationalite':       forms.TextInput(),
+            # Contact
+            'email':             forms.EmailInput(),
+            'telephone':         forms.TextInput(),
+            'adresse':           forms.Textarea(attrs={'rows': 2}),
+            # Social
+            'commune':           forms.TextInput(),
+            'ville':             forms.TextInput(),
+            'situation_famille': forms.Select(),
+            'nombre_enfants':    forms.NumberInput(attrs={'min': '0', 'max': '20'}),
+            'numero_cnps':       forms.TextInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pré-remplir le salaire depuis le contrat actif
+        if self.instance and self.instance.pk:
+            contrat = self.instance.get_contrat_actif()
+            if contrat and contrat.salaire:
+                self.fields['salaire'].initial = contrat.salaire
 
 
 class EspaceCongeForm(forms.ModelForm):
     """Demande de congé par le contractuel (sans champ contractuel)."""
+
     class Meta:
         model = Conge
-        fields = ['type_conge', 'date_debut', 'date_fin', 'motif']
+        fields = ['type_conge', 'date_debut', 'date_fin', 'motif', 'document_medical']
         widgets = {
-            'type_conge': forms.Select(attrs={'class': 'form-select'}),
-            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'date_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'type_conge':       forms.Select(attrs={'class': 'form-select'}),
+            'date_debut':       forms.DateInput(attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Sélectionner une date…'}),
+            'date_fin':         forms.DateInput(attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Sélectionner une date…'}),
+            'motif':            forms.Textarea(attrs={'class': 'form-control', 'rows': 4,
+                                                      'placeholder': 'Précisez le motif de votre demande…'}),
+            'document_medical': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.jpg,.jpeg,.png',
+            }),
+        }
+
+    def __init__(self, *args, contractuel=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._contractuel = contractuel
+        self.fields['document_medical'].required = False
+        self.fields['document_medical'].label = "Justificatif médical (arrêt maladie)"
+
+    def clean_document_medical(self):
+        doc = self.cleaned_data.get('document_medical')
+        if doc and hasattr(doc, 'read'):
+            _check_upload_mime(doc, _ALLOWED_DOC, doc.name)
+        return doc
+
+    def clean(self):
+        from datetime import date as date_type, timedelta
+        cleaned = super().clean()
+        d1 = cleaned.get('date_debut')
+        d2 = cleaned.get('date_fin')
+
+        if d1 and d2 and d2 < d1:
+            raise forms.ValidationError("La date de fin doit être postérieure à la date de début.")
+
+        # ── Congé maladie : justificatif obligatoire ──────────────
+        if cleaned.get('type_conge') == 'MALADIE':
+            doc = cleaned.get('document_medical')
+            if not doc and not getattr(self.instance, 'document_medical', None):
+                raise forms.ValidationError(
+                    "Un justificatif médical (arrêt maladie) est obligatoire pour un congé maladie. "
+                    "Veuillez joindre votre document (PDF, JPG ou PNG)."
+                )
+
+        # ── Préavis minimum de 7 jours ────────────────────────────
+        if d1:
+            delai = (d1 - date_type.today()).days
+            if delai < 7:
+                date_min = (date_type.today() + timedelta(days=PREVIS_MINIMUM_JOURS)).strftime('%d/%m/%Y')
+                raise forms.ValidationError(
+                    f"Un préavis de 7 jours minimum est requis. "
+                    f"Votre date de début est dans {max(delai, 0)} jour(s). "
+                    f"Date de début possible au plus tôt : {date_min}."
+                )
+
+        # ── Congé maternité : limité à 180 jours ─────────────────
+        if cleaned.get('type_conge') == 'MATERNITE' and d1 and d2:
+            jours_demandes = (d2 - d1).days + 1
+            if jours_demandes > CONGE_MATERNITE_MAX:
+                raise forms.ValidationError(
+                    f"Le congé maternité est limité à 180 jours. "
+                    f"Vous demandez {jours_demandes} jours."
+                )
+
+        # ── Congé paternité : limité à 30 jours ──────────────────
+        if cleaned.get('type_conge') == 'PATERNITE' and d1 and d2:
+            jours_demandes = (d2 - d1).days + 1
+            if jours_demandes > CONGE_PATERNITE_MAX:
+                raise forms.ValidationError(
+                    f"Le congé paternité est limité à 30 jours. "
+                    f"Vous demandez {jours_demandes} jours."
+                )
+
+        # ── Contrôle quota congé annuel ──────────────────────────
+        if cleaned.get('type_conge') == 'ANNUEL' and d1 and d2 and self._contractuel:
+            annee = d1.year
+            # Jours déjà consommés ou en attente cette année civile
+            deja_pris = sum(
+                cg.nb_jours()
+                for cg in self._contractuel.conges.filter(
+                    type_conge='ANNUEL',
+                    statut__in=['APPROUVE', 'EN_ATTENTE'],
+                    date_debut__year=annee,
+                )
+            )
+            # Jours demandés dans cette nouvelle requête
+            jours_demandes = (d2 - d1).days + 1
+            solde_restant = QUOTA_CONGE_ANNUEL - deja_pris
+
+            if jours_demandes > solde_restant:
+                if solde_restant <= 0:
+                    raise forms.ValidationError(
+                        f"Vous avez épuisé votre quota de {QUOTA_CONGE_ANNUEL} jours de congé annuel pour {annee}."
+                    )
+                else:
+                    raise forms.ValidationError(
+                        f"Cette demande dépasse votre quota annuel. "
+                        f"Il vous reste {solde_restant} jour(s) sur {QUOTA_CONGE_ANNUEL} pour {annee} "
+                        f"(déjà pris ou en attente : {deja_pris} j). "
+                        f"Vous demandez {jours_demandes} j."
+                    )
+
+        # ── Contrôle chevauchement de dates ──────────────────────
+        if d1 and d2 and self._contractuel:
+            chevauchement = self._contractuel.conges.filter(
+                statut__in=['APPROUVE', 'EN_ATTENTE'],
+                date_debut__lte=d2,
+                date_fin__gte=d1,
+            )
+            if chevauchement.exists():
+                c = chevauchement.first()
+                raise forms.ValidationError(
+                    f"Ces dates chevauchent un congé existant ({c.get_type_conge_display()} "
+                    f"du {c.date_debut.strftime('%d/%m/%Y')} au {c.date_fin.strftime('%d/%m/%Y')}, "
+                    f"statut : {c.get_statut_display()})."
+                )
+
+        return cleaned
+
+
+class EspacePermissionForm(forms.ModelForm):
+    """Demande de permission par le contractuel (sans champ contractuel)."""
+    class Meta:
+        model = Permission
+        fields = ['date_debut', 'date_fin', 'motif']
+        widgets = {
+            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Sélectionner une date…'}),
+            'date_fin':   forms.DateInput(attrs={'class': 'form-control', 'type': 'text', 'placeholder': 'Sélectionner une date…'}),
             'motif': forms.Textarea(attrs={'class': 'form-control', 'rows': 4,
                                            'placeholder': 'Précisez le motif de votre demande…'}),
         }
@@ -165,30 +385,14 @@ class EspaceCongeForm(forms.ModelForm):
         cleaned = super().clean()
         d1 = cleaned.get('date_debut')
         d2 = cleaned.get('date_fin')
-        if d1 and d2 and d2 < d1:
-            raise forms.ValidationError("La date de fin doit être postérieure à la date de début.")
-        return cleaned
-
-
-class EspacePermissionForm(forms.ModelForm):
-    """Demande de permission par le contractuel (sans champ contractuel)."""
-    class Meta:
-        model = Permission
-        fields = ['date', 'heure_debut', 'heure_fin', 'motif']
-        widgets = {
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'heure_debut': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'heure_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'motif': forms.Textarea(attrs={'class': 'form-control', 'rows': 4,
-                                           'placeholder': 'Précisez le motif de votre demande…'}),
-        }
-
-    def clean(self):
-        cleaned = super().clean()
-        h1 = cleaned.get('heure_debut')
-        h2 = cleaned.get('heure_fin')
-        if h1 and h2 and h2 <= h1:
-            raise forms.ValidationError("L'heure de fin doit être après l'heure de début.")
+        if d1 and d2:
+            if d2 < d1:
+                raise forms.ValidationError("La date de fin doit être postérieure à la date de début.")
+            duree = (d2 - d1).days + 1
+            if duree > 3:
+                raise forms.ValidationError(
+                    f"Une permission ne peut pas dépasser 3 jours (durée saisie : {duree} jour{'s' if duree > 1 else ''})."
+                )
         return cleaned
 
 

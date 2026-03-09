@@ -10,9 +10,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='127.0.0.1,localhost',
+    cast=lambda v: [h.strip() for h in v.split(',')]
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,6 +36,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'SYGEPECO.middleware.RoleRoutingMiddleware',
 ]
 
 ROOT_URLCONF = 'PROJETCONTRA.urls'
@@ -91,7 +96,48 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# ─── Sécurité production ────────────────────────────────────────────────────
+# Ces paramètres s'activent automatiquement hors mode DEBUG.
+# En développement (DEBUG=True) ils sont désactivés pour ne pas bloquer HTTP.
+if not DEBUG:
+    # HTTPS obligatoire
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Cookies sécurisés (transmis uniquement via HTTPS)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS : forcer HTTPS pendant 1 an (31 536 000 s), inclure sous-domaines
+    SECURE_HSTS_SECONDS = 31_536_000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Empêcher le sniffing de type MIME
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # Empêcher le rendu dans un iframe (clickjacking)
+    X_FRAME_OPTIONS = 'DENY'
+
+
+# ─── Email ──────────────────────────────────────────────────────────────────
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='SYGEPECO <noreply@sygepeco.ci>',
+)
+PASSWORD_RESET_TIMEOUT = 3600  # 1 heure
+
 # Auth
 LOGIN_URL = '/auth/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/auth/login/'

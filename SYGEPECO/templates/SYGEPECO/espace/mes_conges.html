@@ -1,92 +1,169 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
 {% block title %}Mes congés{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mes congés</span>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Mes congés</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Filtres pills ────────────────────────────────────────── */
+.pills { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: .72rem; font-weight: 600;
+  border: 1px solid var(--line-mid);
+  background: transparent;
+  color: var(--txt-2);
+  text-decoration: none;
+  transition: all .15s;
+}
+.pill:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+.pill.active { background: var(--teal-soft); color: var(--teal); border-color: var(--teal-mid); }
+
+/* ── Conge card ──────────────────────────────────────────── */
+.conge-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: border-color .15s, transform .15s;
+  margin-bottom: 10px;
+}
+.conge-card:hover {
+  border-color: var(--line-mid);
+  transform: translateX(2px);
+}
+.conge-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.conge-icon svg { width: 18px; height: 18px; }
+.conge-type { font-size: .88rem; font-weight: 700; color: var(--txt); margin-bottom: 4px; }
+.conge-dates { font-family: var(--font-mono); font-size: .75rem; color: var(--txt-2); margin-bottom: 6px; }
+.conge-motif { font-size: .78rem; color: var(--txt-3); font-style: italic; }
+.conge-rh {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--card-2);
+  border-radius: var(--radius-sm);
+  font-size: .76rem;
+  color: var(--txt-2);
+}
+.conge-meta { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.conge-days {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--txt);
+  text-align: right;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Mes congés</h1>
-    <p class="page-subtitle">{{ conges.count }} demande{{ conges.count|pluralize }} au total</p>
+    <div class="pg-eyebrow">Mes demandes</div>
+    <h1 class="pg-title">Mes congés</h1>
+    <p class="pg-sub">{{ conges.count }} demande{{ conges.count|pluralize }} au total</p>
   </div>
-  <a href="{% url 'espace_demander_conge' %}" class="btn btn-primary">+ Nouvelle demande</a>
-</div>
-
-<!-- Résumé rapide -->
-<div class="mini-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
-    <div>
-      <div class="mini-stat-value" style="color:var(--accent-green);">{{ conges|length }}</div>
-      <div class="mini-stat-label">Total demandes</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:#F97316;"></div>
-    <div>
-      <div class="mini-stat-value" style="color:#F97316;">{% for cg in conges %}{% if cg.statut == 'EN_ATTENTE' %}1{% endif %}{% endfor %}</div>
-      <div class="mini-stat-label">En attente</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:#7C6AF7;"></div>
-    <div>
-      <div class="mini-stat-value" style="color:#7C6AF7;">30</div>
-      <div class="mini-stat-label">Quota annuel (jours)</div>
-    </div>
-  </div>
+  <a href="{% url 'espace_demander_conge' %}" class="btn btn-teal" style="align-self:flex-end;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nouvelle demande
+  </a>
 </div>
 
 <!-- Filtres -->
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-  <a href="{% url 'espace_mes_conges' %}" class="btn btn-sm btn-secondary">Tous</a>
-  <a href="?statut=EN_ATTENTE" class="btn btn-sm btn-secondary">En attente</a>
-  <a href="?statut=APPROUVE"   class="btn btn-sm btn-secondary">Approuvés</a>
-  <a href="?statut=REJETE"     class="btn btn-sm btn-secondary">Rejetés</a>
+<div class="pills rise rise-1">
+  <a href="{% url 'espace_mes_conges' %}" class="pill {% if not request.GET.statut %}active{% endif %}">Tous</a>
+  <a href="?statut=EN_ATTENTE" class="pill {% if request.GET.statut == 'EN_ATTENTE' %}active{% endif %}">En attente</a>
+  <a href="?statut=VALIDE_MANAGER" class="pill {% if request.GET.statut == 'VALIDE_MANAGER' %}active{% endif %}">Validés manager</a>
+  <a href="?statut=APPROUVE"   class="pill {% if request.GET.statut == 'APPROUVE' %}active{% endif %}">Approuvés</a>
+  <a href="?statut=REJETE"     class="pill {% if request.GET.statut == 'REJETE' %}active{% endif %}">Rejetés</a>
 </div>
 
+<!-- Liste -->
 {% if conges %}
-<div style="display:flex;flex-direction:column;gap:12px;">
+<div class="rise rise-2">
   {% for cg in conges %}
-  <div class="card" style="padding:20px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span style="font-size:1.1rem;">🏖</span>
-          <span style="font-weight:700;font-size:1rem;">{{ cg.get_type_conge_display }}</span>
-          {% if cg.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">⏳ En attente</span>
-          {% elif cg.statut == 'APPROUVE' %}<span class="badge badge-success">✓ Approuvé</span>
-          {% elif cg.statut == 'REJETE' %}<span class="badge badge-danger">✗ Rejeté</span>
-          {% else %}<span class="badge badge-muted">Annulé</span>{% endif %}
-        </div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;">
-          <div style="font-size:0.875rem;color:var(--text-secondary);">
-            📅 Du <strong>{{ cg.date_debut|date:"d/m/Y" }}</strong> au <strong>{{ cg.date_fin|date:"d/m/Y" }}</strong>
-            <span style="color:var(--text-muted);"> — {{ cg.nb_jours }} jour{{ cg.nb_jours|pluralize }}</span>
-          </div>
-          <div style="font-size:0.875rem;color:var(--text-muted);">Soumis le {{ cg.created_at|date:"d/m/Y" }}</div>
-        </div>
-        {% if cg.motif %}
-        <div style="margin-top:8px;font-size:0.8125rem;color:var(--text-muted);">
-          <em>"{{ cg.motif|truncatechars:100 }}"</em>
-        </div>
-        {% endif %}
-        {% if cg.commentaire_rh %}
-        <div style="margin-top:8px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:0.8125rem;">
-          <span style="color:var(--text-muted);">Commentaire RH : </span>{{ cg.commentaire_rh }}
-        </div>
+  <div class="conge-card">
+    <!-- Icône selon statut -->
+    {% if cg.statut == 'APPROUVE' %}
+    <div class="conge-icon" style="background:var(--emerald-soft);color:var(--emerald);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    {% elif cg.statut == 'REJETE' %}
+    <div class="conge-icon" style="background:var(--rose-soft);color:var(--rose);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    {% else %}
+    <div class="conge-icon" style="background:var(--amber-soft);color:var(--amber);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    {% endif %}
+
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <span class="conge-type">{{ cg.get_type_conge_display }}</span>
+        {% if cg.statut == 'EN_ATTENTE' %}<span class="badge b-amber">En attente manager</span>
+        {% elif cg.statut == 'VALIDE_MANAGER' %}<span class="badge" style="background:var(--teal-soft,rgba(20,184,166,.1));border:1px solid rgba(20,184,166,.3);color:var(--teal,#14b8a6);">Validé — en attente entreprise</span>
+        {% elif cg.statut == 'APPROUVE' %}<span class="badge b-green">Approuvé</span>
+        {% elif cg.statut == 'REJETE' %}<span class="badge b-red">Rejeté</span>
+        {% else %}<span class="badge" style="background:var(--card-2);color:var(--txt-2);border-color:var(--line-mid);">Annulé</span>
         {% endif %}
       </div>
+      <div class="conge-dates">
+        Du {{ cg.date_debut|date:"d/m/Y" }} au {{ cg.date_fin|date:"d/m/Y" }}
+        · Soumis le {{ cg.created_at|date:"d/m/Y" }}
+      </div>
+      {% if cg.motif %}
+      <div class="conge-motif">"{{ cg.motif|truncatechars:120 }}"</div>
+      {% endif %}
+      {% if cg.commentaire_rh %}
+      <div class="conge-rh">
+        <span style="color:var(--txt-3);font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Commentaire RH</span><br>
+        {{ cg.commentaire_rh }}
+      </div>
+      {% endif %}
+      {% if cg.document_medical %}
+      <div style="margin-top:8px;">
+        <a href="{% url 'conge_document_medical' cg.pk %}" target="_blank"
+           style="display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:700;color:var(--teal);text-decoration:none;padding:4px 10px;border:1px solid rgba(20,184,166,.25);border-radius:7px;background:var(--teal-soft);transition:background .15s;"
+           onmouseover="this.style.background='rgba(20,184,166,.18)'" onmouseout="this.style.background='var(--teal-soft)'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          Justificatif médical
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="conge-meta">
+      <span class="conge-days">{{ cg.nb_jours }}j</span>
+      <span style="font-size:.62rem;color:var(--txt-3);">durée</span>
     </div>
   </div>
   {% endfor %}
 </div>
+
 {% else %}
-<div class="empty-state">
-  <div class="empty-state-icon">🏖</div>
-  <div class="empty-state-title">Aucune demande de congé</div>
-  <a href="{% url 'espace_demander_conge' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Faire une demande</a>
+<div class="table-wrap rise rise-2">
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/><path d="M12 6v6l4 2"/>
+    </svg>
+    <p style="font-weight:600;color:var(--txt-2);font-size:.9rem;">Aucune demande de congé</p>
+    <a href="{% url 'espace_demander_conge' %}" class="btn btn-teal" style="margin-top:8px;">Faire une demande</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

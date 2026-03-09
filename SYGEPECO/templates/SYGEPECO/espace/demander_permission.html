@@ -1,106 +1,134 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
+{% load static %}
 {% block title %}Demander une permission{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span>
-<a href="{% url 'espace_mes_permissions' %}" class="breadcrumb-item">Mes permissions</a>
-<span class="breadcrumb-sep"> / </span>
-<span class="breadcrumb-item active">Nouvelle demande</span>
+<span class="topbar-sep">/</span>
+<a href="{% url 'espace_mes_permissions' %}" style="color:var(--txt-2);text-decoration:none;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--txt-2)'">Mes permissions</a>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Nouvelle demande</span>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'SYGEPECO/css/flatpickr.min.css' %}">
+<style>
+.flatpickr-calendar{background:var(--card,#111220)!important;border:1px solid var(--line,rgba(255,255,255,.06))!important;border-radius:12px!important;box-shadow:0 24px 64px rgba(0,0,0,.55)!important;overflow:hidden;}
+.flatpickr-months{background:transparent!important;border-bottom:1px solid var(--line,rgba(255,255,255,.06));padding:6px 0;}
+.flatpickr-month,.flatpickr-prev-month,.flatpickr-next-month{color:var(--txt,#eef0f8)!important;fill:var(--txt,#eef0f8)!important;}
+.flatpickr-current-month{font-size:.92rem!important;font-weight:600!important;}
+.flatpickr-current-month select{color:var(--txt,#eef0f8)!important;background:transparent!important;}
+.flatpickr-weekdays{background:transparent!important;}
+.flatpickr-weekday{color:var(--txt-2,#8b8fa8)!important;background:transparent!important;font-size:.72rem!important;font-weight:600!important;}
+.flatpickr-day{color:var(--txt,#eef0f8)!important;border-radius:8px!important;}
+.flatpickr-day:hover{background:var(--violet,#8b5cf6)!important;border-color:var(--violet,#8b5cf6)!important;color:#fff!important;}
+.flatpickr-day.selected{background:var(--violet,#8b5cf6)!important;border-color:var(--violet,#8b5cf6)!important;color:#fff!important;font-weight:600!important;}
+.flatpickr-day.disabled,.flatpickr-day.disabled:hover{color:var(--txt-3,#52566e)!important;opacity:.4!important;background:transparent!important;cursor:not-allowed!important;}
+.flatpickr-day.today{border-color:var(--violet,#8b5cf6)!important;}
+.flatpickr-day.today:hover{background:var(--violet,#8b5cf6)!important;color:#fff!important;}
+.numInputWrapper:hover,.numInputWrapper{background:transparent!important;}
+.numInputWrapper input{color:var(--txt,#eef0f8)!important;}
+.flatpickr-innerContainer{padding:6px;}
+.date-input-wrap{position:relative;}
+.date-input-wrap .ctrl{padding-right:38px!important;cursor:pointer!important;}
+.date-input-wrap .cal-icon{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--violet,#8b5cf6);pointer-events:none;}
+.form-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;max-width:620px;}
+.form-card-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+.form-card-body{padding:24px;}
+.form-card-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--card-2);}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.duree-calc{display:none;background:var(--violet-soft);border:1px solid rgba(139,92,246,.2);border-radius:var(--radius-sm);padding:10px 14px;font-family:var(--font-mono);font-size:.82rem;color:var(--violet);margin-top:-8px;margin-bottom:16px;}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Nouvelle permission de sortie</h1>
-    <p class="page-subtitle">Remplissez le formulaire ci-dessous</p>
+    <div class="pg-eyebrow">Mes permissions</div>
+    <h1 class="pg-title">Nouvelle demande de permission</h1>
   </div>
-  <a href="{% url 'espace_mes_permissions' %}" class="btn btn-secondary">← Retour</a>
+  <a href="{% url 'espace_mes_permissions' %}" class="btn btn-ghost" style="align-self:flex-end;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Retour
+  </a>
 </div>
 
-<div style="max-width:600px;">
-  <div class="card" style="padding:32px;">
-    <form method="post" id="permForm">
-      {% csrf_token %}
+<div class="form-card rise rise-1">
+  <div class="form-card-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2" width="18" height="18">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <span style="font-family:var(--font-serif);font-size:1rem;font-weight:600;color:var(--txt);">
+      Soumettre une permission de sortie
+    </span>
+  </div>
 
-      <!-- Date -->
-      <div class="form-group">
-        <label class="form-label">Date de la permission <span style="color:var(--accent-red);">*</span></label>
-        {{ form.date }}
-        {% if form.date.errors %}
-        <div class="field-error">{{ form.date.errors.0 }}</div>
-        {% endif %}
-      </div>
+  <form method="post" id="permForm">
+    {% csrf_token %}
+    <div class="form-card-body">
 
-      <!-- Horaires -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label">Heure de départ <span style="color:var(--accent-red);">*</span></label>
-          {{ form.heure_debut }}
-          {% if form.heure_debut.errors %}
-          <div class="field-error">{{ form.heure_debut.errors.0 }}</div>
-          {% endif %}
+          <label class="form-label" for="id_date_debut">Date de debut *</label>
+          <div class="date-input-wrap">
+            {{ form.date_debut }}
+            <svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          {% if form.date_debut.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.date_debut.errors.0 }}</div>{% endif %}
         </div>
         <div class="form-group">
-          <label class="form-label">Heure de retour <span style="color:var(--accent-red);">*</span></label>
-          {{ form.heure_fin }}
-          {% if form.heure_fin.errors %}
-          <div class="field-error">{{ form.heure_fin.errors.0 }}</div>
-          {% endif %}
+          <label class="form-label" for="id_date_fin">Date de fin *</label>
+          <div class="date-input-wrap">
+            {{ form.date_fin }}
+            <svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          {% if form.date_fin.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.date_fin.errors.0 }}</div>{% endif %}
         </div>
       </div>
 
       <!-- Durée calculée -->
-      <div id="dureeCalc" style="display:none;margin-top:-8px;margin-bottom:16px;padding:10px 14px;background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);border-radius:var(--radius-sm);font-size:0.875rem;color:var(--espace-accent);">
-        <strong id="dureeText"></strong>
+      <div class="duree-calc" id="dureeCalc">
+        <span id="dureeText"></span>
       </div>
 
-      <!-- Motif -->
       <div class="form-group">
-        <label class="form-label">Motif <span style="color:var(--accent-red);">*</span></label>
+        <label class="form-label">Motif *</label>
         {{ form.motif }}
-        {% if form.motif.errors %}
-        <div class="field-error">{{ form.motif.errors.0 }}</div>
-        {% endif %}
+        {% if form.motif.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.motif.errors.0 }}</div>{% endif %}
       </div>
 
       {% if form.non_field_errors %}
-      <div class="alert alert-danger" style="margin-bottom:16px;">
-        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+      <div style="background:var(--rose-soft);border:1px solid rgba(244,63,94,.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:.8rem;color:var(--rose);">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
       </div>
       {% endif %}
+    </div>
 
-      <div style="display:flex;gap:12px;margin-top:24px;">
-        <button type="submit" class="btn btn-primary" style="flex:1;">Soumettre la demande</button>
-        <a href="{% url 'espace_mes_permissions' %}" class="btn btn-secondary">Annuler</a>
-      </div>
-    </form>
-  </div>
-
-  <div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:var(--radius);font-size:0.8125rem;color:var(--text-muted);line-height:1.6;">
-    ℹ️ Votre demande de permission sera examinée par le service RH. Merci de soumettre votre demande au moins 24h à l'avance.
-  </div>
+    <div class="form-card-foot">
+      <a href="{% url 'espace_mes_permissions' %}" class="btn btn-ghost">Annuler</a>
+      <button type="submit" class="btn btn-teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Soumettre la demande
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'SYGEPECO/js/flatpickr.min.js' %}"></script>
 <script>
-const heureDebut = document.getElementById('id_heure_debut');
-const heureFin   = document.getElementById('id_heure_fin');
-const dureeDiv   = document.getElementById('dureeCalc');
-const dureeText  = document.getElementById('dureeText');
-
-function calcDuree() {
-  if (!heureDebut.value || !heureFin.value) { dureeDiv.style.display = 'none'; return; }
-  const [h1, m1] = heureDebut.value.split(':').map(Number);
-  const [h2, m2] = heureFin.value.split(':').map(Number);
-  const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
-  if (mins <= 0) { dureeDiv.style.display = 'none'; return; }
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  dureeText.textContent = `Durée : ${h > 0 ? h + 'h' : ''}${m > 0 ? m + 'min' : ''}`;
-  dureeDiv.style.display = 'block';
-}
-
-heureDebut.addEventListener('change', calcDuree);
-heureFin.addEventListener('change', calcDuree);
+flatpickr.localize({firstDayOfWeek:1,weekdays:{shorthand:['Di','Lu','Ma','Me','Je','Ve','Sa'],longhand:['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']},months:{shorthand:['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'],longhand:['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre']}});
+document.querySelectorAll('.form-card-body input:not([type=submit]),.form-card-body select,.form-card-body textarea').forEach(function(el){el.classList.add('ctrl');});
+var dureeDiv=document.getElementById('dureeCalc'),dureeText=document.getElementById('dureeText');
+function calcDuree(d1,d2){if(!d1||!d2){dureeDiv.style.display='none';return;}var diff=Math.round((d2-d1)/864e5)+1;if(diff<1){dureeDiv.style.display='none';return;}dureeText.textContent='Duree : '+diff+' jour'+(diff>1?'s':'');dureeDiv.style.display='block';}
+var initDebut=document.getElementById('id_date_debut')?document.getElementById('id_date_debut').value:'';
+var initFin=document.getElementById('id_date_fin')?document.getElementById('id_date_fin').value:'';
+var fpDebut,fpFin;
+fpFin=flatpickr('#id_date_fin',{dateFormat:'Y-m-d',defaultDate:initFin||null,minDate:initDebut?initDebut:'today',allowInput:false,disableMobile:true,clickOpens:true,onChange:function(s){calcDuree(fpDebut?fpDebut.selectedDates[0]:null,s[0]);}});
+fpDebut=flatpickr('#id_date_debut',{dateFormat:'Y-m-d',defaultDate:initDebut||null,minDate:'today',allowInput:false,disableMobile:true,clickOpens:true,onChange:function(s){var d1=s[0];if(d1){fpFin.set('minDate',d1);var d2=fpFin.selectedDates[0];if(d2&&d2<d1){fpFin.clear();}}calcDuree(d1,fpFin.selectedDates[0]);}});
+if(initDebut&&initFin){calcDuree(new Date(initDebut),new Date(initFin));}
 </script>
 {% endblock %}

@@ -1,73 +1,555 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
 {% block title %}Modifier mon profil{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span>
-<a href="{% url 'espace_profil' %}" style="color:var(--text-muted);">Mon profil</a>
-<span class="breadcrumb-sep"> / </span>
-<span class="breadcrumb-item active">Modifier</span>
+<span class="topbar-sep">/</span>
+<a href="{% url 'espace_profil' %}" style="color:var(--txt-2);text-decoration:none;"
+   onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--txt-2)'">Mon profil</a>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Modifier</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════
+   FICHE STYLE — inspiré de la fiche agent officielle
+════════════════════════════════════════════════════════ */
+
+/* ── Fiche container ─────────────────────────────────── */
+.fiche {
+  max-width: 860px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* ── En-tête fiche (photo + identité) ───────────────── */
+.fiche-top {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+}
+.fiche-avatar-zone {
+  width: 140px;
+  min-height: 160px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 12px;
+  flex-shrink: 0;
+  background: var(--card-2);
+}
+.fiche-avatar {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--teal-mid);
+}
+.fiche-avatar-placeholder {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  border: 2px solid var(--teal-mid);
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.fiche-avatar-label {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  text-align: center;
+}
+.fiche-id {
+  flex: 1;
+  padding: 20px 24px;
+}
+.fiche-id-name {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--txt);
+  margin-bottom: 4px;
+}
+.fiche-id-sub {
+  font-size: .8rem;
+  color: var(--txt-2);
+  margin-bottom: 14px;
+}
+.fiche-id-chips {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+/* Matricule grand format en coin */
+.fiche-mat {
+  width: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 14px 20px;
+  border-left: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.fiche-mat-num {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  font-weight: 500;
+  color: var(--txt-3);
+  transform: rotate(90deg);
+  transform-origin: center;
+  white-space: nowrap;
+  letter-spacing: .08em;
+}
+
+/* ── Section header (bande teal) ─────────────────────── */
+.fiche-section-hdr {
+  background: var(--teal);
+  color: #020f15;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 7px 20px;
+}
+
+/* ── Grille de champs ────────────────────────────────── */
+.fiche-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line);
+}
+.fiche-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.fiche-cell {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+.fiche-cell:nth-child(2n) { border-right: none; }
+.fiche-grid.cols-3 .fiche-cell:nth-child(2n) { border-right: 1px solid var(--line); }
+.fiche-grid.cols-3 .fiche-cell:nth-child(3n) { border-right: none; }
+.fiche-cell.span-2 { grid-column: span 2; border-right: none; }
+.fiche-cell.span-3 { grid-column: span 3; border-right: none; }
+
+.fiche-lbl {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  margin-bottom: 5px;
+}
+.fiche-val {
+  font-size: .84rem;
+  color: var(--txt-2);
+  font-weight: 500;
+}
+/* champ read-only */
+.fiche-readonly {
+  background: var(--surface);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: .82rem;
+  color: var(--txt-2);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  cursor: not-allowed;
+  opacity: .7;
+}
+
+/* ── Champ éditable ──────────────────────────────────── */
+.fiche-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line-mid);
+  border-radius: 6px;
+  color: var(--txt);
+  font-family: var(--font-ui);
+  font-size: .84rem;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.fiche-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-soft);
+}
+select.fiche-input { cursor: pointer; -webkit-appearance: none; }
+textarea.fiche-input { resize: none; }
+
+/* Indicateur champ éditable */
+.fiche-cell.editable .fiche-lbl::after {
+  content: ' ✎';
+  color: var(--teal);
+  font-size: .55rem;
+}
+
+/* ── Section emploi / état (lecture seule) ───────────── */
+.fiche-section-hdr.sec-emploi {
+  background: var(--card-2);
+  color: var(--txt-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── Footer fiche ────────────────────────────────────── */
+.fiche-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--card-2);
+}
+
+/* ── Note éditable ───────────────────────────────────── */
+.edit-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--teal-soft);
+  border: 1px solid var(--teal-mid);
+  border-bottom: none;
+  font-size: .75rem;
+  color: var(--txt-2);
+}
+.edit-notice svg { color: var(--teal); flex-shrink: 0; }
+
+/* Photo upload btn */
+.photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--teal-soft);
+  border: 1px solid var(--teal-mid);
+  border-radius: 6px;
+  color: var(--teal);
+  font-size: .68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.photo-btn:hover { background: var(--teal-mid); }
+.photo-btn svg { width: 11px; height: 11px; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Modifier mon profil</h1>
-    <p class="page-subtitle">Vous pouvez modifier vos informations de contact uniquement.</p>
+    <div class="pg-eyebrow">Mon profil</div>
+    <h1 class="pg-title">Ma fiche agent</h1>
+    <p class="pg-sub">Les champs marqués <span style="color:var(--teal);">✎</span> sont modifiables par vous</p>
   </div>
-  <a href="{% url 'espace_profil' %}" class="btn btn-secondary">← Retour</a>
+  <a href="{% url 'espace_profil' %}" class="btn btn-ghost" style="align-self:flex-end;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Retour
+  </a>
 </div>
 
-<!-- Info lecture seule -->
-<div class="alert alert-info" style="margin-bottom:20px;">
-  ℹ Les informations comme le matricule, le poste ou le département ne peuvent être modifiées que par le service RH.
+<form method="post" enctype="multipart/form-data" id="ficheForm">
+{% csrf_token %}
+
+<!-- Notice -->
+<div class="edit-notice rise rise-1">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  Vos informations personnelles et de contact sont modifiables. Les champs administratifs (matricule, poste, direction, entreprise, date d'embauche) sont gérés exclusivement par les RH et s'affichent en lecture seule.
 </div>
 
-<div style="display:grid;grid-template-columns:280px 1fr;gap:20px;">
+<div class="fiche rise rise-1">
 
-  <!-- Aperçu photo -->
-  <div class="card" style="text-align:center;">
-    <div style="margin-bottom:16px;">
+  <!-- ═══════════════════════════════════════════════════
+       EN-TÊTE : PHOTO + IDENTITÉ
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-top">
+    <!-- Photo -->
+    <div class="fiche-avatar-zone">
       {% if contractuel.photo %}
-      <img src="{{ contractuel.photo.url }}" id="photoPreview" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--border);">
+      <img src="{{ contractuel.photo.url }}" class="fiche-avatar" id="photoPreview" alt="">
       {% else %}
-      <div class="avatar-placeholder avatar-lg" id="avatarPlaceholder" style="width:120px;height:120px;font-size:2rem;margin:0 auto;">
+      <div class="fiche-avatar-placeholder" id="avatarPlaceholder">
         {{ contractuel.nom|slice:":1" }}{{ contractuel.prenom|slice:":1" }}
       </div>
-      <img id="photoPreview" src="" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--border);display:none;margin:0 auto;">
+      <img src="" class="fiche-avatar" id="photoPreview" style="display:none;" alt="">
       {% endif %}
+      <label class="photo-btn" for="id_photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Modifier
+      </label>
+      <div style="display:none;">{{ form.photo }}</div>
+      <span class="fiche-avatar-label">Photo de profil</span>
     </div>
-    <div style="font-weight:700;font-size:1rem;">{{ contractuel.get_full_name }}</div>
-    <div style="font-size:0.8125rem;color:var(--text-muted);">{{ contractuel.matricule }}</div>
-    <div style="font-size:0.8125rem;color:var(--text-muted);margin-top:4px;">{{ contractuel.poste.titre|default:"—" }}</div>
+
+    <!-- Identité rapide -->
+    <div class="fiche-id">
+      <div class="fiche-id-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
+      <div class="fiche-id-sub">
+        {{ contractuel.poste.titre|default:"Poste non défini" }}
+        · {{ contractuel.direction.nom|default:"Direction non définie" }}
+      </div>
+      <div class="fiche-id-chips">
+        <span class="badge b-teal" style="font-family:var(--font-mono);">{{ contractuel.matricule }}</span>
+        {% if contractuel.statut == 'ACTIF' %}
+        <span class="badge b-green">Actif</span>
+        {% elif contractuel.statut == 'SUSPENDU' %}
+        <span class="badge b-amber">Suspendu</span>
+        {% else %}
+        <span class="badge" style="background:var(--card-2);color:var(--txt-2);border-color:var(--line-mid);">Inactif</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Matricule vertical -->
+    <div class="fiche-mat">
+      <span class="fiche-mat-num">{{ contractuel.matricule }}</span>
+    </div>
   </div>
 
-  <!-- Formulaire -->
-  <div class="card">
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="form-group">
-        <label class="form-label">Photo de profil</label>
-        <input type="file" id="photoInput" name="photo" class="form-control" accept="image/*">
-        <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Formats acceptés : JPG, PNG — Max 2Mo</small>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Email *</label>
-        {{ form.email }}
-        {% if form.email.errors %}<small style="color:var(--accent-red);">{{ form.email.errors.0 }}</small>{% endif %}
-      </div>
-      <div class="form-group">
-        <label class="form-label">Téléphone *</label>
-        {{ form.telephone }}
-      </div>
-      <div class="form-group">
-        <label class="form-label">Adresse</label>
-        {{ form.adresse }}
-      </div>
-      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
-        <a href="{% url 'espace_profil' %}" class="btn btn-secondary">Annuler</a>
-        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
-      </div>
-    </form>
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 1 : IDENTITÉ
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-section-hdr">Identité</div>
+
+  <div class="fiche-grid cols-3">
+
+    <!-- Matricule (lecture seule — géré par les RH) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Matricule</div>
+      <div class="fiche-readonly">{{ contractuel.matricule }}</div>
+    </div>
+
+    <!-- Nom (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Nom</div>
+      {{ form.nom }}
+    </div>
+
+    <!-- Prénom (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Prénom(s)</div>
+      {{ form.prenom }}
+    </div>
+
+    <!-- Genre (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Sexe</div>
+      {{ form.genre }}
+    </div>
+
+    <!-- Date naissance (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Date de naissance</div>
+      {{ form.date_naissance }}
+    </div>
+
+    <!-- Lieu naissance (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Lieu de naissance</div>
+      {{ form.lieu_naissance }}
+    </div>
+
+    <!-- Nationalité (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Nationalité</div>
+      {{ form.nationalite }}
+    </div>
+
+    <!-- Numéro CNPS (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Numéro CNPS</div>
+      {{ form.numero_cnps }}
+    </div>
+
+    <!-- Situation familiale (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Situation familiale</div>
+      {{ form.situation_famille }}
+    </div>
+
+    <!-- Nombre d'enfants (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Nombre d'enfants</div>
+      {{ form.nombre_enfants }}
+    </div>
+
   </div>
 
-</div>
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 2 : CONTACT & RÉSIDENCE
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-section-hdr">Contact &amp; Résidence</div>
+
+  <div class="fiche-grid cols-3">
+
+    <!-- Email (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Email</div>
+      {{ form.email }}
+    </div>
+
+    <!-- Téléphone (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Téléphone</div>
+      {{ form.telephone }}
+    </div>
+
+    <!-- Commune (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Commune</div>
+      {{ form.commune }}
+    </div>
+
+    <!-- Ville (éditable) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Ville</div>
+      {{ form.ville }}
+    </div>
+
+    <!-- Adresse (éditable, full width) -->
+    <div class="fiche-cell editable span-2">
+      <div class="fiche-lbl">Adresse complète</div>
+      {{ form.adresse }}
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 3 : EMPLOI
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-section-hdr">Emploi</div>
+
+  <div class="fiche-grid cols-3">
+
+    <!-- Entreprise (lecture seule — géré par les RH) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Entreprise</div>
+      <div class="fiche-readonly">{{ contractuel.entreprise.nom|default:"—" }}</div>
+    </div>
+
+    <!-- Poste (lecture seule — géré par les RH) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Poste / Emploi</div>
+      <div class="fiche-readonly">{{ contractuel.poste.titre|default:"—" }}</div>
+    </div>
+
+    <!-- Direction (lecture seule — géré par les RH) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Direction</div>
+      <div class="fiche-readonly">{{ contractuel.direction.nom|default:"—" }}</div>
+    </div>
+
+    <!-- Date embauche (lecture seule — géré par les RH) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Date de prise de service</div>
+      <div class="fiche-readonly">{{ contractuel.date_embauche|date:"d/m/Y"|default:"—" }}</div>
+    </div>
+
+    <!-- Salaire (éditable, lié au contrat actif) -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Salaire (FCFA)</div>
+      {{ form.salaire }}
+    </div>
+
+    <!-- Statut (lecture seule) -->
+    <div class="fiche-cell">
+      <div class="fiche-lbl">Statut</div>
+      <div class="fiche-readonly">{{ contractuel.get_statut_display }}</div>
+    </div>
+
+  </div>
+
+  <!-- Erreurs -->
+  {% if form.errors %}
+  <div style="padding:12px 20px;background:var(--rose-soft);border-top:1px solid rgba(244,63,94,.2);">
+    {% for field, errors in form.errors.items %}
+      {% for e in errors %}
+      <div style="font-size:.78rem;color:var(--rose);">{{ e }}</div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="fiche-foot">
+    <a href="{% url 'espace_profil' %}" class="btn btn-ghost">Annuler</a>
+    <button type="submit" class="btn btn-teal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Enregistrer ma fiche
+    </button>
+  </div>
+
+</div><!-- /.fiche -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Style des inputs Django ──────────────────────────── */
+document.querySelectorAll('#ficheForm input:not([type=submit]):not([type=file]), #ficheForm select, #ficheForm textarea').forEach(function(el) {
+  el.classList.add('fiche-input');
+});
+
+/* ── Aperçu photo ─────────────────────────────────────── */
+var photoInput = document.getElementById('id_photo');
+if (photoInput) {
+  photoInput.addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var preview = document.getElementById('photoPreview');
+      var placeholder = document.getElementById('avatarPlaceholder');
+      if (placeholder) placeholder.style.display = 'none';
+      if (preview) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ── Calcul retraite + solde congés ───────────────────── */
+(function() {
+  // Retraite : 60 ans
+  var dateNaissStr = '{{ contractuel.date_naissance|date:"Y-m-d" }}';
+  if (dateNaissStr) {
+    var dn = new Date(dateNaissStr);
+    var retraite = new Date(dn.getFullYear() + 60, dn.getMonth(), dn.getDate());
+    var el = document.getElementById('retraiteDate');
+    if (el) el.textContent = retraite.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
+  }
+
+  // Solde congés via contexte Django
+  var congesPris = {{ contractuel.conges.all|length }};
+  var approuves = 0;
+  {% for cg in contractuel.conges.all %}
+  {% if cg.statut == 'APPROUVE' %}approuves += {{ cg.nb_jours }};{% endif %}
+  {% endfor %}
+  var solde = Math.max(0, 30 - approuves);
+  var elSolde = document.getElementById('soldeConges');
+  if (elSolde) elSolde.textContent = solde + ' JOURS';
+  var elPris = document.getElementById('congesPris');
+  if (elPris) elPris.textContent = approuves + ' JOURS';
+})();
+</script>
 {% endblock %}

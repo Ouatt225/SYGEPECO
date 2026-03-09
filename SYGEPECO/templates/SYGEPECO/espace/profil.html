@@ -1,63 +1,281 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
 {% block title %}Mon profil{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mon profil</span>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Mon profil</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Profil hero ──────────────────────────────────────────── */
+.profil-hero {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.profil-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--violet), var(--teal));
+  background-size: 200%;
+  animation: gradient-shift 4s linear infinite;
+}
+@keyframes gradient-shift {
+  0%   { background-position: 0%; }
+  100% { background-position: 200%; }
+}
+
+.profil-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid var(--teal-mid);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.profil-avatar-placeholder {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  border: 2px solid var(--teal-mid);
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.profil-name {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.profil-sub {
+  font-size: .82rem;
+  color: var(--txt-2);
+  margin-bottom: 10px;
+}
+.profil-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.profil-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+
+/* ── Info grid ───────────────────────────────────────────── */
+.info-section {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.info-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card-2);
+}
+.info-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-2);
+}
+.info-section-icon {
+  color: var(--teal);
+}
+.info-section-icon svg { width: 14px; height: 14px; }
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  border-bottom: 1px solid var(--line);
+}
+.info-row:last-child { border-bottom: none; }
+.info-cell {
+  padding: 14px 20px;
+  border-right: 1px solid var(--line);
+}
+.info-cell:last-child { border-right: none; }
+.info-cell-label {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  margin-bottom: 5px;
+}
+.info-cell-val {
+  font-size: .84rem;
+  color: var(--txt);
+  font-weight: 500;
+}
+.info-cell-val.mono { font-family: var(--font-mono); }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1 class="page-title">Mon profil</h1>
-  <a href="{% url 'espace_profil_modifier' %}" class="btn btn-primary">✏ Modifier mes infos</a>
+<!-- En-tête -->
+<div class="pg-head rise">
+  <div>
+    <div class="pg-eyebrow">Mon espace</div>
+    <h1 class="pg-title">Mon profil</h1>
+  </div>
 </div>
 
-<!-- En-tête profil -->
-<div class="detail-header" style="margin-bottom:20px;">
+<!-- Hero profil -->
+<div class="profil-hero rise rise-1">
   {% if contractuel.photo %}
-  <img src="{{ contractuel.photo.url }}" class="detail-avatar">
+  <img src="{{ contractuel.photo.url }}" class="profil-avatar" alt="">
   {% else %}
-  <div class="avatar-placeholder avatar-lg">{{ contractuel.nom|slice:":1" }}{{ contractuel.prenom|slice:":1" }}</div>
+  <div class="profil-avatar-placeholder">{{ contractuel.nom|slice:":1" }}{{ contractuel.prenom|slice:":1" }}</div>
   {% endif %}
-  <div class="detail-info">
-    <div class="detail-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
-    <div class="detail-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} • {{ contractuel.departement|default:"Département non défini" }}</div>
-    <div class="detail-meta">
-      <div class="detail-meta-item"><span>Matricule : </span><strong>{{ contractuel.matricule }}</strong></div>
-      <div class="detail-meta-item"><span>Embauche : </span>{{ contractuel.date_embauche|date:"d/m/Y" }}</div>
+
+  <div>
+    <div class="profil-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
+    <div class="profil-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} · {{ contractuel.direction|default:"Direction non définie" }}</div>
+    <div class="profil-tags">
+      <span class="badge b-teal" style="font-family:var(--font-mono);">{{ contractuel.matricule }}</span>
+      {% if contractuel.statut == 'ACTIF' %}<span class="badge b-green">Actif</span>
+      {% elif contractuel.statut == 'INACTIF' %}<span class="badge" style="background:var(--card-2);color:var(--txt-2);border-color:var(--line-mid);">Inactif</span>
+      {% else %}<span class="badge b-amber">Suspendu</span>{% endif %}
     </div>
-    <div style="margin-top:12px;">
-      {% if contractuel.statut == 'ACTIF' %}<span class="badge badge-success">● Actif</span>
-      {% elif contractuel.statut == 'INACTIF' %}<span class="badge badge-muted">● Inactif</span>
-      {% else %}<span class="badge badge-warning">● Suspendu</span>{% endif %}
+  </div>
+
+  <div class="profil-actions">
+    <a href="{% url 'espace_telecharger_profil' %}" class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Télécharger
+    </a>
+    <a href="{% url 'espace_profil_modifier' %}" class="btn btn-teal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+      Modifier
+    </a>
+  </div>
+</div>
+
+<!-- Informations personnelles -->
+<div class="info-section rise rise-2">
+  <div class="info-section-head">
+    <span class="info-section-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </span>
+    <span class="info-section-title">Informations personnelles</span>
+  </div>
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-cell-label">Nom complet</div>
+      <div class="info-cell-val">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Genre</div>
+      <div class="info-cell-val">{{ contractuel.get_genre_display }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Nationalité</div>
+      <div class="info-cell-val">{{ contractuel.nationalite }}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-cell-label">Date de naissance</div>
+      <div class="info-cell-val mono">{{ contractuel.date_naissance|date:"d/m/Y" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Lieu de naissance</div>
+      <div class="info-cell-val">{{ contractuel.lieu_naissance|default:"—" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Date d'embauche</div>
+      <div class="info-cell-val mono">{{ contractuel.date_embauche|date:"d/m/Y" }}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <div class="info-cell" style="grid-column:span 2;">
+      <div class="info-cell-label">Adresse</div>
+      <div class="info-cell-val">{{ contractuel.adresse|default:"—" }}</div>
     </div>
   </div>
 </div>
 
-<!-- Infos détaillées -->
-<div class="card" style="margin-bottom:20px;">
-  <div class="card-header"><h3 class="card-title">📋 Informations personnelles</h3></div>
-  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="info-item"><div class="info-item-label">Genre</div><div class="info-item-value">{{ contractuel.get_genre_display }}</div></div>
-    <div class="info-item"><div class="info-item-label">Date de naissance</div><div class="info-item-value">{{ contractuel.date_naissance|date:"d/m/Y" }}</div></div>
-    <div class="info-item"><div class="info-item-label">Lieu de naissance</div><div class="info-item-value">{{ contractuel.lieu_naissance|default:"—" }}</div></div>
-    <div class="info-item"><div class="info-item-label">Nationalité</div><div class="info-item-value">{{ contractuel.nationalite }}</div></div>
-    <div class="info-item"><div class="info-item-label">Email</div><div class="info-item-value">{{ contractuel.email }}</div></div>
-    <div class="info-item"><div class="info-item-label">Téléphone</div><div class="info-item-value">{{ contractuel.telephone }}</div></div>
-    <div class="info-item" style="grid-column:span 3;"><div class="info-item-label">Adresse</div><div class="info-item-value">{{ contractuel.adresse|default:"—" }}</div></div>
+<!-- Contact & Situation -->
+<div class="info-section rise rise-3">
+  <div class="info-section-head">
+    <span class="info-section-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+      </svg>
+    </span>
+    <span class="info-section-title">Contact & Situation</span>
+  </div>
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-cell-label">Email</div>
+      <div class="info-cell-val">{{ contractuel.email|default:"—" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Téléphone</div>
+      <div class="info-cell-val mono">{{ contractuel.telephone|default:"—" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Numéro CNPS</div>
+      <div class="info-cell-val mono">{{ contractuel.numero_cnps|default:"—" }}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-cell-label">Commune</div>
+      <div class="info-cell-val">{{ contractuel.commune|default:"—" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Ville</div>
+      <div class="info-cell-val">{{ contractuel.ville|default:"—" }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Situation familiale</div>
+      <div class="info-cell-val">{{ contractuel.get_situation_famille_display|default:"—" }}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-cell-label">Nombre d'enfants</div>
+      <div class="info-cell-val mono">{{ contractuel.nombre_enfants }}</div>
+    </div>
+    <div class="info-cell" style="grid-column:span 2;">
+      <div class="info-cell-label">Adresse</div>
+      <div class="info-cell-val">{{ contractuel.adresse|default:"—" }}</div>
+    </div>
   </div>
 </div>
 
-<!-- Contrat actif -->
-{% if contrat_actif %}
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">📋 Contrat actif</h3>
-    <a href="{% url 'espace_mon_contrat' %}" class="btn btn-secondary btn-sm">Détails</a>
-  </div>
-  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="info-item"><div class="info-item-label">Type</div><div class="info-item-value"><span class="badge badge-gold">{{ contrat_actif.type_contrat }}</span></div></div>
-    <div class="info-item"><div class="info-item-label">Début</div><div class="info-item-value">{{ contrat_actif.date_debut|date:"d/m/Y" }}</div></div>
-    <div class="info-item"><div class="info-item-label">Fin</div><div class="info-item-value">{{ contrat_actif.date_fin|date:"d/m/Y"|default:"Indéterminé" }}</div></div>
-  </div>
-</div>
-{% endif %}
 {% endblock %}

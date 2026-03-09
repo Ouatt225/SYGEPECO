@@ -8,14 +8,17 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Congés</h1>
-    <p class="page-subtitle">{{ conges.count }} demande{{ conges.count|pluralize }}</p>
+    <p class="page-subtitle">{{ page_obj.paginator.count }} demande{{ page_obj.paginator.count|pluralize }}</p>
   </div>
+  {% if request.user.profile.role != 'MANAGER' %}
   <a href="{% url 'conge_create' %}" class="btn btn-primary">+ Nouvelle demande</a>
+  {% endif %}
 </div>
 
 <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
   <a href="{% url 'conge_list' %}" class="btn btn-sm {% if not statut %}btn-primary{% else %}btn-secondary{% endif %}">Tous</a>
   <a href="?statut=EN_ATTENTE" class="btn btn-sm {% if statut == 'EN_ATTENTE' %}btn-primary{% else %}btn-secondary{% endif %}">En attente</a>
+  <a href="?statut=VALIDE_MANAGER" class="btn btn-sm {% if statut == 'VALIDE_MANAGER' %}btn-primary{% else %}btn-secondary{% endif %}">Validés manager</a>
   <a href="?statut=APPROUVE"   class="btn btn-sm {% if statut == 'APPROUVE' %}btn-primary{% else %}btn-secondary{% endif %}">Approuvés</a>
   <a href="?statut=REJETE"     class="btn btn-sm {% if statut == 'REJETE' %}btn-primary{% else %}btn-secondary{% endif %}">Rejetés</a>
 </div>
@@ -23,7 +26,7 @@
 <div class="table-wrapper">
   {% if conges %}
   <table class="data-table">
-    <thead><tr><th>Contractuel</th><th>Type</th><th>Début</th><th>Fin</th><th>Durée</th><th>Statut</th><th style="text-align:center;">Actions</th></tr></thead>
+    <thead><tr><th>Contractuel</th><th>Type</th><th>Début</th><th>Fin</th><th>Durée</th><th>Statut</th><th style="text-align:center;">Justificatif</th><th style="text-align:center;">Actions</th></tr></thead>
     <tbody>
       {% for cg in conges %}
       <tr>
@@ -34,15 +37,24 @@
         <td>{{ cg.nb_jours }} j</td>
         <td>
           {% if cg.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">En attente</span>
+          {% elif cg.statut == 'VALIDE_MANAGER' %}<span class="badge badge-info">✓ Manager</span>
           {% elif cg.statut == 'APPROUVE' %}<span class="badge badge-success">Approuvé</span>
           {% elif cg.statut == 'REJETE' %}<span class="badge badge-danger">Rejeté</span>
           {% else %}<span class="badge badge-muted">Annulé</span>{% endif %}
         </td>
         <td style="text-align:center;">
+          {% if cg.document_medical %}
+          <a href="{% url 'conge_document_medical' cg.pk %}" target="_blank" class="btn btn-secondary btn-sm" title="Justificatif médical">📄</a>
+          {% else %}—{% endif %}
+        </td>
+        <td style="text-align:center;">
           <div style="display:flex;gap:6px;justify-content:center;">
             <a href="{% url 'conge_detail' cg.pk %}" class="btn btn-secondary btn-sm">👁</a>
             {% if cg.statut == 'EN_ATTENTE' %}
-            <a href="{% url 'conge_approuver' cg.pk %}" class="btn btn-success btn-sm">✓</a>
+            <a href="{% url 'conge_valider_manager' cg.pk %}" class="btn btn-success btn-sm" title="Valider (Manager)">✓ Manager</a>
+            <a href="{% url 'conge_rejeter_manager' cg.pk %}" class="btn btn-danger btn-sm" title="Rejeter">✗</a>
+            {% elif cg.statut == 'VALIDE_MANAGER' %}
+            <a href="{% url 'conge_approuver' cg.pk %}" class="btn btn-success btn-sm" title="Approuver (Admin)">✓ Final</a>
             <a href="{% url 'conge_rejeter' cg.pk %}" class="btn btn-danger btn-sm">✗</a>
             {% endif %}
           </div>
@@ -54,5 +66,7 @@
   {% else %}
   <div class="empty-state"><div class="empty-state-icon">🏖</div><div class="empty-state-title">Aucune demande de congé</div></div>
   {% endif %}
+
+{% include "SYGEPECO/partials/_pagination.html" %}
 </div>
 {% endblock %}

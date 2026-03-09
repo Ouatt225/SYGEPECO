@@ -1,99 +1,129 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
 {% block title %}Mes permissions{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mes permissions</span>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Mes permissions</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.pills { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 14px; border-radius: 20px;
+  font-size: .72rem; font-weight: 600;
+  border: 1px solid var(--line-mid);
+  background: transparent; color: var(--txt-2); text-decoration: none;
+  transition: all .15s;
+}
+.pill:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+.pill.active { background: var(--teal-soft); color: var(--teal); border-color: var(--teal-mid); }
+
+.perm-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: border-color .15s, transform .15s;
+  margin-bottom: 10px;
+}
+.perm-card:hover { border-color: var(--line-mid); transform: translateX(2px); }
+.perm-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.perm-icon svg { width: 16px; height: 16px; }
+.perm-type { font-size: .86rem; font-weight: 700; color: var(--txt); margin-bottom: 4px; }
+.perm-time { font-family: var(--font-mono); font-size: .78rem; color: var(--txt-2); margin-bottom: 4px; }
+.perm-motif { font-size: .76rem; color: var(--txt-3); font-style: italic; }
+.perm-rh { margin-top:8px;padding:8px 12px;background:var(--card-2);border-radius:var(--radius-sm);font-size:.76rem;color:var(--txt-2); }
+.perm-date { margin-left:auto; font-family:var(--font-mono);font-size:.72rem;color:var(--txt-3);text-align:right;white-space:nowrap; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Mes permissions</h1>
-    <p class="page-subtitle">{{ permissions.count }} demande{{ permissions.count|pluralize }} au total</p>
+    <div class="pg-eyebrow">Mes demandes</div>
+    <h1 class="pg-title">Mes permissions</h1>
+    <p class="pg-sub">{{ permissions.count }} demande{{ permissions.count|pluralize }} au total</p>
   </div>
-  <a href="{% url 'espace_demander_permission' %}" class="btn btn-primary">+ Nouvelle demande</a>
-</div>
-
-<!-- Résumé rapide -->
-<div class="mini-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
-    <div>
-      <div class="mini-stat-value" style="color:var(--accent-green);">{{ permissions|length }}</div>
-      <div class="mini-stat-label">Total demandes</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:#F97316;"></div>
-    <div>
-      <div class="mini-stat-value" style="color:#F97316;">
-        {% for p in permissions %}{% if p.statut == 'EN_ATTENTE' %}1{% endif %}{% endfor %}
-      </div>
-      <div class="mini-stat-label">En attente</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:var(--espace-accent);"></div>
-    <div>
-      <div class="mini-stat-value" style="color:var(--espace-accent);">
-        {% for p in permissions %}{% if p.statut == 'APPROUVE' %}1{% endif %}{% endfor %}
-      </div>
-      <div class="mini-stat-label">Approuvées</div>
-    </div>
-  </div>
+  <a href="{% url 'espace_demander_permission' %}" class="btn btn-teal" style="align-self:flex-end;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nouvelle demande
+  </a>
 </div>
 
 <!-- Filtres -->
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-  <a href="{% url 'espace_mes_permissions' %}" class="btn btn-sm btn-secondary">Toutes</a>
-  <a href="?statut=EN_ATTENTE" class="btn btn-sm btn-secondary">En attente</a>
-  <a href="?statut=APPROUVE"   class="btn btn-sm btn-secondary">Approuvées</a>
-  <a href="?statut=REJETE"     class="btn btn-sm btn-secondary">Rejetées</a>
+<div class="pills rise rise-1">
+  <a href="{% url 'espace_mes_permissions' %}" class="pill {% if not request.GET.statut %}active{% endif %}">Toutes</a>
+  <a href="?statut=EN_ATTENTE" class="pill {% if request.GET.statut == 'EN_ATTENTE' %}active{% endif %}">En attente</a>
+  <a href="?statut=APPROUVE"   class="pill {% if request.GET.statut == 'APPROUVE' %}active{% endif %}">Approuvées</a>
+  <a href="?statut=REJETE"     class="pill {% if request.GET.statut == 'REJETE' %}active{% endif %}">Rejetées</a>
 </div>
 
+<!-- Liste -->
 {% if permissions %}
-<div style="display:flex;flex-direction:column;gap:12px;">
+<div class="rise rise-2">
   {% for perm in permissions %}
-  <div class="card" style="padding:20px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span style="font-size:1.1rem;">🕐</span>
-          <span style="font-weight:700;font-size:1rem;">Permission de sortie</span>
-          {% if perm.statut == 'EN_ATTENTE' %}<span class="badge badge-warning">⏳ En attente</span>
-          {% elif perm.statut == 'APPROUVE' %}<span class="badge badge-success">✓ Approuvée</span>
-          {% elif perm.statut == 'REJETE' %}<span class="badge badge-danger">✗ Rejetée</span>
-          {% else %}<span class="badge badge-muted">Annulée</span>{% endif %}
-        </div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;">
-          <div style="font-size:0.875rem;color:var(--text-secondary);">
-            📅 Le <strong>{{ perm.date|date:"d/m/Y" }}</strong>
-            <span style="color:var(--text-muted);">
-              de <strong>{{ perm.heure_debut|time:"H:i" }}</strong>
-              à <strong>{{ perm.heure_fin|time:"H:i" }}</strong>
-            </span>
-          </div>
-          <div style="font-size:0.875rem;color:var(--text-muted);">Soumis le {{ perm.created_at|date:"d/m/Y" }}</div>
-        </div>
-        {% if perm.motif %}
-        <div style="margin-top:8px;font-size:0.8125rem;color:var(--text-muted);">
-          <em>"{{ perm.motif|truncatechars:100 }}"</em>
-        </div>
-        {% endif %}
-        {% if perm.commentaire_rh %}
-        <div style="margin-top:8px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:0.8125rem;">
-          <span style="color:var(--text-muted);">Commentaire RH : </span>{{ perm.commentaire_rh }}
-        </div>
+  <div class="perm-card">
+    {% if perm.statut == 'APPROUVE' %}
+    <div class="perm-icon" style="background:var(--emerald-soft);color:var(--emerald);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    {% elif perm.statut == 'REJETE' %}
+    <div class="perm-icon" style="background:var(--rose-soft);color:var(--rose);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    {% else %}
+    <div class="perm-icon" style="background:var(--violet-soft);color:var(--violet);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    {% endif %}
+
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <span class="perm-type">Permission de sortie</span>
+        {% if perm.statut == 'EN_ATTENTE' %}<span class="badge b-amber">En attente</span>
+        {% elif perm.statut == 'APPROUVE' %}<span class="badge b-green">Approuvée</span>
+        {% elif perm.statut == 'REJETE' %}<span class="badge b-red">Rejetée</span>
+        {% else %}<span class="badge" style="background:var(--card-2);color:var(--txt-2);border-color:var(--line-mid);">Annulée</span>
         {% endif %}
       </div>
+      <div class="perm-time">
+        Du {{ perm.date_debut|date:"d/m/Y" }} au {{ perm.date_fin|date:"d/m/Y" }}
+      </div>
+      {% if perm.motif %}
+      <div class="perm-motif">"{{ perm.motif|truncatechars:100 }}"</div>
+      {% endif %}
+      {% if perm.commentaire_rh %}
+      <div class="perm-rh">
+        <span style="color:var(--txt-3);font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Commentaire RH</span><br>
+        {{ perm.commentaire_rh }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="perm-date">
+      {{ perm.created_at|date:"d/m/Y" }}<br>
+      <span style="font-size:.6rem;color:var(--txt-3);">soumis</span>
     </div>
   </div>
   {% endfor %}
 </div>
+
 {% else %}
-<div class="empty-state">
-  <div class="empty-state-icon">🕐</div>
-  <div class="empty-state-title">Aucune demande de permission</div>
-  <a href="{% url 'espace_demander_permission' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Faire une demande</a>
+<div class="table-wrap rise rise-2">
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <p style="font-weight:600;color:var(--txt-2);font-size:.9rem;">Aucune demande de permission</p>
+    <a href="{% url 'espace_demander_permission' %}" class="btn btn-teal" style="margin-top:8px;">Faire une demande</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

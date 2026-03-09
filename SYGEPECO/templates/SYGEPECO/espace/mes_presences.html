@@ -1,62 +1,78 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
 {% block title %}Mes présences{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Mes présences</span>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Mes présences</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Stats bar ────────────────────────────────────────────── */
+.stat-chips { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+.stat-chip {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;
+  font-size:.72rem;font-weight:700;
+  border:1px solid;
+}
+.sc-p { background:var(--emerald-soft);color:var(--emerald);border-color:rgba(16,185,129,.2); }
+.sc-a { background:var(--rose-soft);   color:var(--rose);   border-color:rgba(244,63,94,.2); }
+.sc-r { background:var(--amber-soft);  color:var(--amber);  border-color:rgba(245,158,11,.2); }
+.sc-j { background:var(--sky-soft);    color:var(--sky);    border-color:rgba(56,189,248,.2); }
+.stat-dot { width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0; }
+
+/* ── Nav mois ─────────────────────────────────────────────── */
+.month-nav {
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 16px;
+}
+.month-nav a, .month-nav button {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:var(--radius-sm);
+  border:1px solid var(--line-mid);
+  background:transparent;color:var(--txt-2);
+  text-decoration:none;cursor:pointer;
+  transition:all .15s;
+}
+.month-nav a:hover, .month-nav button:hover { background:var(--teal-soft);color:var(--teal);border-color:var(--teal-mid); }
+.month-nav a svg, .month-nav button svg { width:14px;height:14px; }
+.month-label { flex:1;text-align:center;font-family:var(--font-serif);font-size:1rem;font-weight:600;color:var(--txt); }
+.disabled-btn { opacity:.3;cursor:default !important;pointer-events:none; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Mes présences</h1>
-    <p class="page-subtitle">{{ mois_label }} — {{ presences.count }} enregistrement{{ presences.count|pluralize }}</p>
+    <div class="pg-eyebrow">Mon espace</div>
+    <h1 class="pg-title">Mes présences</h1>
+    <p class="pg-sub">{{ mois_label }} — {{ presences.count }} enregistrement{{ presences.count|pluralize }}</p>
   </div>
 </div>
 
 <!-- Navigation mois -->
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-  <a href="?mois={{ mois_prev }}&annee={{ annee_prev }}" class="btn btn-sm btn-secondary">← Mois précédent</a>
-  <span style="font-weight:600;color:var(--text-primary);">{{ mois_label }}</span>
-  {% if not is_current_month %}
-  <a href="?mois={{ mois_next }}&annee={{ annee_next }}" class="btn btn-sm btn-secondary">Mois suivant →</a>
-  {% else %}
-  <span class="btn btn-sm btn-secondary" style="opacity:.4;cursor:default;">Mois suivant →</span>
-  {% endif %}
+<div class="month-nav rise rise-1">
+  <a href="?mois={{ mois_prev }}&annee={{ annee_prev }}" title="Mois précédent">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <span class="month-label">{{ mois_label }}</span>
+  <a href="?mois={{ mois_next }}&annee={{ annee_next }}" title="Mois suivant" class="{% if annee == today.year and mois >= today.month %}disabled-btn{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
 </div>
 
-<!-- Stats du mois -->
-<div class="mini-stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:var(--accent-green);"></div>
-    <div>
-      <div class="mini-stat-value" style="color:var(--accent-green);">{{ nb_presents }}</div>
-      <div class="mini-stat-label">Présent(s)</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:var(--accent-red);"></div>
-    <div>
-      <div class="mini-stat-value" style="color:var(--accent-red);">{{ nb_absents }}</div>
-      <div class="mini-stat-label">Absent(s)</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:#F97316;"></div>
-    <div>
-      <div class="mini-stat-value" style="color:#F97316;">{{ nb_retards }}</div>
-      <div class="mini-stat-label">Retard(s)</div>
-    </div>
-  </div>
-  <div class="mini-stat-card">
-    <div class="mini-stat-dot" style="background:#3B82F6;"></div>
-    <div>
-      <div class="mini-stat-value" style="color:#3B82F6;">{{ nb_justifies }}</div>
-      <div class="mini-stat-label">Justifié(s)</div>
-    </div>
-  </div>
+<!-- Stats chips -->
+<div class="stat-chips rise rise-2">
+  <span class="stat-chip sc-p"><span class="stat-dot"></span>{{ nb_presents }} présent{{ nb_presents|pluralize }}</span>
+  <span class="stat-chip sc-a"><span class="stat-dot"></span>{{ nb_absents }} absent{{ nb_absents|pluralize }}</span>
+  <span class="stat-chip sc-r"><span class="stat-dot"></span>{{ nb_retards }} retard{{ nb_retards|pluralize }}</span>
+  <span class="stat-chip sc-j"><span class="stat-dot"></span>{{ nb_justifies }} justifié{{ nb_justifies|pluralize }}</span>
 </div>
 
+<!-- Table -->
 {% if presences %}
-<div class="table-wrapper">
+<div class="table-wrap rise rise-3">
   <table class="data-table">
     <thead>
       <tr>
@@ -71,34 +87,36 @@
     <tbody>
       {% for p in presences %}
       <tr>
-        <td style="white-space:nowrap;font-weight:600;">{{ p.date|date:"D d/m" }}</td>
+        <td>
+          <span class="mono" style="color:var(--txt);font-weight:600;">{{ p.date|date:"D d/m" }}</span>
+        </td>
         <td>
           {% if p.heure_arrivee %}
-            <span style="color:var(--accent-green);">{{ p.heure_arrivee|time:"H:i" }}</span>
-          {% else %}—{% endif %}
+          <span class="mono" style="color:var(--emerald);">{{ p.heure_arrivee|time:"H:i" }}</span>
+          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
         </td>
         <td>
           {% if p.heure_depart %}
-            <span style="color:var(--text-secondary);">{{ p.heure_depart|time:"H:i" }}</span>
-          {% else %}—{% endif %}
-        </td>
-        <td style="color:var(--text-muted);font-size:0.875rem;">
-          {% if p.heure_arrivee and p.heure_depart %}
-            <span id="dur_{{ forloop.counter }}"
-              data-h1="{{ p.heure_arrivee|time:'H:i' }}"
-              data-h2="{{ p.heure_depart|time:'H:i' }}">—</span>
-          {% else %}—{% endif %}
+          <span class="mono">{{ p.heure_depart|time:"H:i" }}</span>
+          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
         </td>
         <td>
-          {% if p.statut == 'PRESENT' %}<span class="badge badge-success">Présent</span>
-          {% elif p.statut == 'ABSENT' %}<span class="badge badge-danger">Absent</span>
-          {% elif p.statut == 'RETARD' %}<span class="badge badge-warning">Retard</span>
-          {% elif p.statut == 'JUSTIFIE' %}<span class="badge" style="background:rgba(59,130,246,.15);color:#3B82F6;">Justifié</span>
-          {% elif p.statut == 'CONGE' %}<span class="badge" style="background:rgba(124,106,247,.15);color:var(--espace-accent);">Congé</span>
-          {% elif p.statut == 'PERMISSION' %}<span class="badge" style="background:rgba(249,115,22,.15);color:#F97316;">Permission</span>
-          {% else %}—{% endif %}
+          {% if p.heure_arrivee and p.heure_depart %}
+          <span class="mono" id="dur_{{ forloop.counter }}"
+            data-h1="{{ p.heure_arrivee|time:'H:i' }}"
+            data-h2="{{ p.heure_depart|time:'H:i' }}">—</span>
+          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
         </td>
-        <td style="color:var(--text-muted);font-size:0.8125rem;">
+        <td>
+          {% if p.statut == 'PRESENT' %}<span class="badge b-green">Présent</span>
+          {% elif p.statut == 'ABSENT' %}<span class="badge b-red">Absent</span>
+          {% elif p.statut == 'RETARD' %}<span class="badge b-amber">Retard</span>
+          {% elif p.statut == 'JUSTIFIE' %}<span class="badge b-sky">Justifié</span>
+          {% elif p.statut == 'CONGE' %}<span class="badge b-teal">Congé</span>
+          {% elif p.statut == 'PERMISSION' %}<span class="badge b-violet">Permission</span>
+          {% else %}<span class="badge" style="background:var(--card-2);color:var(--txt-2);border-color:var(--line-mid);">{{ p.get_statut_display }}</span>{% endif %}
+        </td>
+        <td style="font-size:.78rem;color:var(--txt-2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
           {{ p.observations|default:"—"|truncatechars:40 }}
         </td>
       </tr>
@@ -106,28 +124,33 @@
     </tbody>
   </table>
 </div>
+
 {% else %}
-<div class="empty-state">
-  <div class="empty-state-icon">📅</div>
-  <div class="empty-state-title">Aucune présence enregistrée ce mois</div>
-  <div class="empty-state-subtitle">Les pointages apparaîtront ici une fois saisis par le service RH</div>
+<div class="table-wrap rise rise-3">
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <p style="font-weight:600;color:var(--txt-2);">Aucune présence ce mois</p>
+    <p style="font-size:.78rem;color:var(--txt-3);">{{ mois_label }}</p>
+  </div>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[id^="dur_"]').forEach(el => {
-    const [h1, m1] = el.dataset.h1.split(':').map(Number);
-    const [h2, m2] = el.dataset.h2.split(':').map(Number);
-    const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
-    if (mins > 0) {
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      el.textContent = `${h}h${m > 0 ? String(m).padStart(2,'0') : '00'}`;
-    }
-  });
+/* Calcul durée présence */
+document.querySelectorAll('[id^="dur_"]').forEach(function(el) {
+  var parts1 = el.dataset.h1.split(':').map(Number);
+  var parts2 = el.dataset.h2.split(':').map(Number);
+  var mins = (parts2[0] * 60 + parts2[1]) - (parts1[0] * 60 + parts1[1]);
+  if (mins > 0) {
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    el.textContent = h + 'h' + (m > 0 ? String(m).padStart(2, '0') : '00');
+  }
 });
 </script>
 {% endblock %}

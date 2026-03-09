@@ -1,70 +1,128 @@
 {% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
-{% block title %}Mes agents{% endblock %}
+{% block title %}Agents{% endblock %}
 {% block breadcrumb %}Mes agents{% endblock %}
 
 {% block extra_css %}
 <style>
-.agent-table { width:100%; border-collapse:collapse; }
-.agent-table th {
-  padding: 12px 16px;
-  text-align: left;
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-}
-.agent-table td {
-  padding: 13px 16px;
-  font-size: .875rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  vertical-align: middle;
-}
-.agent-table tr:hover td { background: rgba(37,99,235,.04); }
-.avatar {
-  width: 36px; height: 36px;
+/* ── Compteur header ─────────────────────────────────────────── */
+.agents-count {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--ent-gradient);
+  padding: 8px 18px;
+  align-self: flex-end;
+}
+.agents-count-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 700;
+  color: var(--gold); line-height: 1;
+}
+.agents-count-lbl {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--txt-2);
+}
+
+/* ── Avatar hexagonal ────────────────────────────────────────── */
+.ag-avatar {
+  width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: .85rem; color: #fff;
-  flex-shrink: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .9rem; font-weight: 700;
+  color: #fff; flex-shrink: 0;
+}
+
+/* Palette avatar — tons chauds et froids, PAS de violet */
+.av-a,.av-b { background: linear-gradient(135deg, #D4A853, #E8C56A); color: #1a1200; }
+.av-c,.av-d { background: linear-gradient(135deg, #0EA5E9, #38BDF8); }
+.av-e,.av-f { background: linear-gradient(135deg, #10B981, #34D399); }
+.av-g,.av-h { background: linear-gradient(135deg, #F59E0B, #FCD34D); color: #1a1200; }
+.av-i,.av-j { background: linear-gradient(135deg, #F43F5E, #FB7185); }
+.av-k,.av-l { background: linear-gradient(135deg, #06B6D4, #22D3EE); }
+.av-m,.av-n { background: linear-gradient(135deg, #84CC16, #A3E635); color: #111; }
+.av-o,.av-p { background: linear-gradient(135deg, #F97316, #FB923C); }
+.av-q,.av-r { background: linear-gradient(135deg, #EC4899, #F472B6); }
+.av-s,.av-t { background: linear-gradient(135deg, #64748B, #94A3B8); }
+.av-u,.av-v { background: linear-gradient(135deg, #D4A853, #C084FC); } /* seule exception possible */
+.av-w,.av-x { background: linear-gradient(135deg, #2DD4BF, #5EEAD4); color: #0a1a18; }
+.av-y,.av-z { background: linear-gradient(135deg, #818CF8, #A5B4FC); }
+
+/* ── Bouton PDF ──────────────────────────────────────────────── */
+.btn-pdf {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  font-size: .72rem; font-weight: 600;
+  color: var(--teal);
+  border: 1px solid var(--teal-mid);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background .18s, color .18s;
+}
+.btn-pdf:hover {
+  background: var(--teal-soft);
+  color: var(--teal);
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<!-- En-tête -------------------------------------------------------->
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Agents</h1>
-    <p class="page-subtitle">{{ total }} agent{{ total|pluralize }} au total</p>
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Effectifs</div>
+    <h1 class="pg-title">Mes agents</h1>
+    <p class="pg-sub">{% if entreprise %}{{ entreprise.nom }}{% else %}Toutes les entreprises{% endif %}</p>
+  </div>
+  <div class="agents-count">
+    <span class="agents-count-num">{{ total }}</span>
+    <span class="agents-count-lbl">agent{{ total|pluralize }}</span>
   </div>
 </div>
 
-<!-- Filtres -->
-<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
-  <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (nom, matricule…)" class="form-control" style="max-width:280px;">
-  <select name="statut" class="form-control" style="max-width:160px;">
+<!-- Toolbar -------------------------------------------------------->
+<form method="get" class="toolbar rise rise-1">
+  <div class="search-field" style="flex:1;min-width:180px;max-width:300px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text" name="q" value="{{ q }}" placeholder="Nom, matricule, poste…" class="ctrl" style="width:100%">
+  </div>
+  <select name="statut" class="ctrl">
     <option value="">Tous les statuts</option>
-    <option value="ACTIF" {% if statut == 'ACTIF' %}selected{% endif %}>Actif</option>
-    <option value="INACTIF" {% if statut == 'INACTIF' %}selected{% endif %}>Inactif</option>
+    <option value="ACTIF"    {% if statut == 'ACTIF'    %}selected{% endif %}>Actif</option>
+    <option value="INACTIF"  {% if statut == 'INACTIF'  %}selected{% endif %}>Inactif</option>
     <option value="SUSPENDU" {% if statut == 'SUSPENDU' %}selected{% endif %}>Suspendu</option>
   </select>
-  <button type="submit" class="btn-ent">Filtrer</button>
-  {% if q or statut %}<a href="{% url 'entreprise_espace_agents' %}" class="btn btn-secondary btn-sm" style="align-self:center;">✕ Réinitialiser</a>{% endif %}
+  <button type="submit" class="btn-filter">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+    Filtrer
+  </button>
+  {% if q or statut %}
+  <a href="{% url 'entreprise_espace_agents' %}" class="btn-clear">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+    Réinitialiser
+  </a>
+  {% endif %}
 </form>
 
-<!-- Tableau -->
-<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
-  <table class="agent-table">
+<!-- Table ---------------------------------------------------------->
+<div class="table-wrap rise rise-2">
+  {% if agents %}
+  <table class="data-table">
     <thead>
       <tr>
         <th>Agent</th>
         <th>Matricule</th>
         <th>Poste</th>
-        <th>Département</th>
+        <th>Direction</th>
         <th>Statut</th>
         <th>Embauché le</th>
+        <th style="text-align:center;">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -72,35 +130,67 @@
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div class="avatar">{{ a.nom|slice:":1" }}{{ a.prenom|slice:":1" }}</div>
+            <div class="ag-avatar av-{{ a.nom|slice:':1'|lower|default:'a' }}">
+              {{ a.nom|slice:":1"|upper }}{{ a.prenom|slice:":1"|upper }}
+            </div>
             <div>
-              <div style="font-weight:600;">{{ a.nom }} {{ a.prenom }}</div>
-              <div style="font-size:.75rem;color:var(--text-muted);">{{ a.email }}</div>
+              <div style="font-weight:600;color:var(--txt);">{{ a.nom }} {{ a.prenom }}</div>
+              {% if a.email %}
+              <div style="font-size:.72rem;color:var(--txt-2);margin-top:1px;">{{ a.email }}</div>
+              {% endif %}
             </div>
           </div>
         </td>
-        <td><code style="font-size:.8rem;background:rgba(255,255,255,.05);padding:3px 8px;border-radius:6px;">{{ a.matricule }}</code></td>
-        <td>{{ a.poste.titre|default:"—" }}</td>
-        <td>{{ a.departement.nom|default:"—" }}</td>
+        <td><span class="mono">{{ a.matricule }}</span></td>
+        <td style="color:var(--txt-2);font-size:.82rem;">{{ a.poste.titre|default:"—" }}</td>
+        <td style="color:var(--txt-2);font-size:.82rem;">{{ a.direction.nom|default:"—" }}</td>
         <td>
           {% if a.statut == 'ACTIF' %}
-            <span class="badge badge-success">● Actif</span>
+            <span class="badge b-green">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;display:inline-block;"></span>
+              Actif
+            </span>
           {% elif a.statut == 'INACTIF' %}
-            <span class="badge badge-danger">● Inactif</span>
+            <span class="badge b-red">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;display:inline-block;"></span>
+              Inactif
+            </span>
           {% else %}
-            <span class="badge badge-warning">● Suspendu</span>
+            <span class="badge b-amber">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;display:inline-block;"></span>
+              Suspendu
+            </span>
           {% endif %}
         </td>
-        <td style="color:var(--text-muted);">{{ a.date_embauche|date:"d/m/Y" }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
-          Aucun agent trouvé.
+        <td>
+          <span class="mono">{{ a.date_embauche|date:"d/m/Y"|default:"—" }}</span>
+        </td>
+        <td style="text-align:center;">
+          <a href="{% url 'telecharger_profil_agent' a.pk %}"
+             class="btn-pdf"
+             title="Télécharger la fiche PDF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            PDF
+          </a>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    <p>Aucun agent trouvé{% if q %} pour « {{ q }} »{% endif %}.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

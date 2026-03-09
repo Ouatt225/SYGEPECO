@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYGEPECO — Mot de passe oublie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Manrope',sans-serif;min-height:100vh;display:flex;background:#F5F4F0;-webkit-font-smoothing:antialiased;}
+    .panel-left{width:42%;min-height:100vh;background:linear-gradient(160deg,#141629 0%,#0E0F1E 55%,#1A1020 100%);display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;position:relative;overflow:hidden;flex-shrink:0;}
+    .panel-left::before{content:'';position:absolute;top:-120px;right:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(200,144,46,.18) 0%,transparent 70%);pointer-events:none;}
+    .panel-left::after{content:'';position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);pointer-events:none;}
+    .panel-left-top{position:relative;z-index:1;}
+    .left-logo{display:flex;align-items:center;gap:14px;margin-bottom:40px;}
+    .left-logo-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#C8902E 0%,#8B5E1A 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(200,144,46,.35);flex-shrink:0;}
+    .left-logo-icon svg{width:26px;height:26px;color:#06060F;}
+    .left-logo-name{font-size:1.5rem;font-weight:800;color:#EEEEF8;letter-spacing:.04em;line-height:1;}
+    .left-logo-sub{font-size:.65rem;font-weight:500;color:rgba(238,238,248,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
+    .left-title{font-size:2rem;font-weight:800;color:#EEEEF8;line-height:1.2;letter-spacing:-.03em;margin-bottom:16px;}
+    .left-subtitle{font-size:.875rem;color:rgba(238,238,248,.5);font-weight:400;line-height:1.7;max-width:340px;}
+    .panel-left-bottom{position:relative;z-index:1;font-size:.7rem;color:rgba(238,238,248,.25);font-weight:500;}
+    .panel-right{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 40px;background:#FAFAF8;position:relative;}
+    .panel-right::before{content:'';position:absolute;top:0;right:0;width:300px;height:300px;background:radial-gradient(circle at top right,rgba(200,144,46,.06) 0%,transparent 70%);pointer-events:none;}
+    .form-wrapper{width:100%;max-width:420px;position:relative;z-index:1;}
+    .back-link{display:inline-flex;align-items:center;gap:7px;font-size:.8125rem;font-weight:600;color:#888;text-decoration:none;margin-bottom:32px;transition:color .2s;}
+    .back-link:hover{color:#C8902E;}
+    .back-link svg{width:15px;height:15px;}
+    .form-eyebrow{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#C8902E;margin-bottom:10px;}
+    .form-title{font-size:1.9rem;font-weight:800;color:#0E0F1E;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px;}
+    .form-subtitle{font-size:.875rem;color:#888;font-weight:400;margin-bottom:32px;line-height:1.6;}
+    .info-card{background:rgba(200,144,46,.07);border:1px solid rgba(200,144,46,.2);border-left:3px solid #C8902E;border-radius:12px;padding:20px 22px;margin-bottom:28px;}
+    .info-card-title{font-size:.8rem;font-weight:700;color:#C8902E;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+    .info-card-title svg{width:15px;height:15px;flex-shrink:0;}
+    .info-card-text{font-size:.8125rem;color:#666;line-height:1.7;}
+    .info-card-text strong{color:#333;}
+    .btn-back{width:100%;padding:13px;background:linear-gradient(135deg,#C8902E 0%,#A87020 100%);color:#fff;font-family:'Manrope',sans-serif;font-size:.9375rem;font-weight:700;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 6px 20px rgba(200,144,46,.3);transition:all .22s;text-decoration:none;}
+    .btn-back:hover{background:linear-gradient(135deg,#E8B450 0%,#C8902E 100%);transform:translateY(-1px);box-shadow:0 10px 28px rgba(200,144,46,.4);color:#fff;}
+    .btn-back svg{width:16px;height:16px;}
+    @media(max-width:900px){.panel-left{display:none;}.panel-right{background:#0E0F1E;}.form-title{color:#EEEEF8;}.form-eyebrow{color:#C8902E;}.form-subtitle{color:rgba(238,238,248,.5);}.info-card-text{color:rgba(238,238,248,.6);}.info-card-text strong{color:#EEEEF8;}}
+  </style>
+</head>
+<body>
+  <div class="panel-left">
+    <div class="panel-left-top">
+      <div class="left-logo">
+        <div class="left-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <div>
+          <div class="left-logo-name">SYGEPECO</div>
+          <div class="left-logo-sub">Gestion du personnel contractuel</div>
+        </div>
+      </div>
+      <div class="left-title">Recuperation<br>de compte</div>
+      <p class="left-subtitle">Contactez votre administrateur pour reinitialiser votre mot de passe.</p>
+    </div>
+    <div class="panel-left-bottom">&copy; {% now "Y" %} SYGEPECO — Tous droits reserves</div>
+  </div>
+  <div class="panel-right">
+    <div class="form-wrapper">
+      <a href="{% url 'login' %}" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour a la connexion
+      </a>
+      <div class="form-eyebrow">Acces</div>
+      <h1 class="form-title">Mot de passe<br>oublie ?</h1>
+      <p class="form-subtitle">Pour des raisons de securite, la reinitialisation se fait via l'administrateur systeme.</p>
+      <div class="info-card">
+        <div class="info-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Comment proceder ?
+        </div>
+        <p class="info-card-text">
+          Veuillez contacter votre <strong>administrateur systeme</strong> ou votre <strong>responsable RH</strong>
+          pour obtenir la reinitialisation de votre mot de passe.<br><br>
+          L'administrateur pourra reinitialiser votre acces depuis le panneau d'administration.
+        </p>
+      </div>
+      <a href="{% url 'login' %}" class="btn-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour a la connexion
+      </a>
+    </div>
+  </div>
+</body>
+</html>

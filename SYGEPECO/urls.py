@@ -1,13 +1,33 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
     # ─── Dashboard ──────────────────────────────────────────────
-    path('', views.dashboard, name='dashboard'),
+    path('', RedirectView.as_view(url='/auth/login/', permanent=False), name='home'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 
     # ─── Authentification ───────────────────────────────────────
     path('auth/login/', views.login_view, name='login'),
     path('auth/logout/', views.logout_view, name='logout'),
+    path('auth/mot-de-passe-oublie/', auth_views.PasswordResetView.as_view(
+        template_name='SYGEPECO/auth/password_reset_form.html',
+        email_template_name='SYGEPECO/auth/password_reset_email.html',
+        subject_template_name='SYGEPECO/auth/password_reset_subject.txt',
+        success_url='/auth/reset-envoye/',
+    ), name='mot_de_passe_oublie'),
+    path('auth/reset-envoye/', auth_views.PasswordResetDoneView.as_view(
+        template_name='SYGEPECO/auth/password_reset_done.html',
+    ), name='password_reset_done'),
+    path('auth/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='SYGEPECO/auth/password_reset_confirm.html',
+        success_url='/auth/reset-complet/',
+    ), name='password_reset_confirm'),
+    path('auth/reset-complet/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='SYGEPECO/auth/password_reset_complete.html',
+    ), name='password_reset_complete'),
+    path('auth/changer-mot-de-passe/', views.changer_mot_de_passe, name='changer_mot_de_passe'),
 
     # ─── Contractuels ───────────────────────────────────────────
     path('contractuels/', views.contractuel_list, name='contractuel_list'),
@@ -15,6 +35,7 @@ urlpatterns = [
     path('contractuels/<int:pk>/', views.contractuel_detail, name='contractuel_detail'),
     path('contractuels/<int:pk>/modifier/', views.contractuel_update, name='contractuel_update'),
     path('contractuels/<int:pk>/supprimer/', views.contractuel_delete, name='contractuel_delete'),
+    path('contractuels/<int:pk>/pdf/', views.telecharger_profil_agent, name='telecharger_profil_agent'),
 
     # ─── Contrats ───────────────────────────────────────────────
     path('contrats/', views.contrat_list, name='contrat_list'),
@@ -32,8 +53,11 @@ urlpatterns = [
     path('conges/', views.conge_list, name='conge_list'),
     path('conges/demander/', views.conge_create, name='conge_create'),
     path('conges/<int:pk>/', views.conge_detail, name='conge_detail'),
+    path('conges/<int:pk>/justificatif/', views.conge_document_medical, name='conge_document_medical'),
     path('conges/<int:pk>/approuver/', views.conge_approuver, name='conge_approuver'),
     path('conges/<int:pk>/rejeter/', views.conge_rejeter, name='conge_rejeter'),
+    path('conges/<int:pk>/valider-manager/', views.conge_valider_manager, name='conge_valider_manager'),
+    path('conges/<int:pk>/rejeter-manager/', views.conge_rejeter_manager, name='conge_rejeter_manager'),
 
     # ─── Permissions ────────────────────────────────────────────
     path('permissions/', views.permission_list, name='permission_list'),
@@ -59,6 +83,8 @@ urlpatterns = [
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
     path('api/calendrier-events/', views.api_calendrier_events, name='api_calendrier_events'),
     path('api/chart-presences/', views.api_chart_presences, name='api_chart_presences'),
+    path('api/conges/notifs/', views.api_conges_notifs, name='api_conges_notifs'),
+    path('api/postes-entreprise/', views.api_postes_entreprise, name='api_postes_entreprise'),
 
     # ─── Entreprises ────────────────────────────────────────────
     path('entreprises/', views.entreprise_list, name='entreprise_list'),
@@ -73,6 +99,17 @@ urlpatterns = [
     path('entreprise-espace/conges/', views.entreprise_espace_conges, name='entreprise_espace_conges'),
     path('entreprise-espace/permissions/', views.entreprise_espace_permissions, name='entreprise_espace_permissions'),
     path('entreprise-espace/presences/', views.entreprise_espace_presences, name='entreprise_espace_presences'),
+    path('entreprise-espace/presences/enregistrer/', views.entreprise_espace_presence_create, name='entreprise_espace_presence_create'),
+    path('entreprise-espace/rapports/', views.entreprise_espace_rapports, name='entreprise_espace_rapports'),
+    path('entreprise-espace/contrats/', views.entreprise_espace_contrats, name='entreprise_espace_contrats'),
+    path('entreprise-espace/rapports/presences/', views.entreprise_export_presences, name='entreprise_export_presences'),
+    path('entreprise-espace/rapports/conges/', views.entreprise_export_conges, name='entreprise_export_conges'),
+    path('entreprise-espace/rapports/permissions/', views.entreprise_export_permissions, name='entreprise_export_permissions'),
+    path('entreprise-espace/conges/<int:pk>/approuver/', views.entreprise_conge_approuver, name='entreprise_conge_approuver'),
+    path('entreprise-espace/conges/<int:pk>/rejeter/', views.entreprise_conge_rejeter, name='entreprise_conge_rejeter'),
+    path('entreprise-espace/permissions/<int:pk>/approuver/', views.entreprise_permission_approuver, name='entreprise_permission_approuver'),
+    path('entreprise-espace/permissions/<int:pk>/rejeter/', views.entreprise_permission_rejeter, name='entreprise_permission_rejeter'),
+    path('entreprise-espace/rapports/agents/', views.entreprise_export_agents, name='entreprise_export_agents'),
 
     # ─── Espace Contractuel ──────────────────────────────────────
     path('espace/', views.espace_home, name='espace_home'),
@@ -84,4 +121,7 @@ urlpatterns = [
     path('espace/mes-permissions/demander/', views.espace_demander_permission, name='espace_demander_permission'),
     path('espace/mon-contrat/', views.espace_mon_contrat, name='espace_mon_contrat'),
     path('espace/mes-presences/', views.espace_mes_presences, name='espace_mes_presences'),
+    path('espace/telecharger-profil/', views.espace_telecharger_profil, name='espace_telecharger_profil'),
+    # ─── Médias protégés ─────────────────────────────────────
+    path('media/<path:path>', views.protected_media, name='protected_media'),
 ]

@@ -23,6 +23,12 @@ class UserProfile(models.Model):
         related_name='gestionnaires',
         verbose_name="Entreprise gérée"
     )
+    direction = models.ForeignKey(
+        'Direction', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='managers',
+        verbose_name="Direction"
+    )
 
     def __str__(self):
         return f"{self.user.get_full_name()} — {self.get_role_display()}"
@@ -32,11 +38,11 @@ class UserProfile(models.Model):
         verbose_name_plural = "Profils Utilisateurs"
 
 
-class Departement(models.Model):
+class Direction(models.Model):
     nom = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     responsable = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='departements_geres'
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='directions_gerees'
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -44,18 +50,18 @@ class Departement(models.Model):
         return self.nom
 
     class Meta:
-        verbose_name = "Département"
-        verbose_name_plural = "Départements"
+        verbose_name = "Direction"
+        verbose_name_plural = "Directions"
         ordering = ['nom']
 
 
 class Poste(models.Model):
     titre = models.CharField(max_length=100)
-    departement = models.ForeignKey(Departement, on_delete=models.CASCADE, related_name='postes')
+    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, related_name='postes')
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.titre} ({self.departement.nom})"
+        return f"{self.titre} ({self.direction.nom})"
 
     class Meta:
         verbose_name = "Poste"
@@ -120,6 +126,13 @@ class Contractuel(models.Model):
         ('M', 'Masculin'),
         ('F', 'Féminin'),
     ]
+    SITUATION_FAMILLE_CHOICES = [
+        ('CELIBATAIRE', 'Célibataire'),
+        ('MARIE',       'Marié(e)'),
+        ('DIVORCE',     'Divorcé(e)'),
+        ('VEUF',        'Veuf / Veuve'),
+        ('UNION_LIBRE', 'Union libre'),
+    ]
     user = models.OneToOneField(
         User, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -137,9 +150,18 @@ class Contractuel(models.Model):
     telephone = models.CharField(max_length=20)
     adresse = models.TextField(blank=True)
     photo = models.ImageField(upload_to='contractuels/', blank=True, null=True)
+    # ── Infos sociales (renseignées par l'agent) ──────────────
+    numero_cnps       = models.CharField(max_length=30,  blank=True, verbose_name="Numéro CNPS")
+    commune           = models.CharField(max_length=100, blank=True, verbose_name="Commune")
+    ville             = models.CharField(max_length=100, blank=True, default='ABIDJAN', verbose_name="Ville")
+    situation_famille = models.CharField(max_length=15,  blank=True, choices=[
+        ('CELIBATAIRE', 'Célibataire'), ('MARIE', 'Marié(e)'),
+        ('DIVORCE', 'Divorcé(e)'), ('VEUF', 'Veuf / Veuve'), ('UNION_LIBRE', 'Union libre'),
+    ], verbose_name="Situation familiale")
+    nombre_enfants    = models.PositiveIntegerField(default=0, verbose_name="Nombre d'enfants")
     entreprise  = models.ForeignKey('Entreprise', on_delete=models.SET_NULL, null=True, blank=True, related_name='contractuels', verbose_name="Entreprise")
     poste = models.ForeignKey(Poste, on_delete=models.SET_NULL, null=True, related_name='contractuels')
-    departement = models.ForeignKey(Departement, on_delete=models.SET_NULL, null=True, related_name='contractuels')
+    direction = models.ForeignKey(Direction, on_delete=models.SET_NULL, null=True, related_name='contractuels')
     date_embauche = models.DateField()
     statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='ACTIF')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -223,11 +245,10 @@ class Conge(models.Model):
         ('MALADIE', 'Congé maladie'),
         ('MATERNITE', 'Congé maternité'),
         ('PATERNITE', 'Congé paternité'),
-        ('SANS_SOLDE', 'Congé sans solde'),
-        ('EXCEPTIONNEL', 'Congé exceptionnel'),
     ]
     STATUT_CHOICES = [
         ('EN_ATTENTE', 'En attente'),
+        ('VALIDE_MANAGER', 'Validé par le manager'),
         ('APPROUVE', 'Approuvé'),
         ('REJETE', 'Rejeté'),
         ('ANNULE', 'Annulé'),
@@ -237,11 +258,22 @@ class Conge(models.Model):
     date_debut = models.DateField()
     date_fin = models.DateField()
     motif = models.TextField()
-    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE')
+    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default='EN_ATTENTE')
     approuve_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='conges_approuves'
     )
     commentaire_rh = models.TextField(blank=True)
+    valide_par_manager = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='conges_valides_manager',
+        verbose_name="Validé par (manager)"
+    )
+    commentaire_manager = models.TextField(blank=True, verbose_name="Commentaire manager")
+    document_medical = models.FileField(
+        upload_to='conges/documents/',
+        blank=True, null=True,
+        verbose_name="Document médical (arrêt maladie)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -265,9 +297,8 @@ class Permission(models.Model):
         ('REJETE', 'Rejeté'),
     ]
     contractuel = models.ForeignKey(Contractuel, on_delete=models.CASCADE, related_name='permissions')
-    date = models.DateField()
-    heure_debut = models.TimeField()
-    heure_fin = models.TimeField()
+    date_debut = models.DateField()
+    date_fin = models.DateField()
     motif = models.TextField()
     statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE')
     approuve_par = models.ForeignKey(
@@ -277,7 +308,7 @@ class Permission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.contractuel} — Permission {self.date} ({self.heure_debut}→{self.heure_fin})"
+        return f"{self.contractuel} — Permission {self.date_debut} → {self.date_fin}"
 
     class Meta:
         verbose_name = "Permission"
@@ -300,3 +331,42 @@ class ActionLog(models.Model):
         verbose_name = "Journal d'action"
         verbose_name_plural = "Journal des actions"
         ordering = ['-created_at']
+
+
+# ─── Synchronisation direction Contractuel ↔ UserProfile ─────────────────────
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender='SYGEPECO.Contractuel')
+def _sync_contractuel_dir_to_profile(sender, instance, **kwargs):
+    """Contractuel.direction changée → met à jour UserProfile.direction."""
+    # Évite la boucle : si update_fields == ['direction'] c'est nous qui avons lancé la mise à jour
+    update_fields = kwargs.get('update_fields')
+    if update_fields is not None and set(update_fields) == {'direction'}:
+        return
+    try:
+        if instance.user_id:
+            UserProfile.objects.filter(
+                user_id=instance.user_id
+            ).exclude(
+                direction_id=instance.direction_id
+            ).update(direction=instance.direction)
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender='SYGEPECO.UserProfile')
+def _sync_profile_dir_to_contractuel(sender, instance, **kwargs):
+    """UserProfile.direction changée → met à jour Contractuel.direction."""
+    update_fields = kwargs.get('update_fields')
+    if update_fields is not None and set(update_fields) == {'direction'}:
+        return
+    try:
+        Contractuel.objects.filter(
+            user_id=instance.user_id
+        ).exclude(
+            direction_id=instance.direction_id
+        ).update(direction=instance.direction)
+    except Exception:
+        pass

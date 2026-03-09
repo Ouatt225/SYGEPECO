@@ -11,8 +11,9 @@
 <div class="page-header">
   <div></div>
   <div class="page-header-actions">
+    <a href="{% url 'telecharger_profil_agent' contractuel.pk %}" class="btn btn-secondary" title="Télécharger la fiche PDF">⬇ Télécharger PDF</a>
     <a href="{% url 'contractuel_update' contractuel.pk %}" class="btn btn-secondary">✏ Modifier</a>
-    <a href="{% url 'contrat_create' %}" class="btn btn-primary">+ Nouveau contrat</a>
+    {% if request.user.profile.role != 'MANAGER' %}<a href="{% url 'contrat_create' %}" class="btn btn-primary">+ Nouveau contrat</a>{% endif %}
   </div>
 </div>
 
@@ -25,7 +26,7 @@
   {% endif %}
   <div class="detail-info">
     <div class="detail-name">{{ contractuel.nom }} {{ contractuel.prenom }}</div>
-    <div class="detail-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} • {{ contractuel.departement|default:"Département non défini" }}</div>
+    <div class="detail-sub">{{ contractuel.poste.titre|default:"Poste non défini" }} • {{ contractuel.direction|default:"Direction non définie" }}</div>
     <div class="detail-meta">
       <div class="detail-meta-item"><span>Matricule : </span><strong>{{ contractuel.matricule }}</strong></div>
       <div class="detail-meta-item"><span>Email : </span>{{ contractuel.email }}</div>
@@ -54,6 +55,7 @@
 </div>
 
 <!-- Contrats -->
+{% if request.user.profile.role != 'MANAGER' %}
 <div class="card" style="margin-bottom:20px;">
   <div class="card-header">
     <h3 class="card-title">📋 Contrats ({{ contrats.count }})</h3>
@@ -86,6 +88,7 @@
   <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucun contrat</div></div>
   {% endif %}
 </div>
+{% endif %}
 
 <!-- Présences récentes -->
 <div class="card" style="margin-bottom:20px;">
@@ -124,7 +127,7 @@
   <div class="card" style="flex:1;">
     <div class="card-header">
       <h3 class="card-title">🏖 Congés récents</h3>
-      <a href="{% url 'conge_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>
+      {% if request.user.profile.role != 'MANAGER' %}<a href="{% url 'conge_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>{% endif %}
     </div>
     {% if conges %}
     {% for cg in conges %}
@@ -147,7 +150,7 @@
   <div class="card" style="flex:1;">
     <div class="card-header">
       <h3 class="card-title">🎫 Permissions récentes</h3>
-      <a href="{% url 'permission_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>
+      {% if request.user.profile.role != 'MANAGER' %}<a href="{% url 'permission_create' %}" class="btn btn-secondary btn-sm">+ Demande</a>{% endif %}
     </div>
     {% if permissions %}
     {% for pm in permissions %}

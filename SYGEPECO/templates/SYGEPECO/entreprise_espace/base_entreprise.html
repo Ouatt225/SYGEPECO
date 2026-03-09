@@ -5,151 +5,834 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Espace Entreprise{% endblock %} — SYGEPECO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700;800&family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   {% load static %}
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
-
   <style>
-  /* ── Palette Entreprise (bleu corporate) ─────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ══════════════════════════════════════════════════════════════
+     DESIGN TOKENS — Obsidian & Gold
+  ══════════════════════════════════════════════════════════════ */
   :root {
-    --ent-accent:      #2563EB;
-    --ent-accent-dim:  rgba(37,99,235,.14);
-    --ent-accent-light:#60A5FA;
-    --ent-gradient:    linear-gradient(135deg, #1D4ED8 0%, #2563EB 60%, #3B82F6 100%);
+    --ink:          #060810;
+    --surface:      #0A0E19;
+    --card:         #0F1422;
+    --card-h:       #141929;
+    --line:         rgba(212,168,83,.09);
+    --line-mid:     rgba(212,168,83,.18);
+    --line-bright:  rgba(212,168,83,.35);
+
+    --gold:         #D4A853;
+    --gold-soft:    rgba(212,168,83,.1);
+    --gold-glow:    rgba(212,168,83,.28);
+    --gold-light:   #F0D080;
+
+    --emerald:      #10B981;
+    --emerald-soft: rgba(16,185,129,.1);
+    --rose:         #F43F5E;
+    --rose-soft:    rgba(244,63,94,.1);
+    --amber:        #F59E0B;
+    --amber-soft:   rgba(245,158,11,.1);
+    --sky:          #38BDF8;
+    --sky-soft:     rgba(56,189,248,.1);
+
+    --txt:          #EDE8E3;
+    --txt-2:        #6E7492;
+    --txt-3:        #2A2F43;
+
+    --sidebar-w:    240px;
+    --sidebar-min:  64px;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --card-2:       #1A1F2E;
+    --ease:         cubic-bezier(.4,0,.2,1);
+    --teal:         #14b8a6;
+    --teal-soft:    rgba(20,184,166,.1);
   }
 
-  /* Sidebar */
-  .sidebar { background: #0D1B3E; border-right: 1px solid rgba(37,99,235,.18); }
-  .sidebar-logo { color: #F1F5F9; }
-  .sidebar-logo span { color: var(--ent-accent-light); }
-  .nav-link { color: #94A3B8; }
-  .nav-link:hover, .nav-link.active {
-    background: var(--ent-accent-dim);
-    color: var(--ent-accent-light);
-  }
-  .nav-link.active { border-left: 3px solid var(--ent-accent); }
-  .nav-section { color: #475569; }
-
-  /* Badge entreprise */
-  .badge-espace {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 14px; border-radius: 20px; font-size: .78rem;
-    font-weight: 700; letter-spacing: .04em;
-    background: var(--ent-accent-dim);
-    color: var(--ent-accent-light);
-    border: 1px solid rgba(37,99,235,.3);
+  html, body {
+    height: 100%;
+    font-family: 'Syne', sans-serif;
+    background: var(--ink);
+    color: var(--txt);
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Boutons accent */
-  .btn-ent {
-    background: var(--ent-gradient);
-    color: #fff;
-    border: none;
-    padding: 8px 18px;
+  /* Grain noise sur tout le fond */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    background-size: 160px;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     LAYOUT
+  ══════════════════════════════════════════════════════════════ */
+  .layout {
+    display: flex;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════════════════════════ */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    transition: width .3s var(--ease);
+  }
+
+  /* Etat collapsé */
+  .layout.collapsed .sidebar { width: var(--sidebar-min); }
+
+  /* Decor dot-grid doré en bas de sidebar */
+  .sidebar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 200px;
+    background-image: radial-gradient(circle, rgba(212,168,83,.18) 1px, transparent 1px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.5), transparent);
+    mask-image: linear-gradient(to top, rgba(0,0,0,.5), transparent);
+    pointer-events: none;
+  }
+
+  /* Glow orb en haut */
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(212,168,83,.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* ── Brand header ─────────────────────────────────────────── */
+  .sidebar-head {
+    padding: 22px 14px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Losange doré avec initiale */
+  .brand-gem {
+    width: 40px; height: 40px;
+    flex-shrink: 0;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-gem::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--gold-soft);
+    border: 1px solid var(--line-bright);
+    transform: rotate(45deg);
+    border-radius: 4px;
+  }
+  .brand-gem span {
+    position: relative; z-index: 1;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 800;
+    color: var(--gold);
+    letter-spacing: .02em;
+  }
+
+  .brand-text {
+    overflow: hidden;
+    transition: opacity .2s var(--ease), max-width .3s var(--ease);
+    white-space: nowrap;
+    max-width: 160px;
+  }
+  .layout.collapsed .brand-text { opacity: 0; max-width: 0; }
+
+  .brand-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: .95rem; font-weight: 700;
+    color: var(--txt); line-height: 1.2;
+    letter-spacing: .01em;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .brand-role {
+    font-size: .58rem; font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-top: 2px;
+  }
+
+  /* Bouton collapse */
+  .sidebar-toggle {
+    position: absolute;
+    right: -11px; top: 50%;
+    transform: translateY(-50%);
+    width: 22px; height: 22px;
+    background: var(--card);
+    border: 1px solid var(--line-mid);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+    transition: background .2s, border-color .2s;
+  }
+  .sidebar-toggle:hover { background: var(--card-h); border-color: var(--gold); }
+  .sidebar-toggle svg {
+    width: 10px; height: 10px; color: var(--txt-2);
+    transition: transform .3s var(--ease), color .2s;
+  }
+  .sidebar-toggle:hover svg { color: var(--gold); }
+  .layout.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+  /* ── Nav ──────────────────────────────────────────────────── */
+  .sidebar-nav {
+    padding: 14px 10px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .nav-section {
+    font-size: .58rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--txt-3);
+    padding: 0 6px 6px;
+    transition: opacity .2s;
+    white-space: nowrap;
+  }
+  .layout.collapsed .nav-section { opacity: 0; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px;
     border-radius: 10px;
-    font-weight: 600;
-    font-size: .875rem;
-    cursor: pointer;
-    transition: opacity .2s, transform .2s;
+    color: var(--txt-2);
+    text-decoration: none;
+    font-size: .82rem; font-weight: 600;
+    transition: background .18s, color .18s;
+    position: relative;
+    margin-bottom: 2px;
+    overflow: hidden;
+    white-space: nowrap;
   }
-  .btn-ent:hover { opacity: .9; transform: translateY(-1px); }
+  .nav-item:hover { background: var(--gold-soft); color: var(--txt); }
+  .nav-item.active { background: var(--gold-soft); color: var(--gold-light); }
+
+  /* Barre or à gauche quand actif */
+  .nav-item.active::before {
+    content: '';
+    position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 2px; border-radius: 1px;
+    background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  }
+
+  .nav-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,.03);
+    transition: background .18s;
+  }
+  .nav-item:hover .nav-icon,
+  .nav-item.active .nav-icon { background: var(--gold-soft); }
+  .nav-item svg { width: 15px; height: 15px; }
+
+  .nav-label { transition: opacity .2s; flex: 1; }
+  .layout.collapsed .nav-label { opacity: 0; pointer-events: none; }
+
+  .nav-badge {
+    margin-left: auto; flex-shrink: 0;
+    background: var(--rose); color: #fff;
+    font-size: .58rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px;
+    min-width: 18px; text-align: center;
+    transition: opacity .2s;
+  }
+  .layout.collapsed .nav-badge { opacity: 0; }
+
+  /* ── Sidebar footer ───────────────────────────────────────── */
+  .sidebar-foot {
+    padding: 12px 10px;
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+    position: relative; z-index: 2;
+  }
+
+  .user-row { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+  .user-gem {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: var(--card-h);
+    border: 1px solid var(--line-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: .9rem; font-weight: 700; color: var(--txt-2);
+  }
+  .user-info { overflow: hidden; transition: opacity .2s; white-space: nowrap; }
+  .layout.collapsed .user-info { opacity: 0; }
+  .user-name { font-size: .78rem; font-weight: 700; color: var(--txt); }
+  .user-meta { font-size: .65rem; color: var(--txt-2); margin-top: 1px; }
+
+  .logout-link {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 8px 8px; border-radius: 9px;
+    background: var(--rose-soft);
+    border: 1px solid rgba(244,63,94,.15);
+    color: var(--rose);
+    font-size: .75rem; font-weight: 700;
+    text-decoration: none;
+    transition: background .18s;
+    overflow: hidden; white-space: nowrap;
+  }
+  .logout-link:hover { background: rgba(244,63,94,.18); }
+  .logout-link svg { flex-shrink: 0; }
+  .logout-label { transition: opacity .2s max-width .3s; }
+  .layout.collapsed .logout-label { opacity: 0; max-width: 0; overflow: hidden; }
+
+  /* ══════════════════════════════════════════════════════════════
+     MAIN AREA
+  ══════════════════════════════════════════════════════════════ */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* ── Topbar ───────────────────────────────────────────────── */
+  .topbar {
+    height: 56px; flex-shrink: 0;
+    background: rgba(10,14,25,.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; align-items: center;
+    padding: 0 32px; gap: 16px;
+    position: relative;
+  }
+  /* Ligne or dégradée en bas */
+  .topbar::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%, var(--gold) 25%,
+      var(--gold-light) 50%, var(--gold) 75%, transparent 100%);
+    opacity: .3;
+  }
+
+  .breadcrumb {
+    flex: 1; display: flex; align-items: center; gap: 7px;
+    font-size: .72rem; color: var(--txt-3); font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .breadcrumb-company { color: var(--txt-2); }
+  .breadcrumb-sep { color: var(--txt-3); opacity: .6; }
+  .breadcrumb-current { color: var(--gold); }
+
+  .live-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase;
+    background: var(--gold-soft);
+    color: var(--gold); border: 1px solid var(--line-mid);
+  }
+  .live-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 0 var(--gold-glow);
+    animation: goldPulse 2.4s infinite;
+  }
+  @keyframes goldPulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--gold-glow); }
+    50%       { box-shadow: 0 0 0 5px transparent; }
+  }
+
+  /* ── Content ──────────────────────────────────────────────── */
+  .content { flex: 1; overflow-y: auto; padding: 32px 36px; }
+
+  /* ══════════════════════════════════════════════════════════════
+     SHARED COMPONENTS
+  ══════════════════════════════════════════════════════════════ */
+
+  /* Page header */
+  .pg-head {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .pg-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem; font-weight: 700;
+    color: var(--txt); line-height: 1.1;
+    letter-spacing: -.01em;
+  }
+  .pg-sub {
+    font-size: .75rem; color: var(--txt-2);
+    margin-top: 5px; font-weight: 500;
+    letter-spacing: .03em;
+  }
+
+  /* Primary button */
+  .btn-gold {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 10px;
+    background: var(--gold-soft);
+    border: 1px solid var(--line-mid);
+    color: var(--gold-light);
+    font-family: 'Syne', sans-serif;
+    font-size: .78rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    letter-spacing: .05em;
+    transition: background .2s, border-color .2s, box-shadow .2s;
+  }
+  .btn-gold:hover {
+    background: rgba(212,168,83,.18);
+    border-color: var(--gold);
+    box-shadow: 0 0 24px var(--gold-glow);
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card-title {
+    font-size: .62rem; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--txt-2); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px; height: 12px; border-radius: 2px;
+    background: var(--gold); flex-shrink: 0;
+  }
+
+  /* Data table */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    padding: 10px 16px;
+    font-size: .6rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--txt-3);
+    border-bottom: 1px solid var(--line);
+    text-align: left; white-space: nowrap;
+  }
+  .data-table td {
+    padding: 13px 16px;
+    font-size: .83rem;
+    border-bottom: 1px solid rgba(212,168,83,.04);
+    vertical-align: middle;
+    transition: background .14s;
+  }
+  .data-table tr:hover td { background: rgba(212,168,83,.04); }
+  /* Indicateur or sur hover */
+  .data-table tbody tr { position: relative; }
+  .data-table tbody tr::before {
+    content: '';
+    position: absolute; left: 0; top: 18%; bottom: 18%;
+    width: 2px; background: var(--gold);
+    border-radius: 1px; opacity: 0; transition: opacity .14s;
+  }
+  .data-table tbody tr:hover::before { opacity: .5; }
+
+  /* Table card wrapper */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: .67rem; font-weight: 700;
+    letter-spacing: .03em;
+  }
+  .b-green  { background: var(--emerald-soft); color: var(--emerald); }
+  .b-red    { background: var(--rose-soft);    color: var(--rose);    }
+  .b-amber  { background: var(--amber-soft);   color: var(--amber);   }
+  .b-sky    { background: var(--sky-soft);     color: var(--sky);     }
+  .b-gold   { background: var(--gold-soft);    color: var(--gold);    }
+
+  /* Form controls */
+  .ctrl {
+    padding: 9px 13px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    color: var(--txt);
+    font-family: 'Syne', sans-serif;
+    font-size: .82rem; outline: none;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .ctrl:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,168,83,.1);
+  }
+  .ctrl::placeholder { color: var(--txt-3); }
+
+  /* Form group / label */
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label {
+    font-size: .72rem; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase;
+    color: var(--txt-2);
+  }
+  .ctrl { width: 100%; }
+
+  /* Search with icon */
+  .search-field { position: relative; }
+  .search-field svg {
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    color: var(--txt-3); pointer-events: none;
+  }
+  .search-field .ctrl { padding-left: 36px; }
+
+  /* Filter button */
+  .btn-filter {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 9px;
+    background: var(--gold-soft);
+    border: 1px solid var(--line-mid);
+    color: var(--gold); cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: .78rem; font-weight: 700;
+    letter-spacing: .04em;
+    transition: background .18s, border-color .18s;
+  }
+  .btn-filter:hover { background: rgba(212,168,83,.18); border-color: var(--gold); }
+
+  .btn-clear {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px; border-radius: 9px;
+    background: var(--rose-soft);
+    border: 1px solid rgba(244,63,94,.15);
+    color: var(--rose);
+    font-family: 'Syne', sans-serif;
+    font-size: .78rem; font-weight: 600;
+    text-decoration: none; transition: background .18s;
+  }
+  .btn-clear:hover { background: rgba(244,63,94,.18); }
+
+  /* Action buttons */
+  .act-approve {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 7px;
+    background: var(--emerald-soft);
+    border: 1px solid rgba(16,185,129,.2);
+    color: var(--emerald);
+    font-size: .72rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s;
+  }
+  .act-approve:hover { background: rgba(16,185,129,.18); }
+
+  .act-reject {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 7px;
+    background: var(--rose-soft);
+    border: 1px solid rgba(244,63,94,.2);
+    color: var(--rose);
+    font-size: .72rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s;
+  }
+  .act-reject:hover { background: rgba(244,63,94,.18); }
+
+  /* Alerts */
+  .alert {
+    padding: 12px 16px; border-radius: 10px;
+    font-size: .83rem; font-weight: 500;
+    margin-bottom: 12px; border: 1px solid;
+  }
+  .alert-ok  { background: var(--emerald-soft); border-color: rgba(16,185,129,.2); color: var(--emerald); }
+  .alert-err { background: var(--rose-soft);    border-color: rgba(244,63,94,.2);  color: var(--rose);    }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 60px 32px; }
+  .empty svg { width: 44px; height: 44px; color: var(--txt-3); margin: 0 auto 16px; display: block; }
+  .empty p { font-size: .88rem; color: var(--txt-2); }
+
+  /* Mono chip */
+  .mono {
+    font-family: 'DM Mono', monospace;
+    font-size: .74rem;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 6px; padding: 2px 9px;
+    color: var(--txt-2); letter-spacing: .03em;
+  }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(212,168,83,.2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(212,168,83,.35); }
+
+  /* Animations */
+  .rise   { animation: rise .55s both cubic-bezier(.22,1,.36,1); }
+  .rise-1 { animation-delay: .04s; }
+  .rise-2 { animation-delay: .09s; }
+  .rise-3 { animation-delay: .14s; }
+  .rise-4 { animation-delay: .19s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+
+  /* ── Boutons génériques (utilisés dans les pages de décision) ─────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: .78rem; font-weight: 700;
+    letter-spacing: .05em; cursor: pointer;
+    border: 1px solid transparent;
+    transition: background .2s, box-shadow .2s, border-color .2s;
+    text-decoration: none;
+  }
+  .btn-teal {
+    background: rgba(20,184,166,.12);
+    border-color: rgba(20,184,166,.3);
+    color: var(--teal);
+  }
+  .btn-teal:hover {
+    background: rgba(20,184,166,.22);
+    border-color: rgba(20,184,166,.55);
+    box-shadow: 0 0 22px rgba(20,184,166,.18);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--txt-2);
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,.04);
+    border-color: var(--line-mid);
+    color: var(--txt);
+  }
+
+  /* Gold divider */
+  .gold-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: .2; margin: 4px 0;
+  }
   </style>
 
   {% block extra_css %}{% endblock %}
 </head>
 <body>
-<div class="app-layout">
+<div class="layout" id="layout">
 
-  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════════════════════════ -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        🏢 <span>{% if entreprise %}{{ entreprise.sigle|default:entreprise.nom }}{% else %}SYGEPECO{% endif %}</span>
+
+    <!-- Brand -->
+    <div class="sidebar-head">
+      <div class="brand-gem">
+        <span>{% if entreprise %}{{ entreprise.nom|slice:":1"|upper }}{% else %}S{% endif %}</span>
       </div>
-      <div style="font-size:.72rem;color:#475569;margin-top:4px;padding-left:28px;">
-        Espace Entreprise
+      <div class="brand-text">
+        <div class="brand-name">{% if entreprise %}{{ entreprise.nom }}{% else %}SYGEPECO{% endif %}</div>
+        <div class="brand-role">Espace Entreprise</div>
       </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Réduire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
     </div>
 
+    <!-- Nav -->
     <nav class="sidebar-nav">
       <div class="nav-section">Navigation</div>
 
       <a href="{% url 'entreprise_espace_home' %}"
-         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_home' %}active{% endif %}">
-        <span class="nav-icon">📊</span> Tableau de bord
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_home' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          </svg>
+        </span>
+        <span class="nav-label">Tableau de bord</span>
+      </a>
+
+      <a href="{% url 'entreprise_espace_contrats' %}"
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_contrats' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </span>
+        <span class="nav-label">Contrats</span>
       </a>
 
       <a href="{% url 'entreprise_espace_agents' %}"
-         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_agents' %}active{% endif %}">
-        <span class="nav-icon">👥</span> Mes agents
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_agents' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        <span class="nav-label">Mes agents</span>
       </a>
 
       <a href="{% url 'entreprise_espace_conges' %}"
-         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_conges' %}active{% endif %}">
-        <span class="nav-icon">🌴</span> Congés
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_conges' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        <span class="nav-label">Congés</span>
+        {% if conges_attente %}<span class="nav-badge">{{ conges_attente }}</span>{% endif %}
       </a>
 
       <a href="{% url 'entreprise_espace_permissions' %}"
-         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_permissions' %}active{% endif %}">
-        <span class="nav-icon">📋</span> Permissions
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_permissions' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </span>
+        <span class="nav-label">Permissions</span>
+        {% if permissions_attente %}<span class="nav-badge">{{ permissions_attente }}</span>{% endif %}
       </a>
 
       <a href="{% url 'entreprise_espace_presences' %}"
-         class="nav-link {% if request.resolver_match.url_name == 'entreprise_espace_presences' %}active{% endif %}">
-        <span class="nav-icon">🕐</span> Présences
+         class="nav-item {% if request.resolver_match.url_name == 'entreprise_espace_presences' or request.resolver_match.url_name == 'entreprise_espace_presence_create' %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </span>
+        <span class="nav-label">Présences</span>
       </a>
 
-      <div class="nav-section" style="margin-top:16px;">Compte</div>
-      <a href="{% url 'logout' %}" class="nav-link" style="color:#EF4444;">
-        <span class="nav-icon">🚪</span> Déconnexion
+      <a href="{% url 'entreprise_espace_rapports' %}"
+         class="nav-item {% if 'entreprise_espace_rapports' in request.resolver_match.url_name or 'entreprise_export' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        <span class="nav-label">Rapports</span>
       </a>
     </nav>
 
-    <div class="sidebar-footer">
-      <div style="font-size:.75rem;color:#475569;">
-        Connecté en tant que<br>
-        <strong style="color:#94A3B8;">{{ request.user.get_full_name|default:request.user.username }}</strong>
+    <!-- Footer user -->
+    <div class="sidebar-foot">
+      <div class="user-row">
+        <div class="user-gem">{{ request.user.username|slice:":1"|upper }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <div class="user-meta">Gestionnaire</div>
+        </div>
       </div>
+      <a href="{% url 'changer_mot_de_passe' %}" class="logout-link" style="color:var(--txt-2);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span class="logout-label">Mot de passe</span>
+      </a>
+
+      <a href="{% url 'logout' %}" class="logout-link">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="logout-label">Déconnexion</span>
+      </a>
     </div>
   </aside>
 
-  <!-- ── Main ─────────────────────────────────────────────────── -->
-  <main class="main-content">
+  <!-- ════════════════════════════════════════════════════════════
+       MAIN
+  ════════════════════════════════════════════════════════════ -->
+  <div class="main">
 
-    <!-- Navbar top -->
-    <header class="navbar">
-      <div class="navbar-left">
-        <button class="sidebar-toggle" onclick="document.querySelector('.app-layout').classList.toggle('sidebar-collapsed')">☰</button>
-        <div style="font-size:.9rem;color:var(--text-muted);">
-          {% block breadcrumb %}Espace Entreprise{% endblock %}
-        </div>
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span class="breadcrumb-company">{% if entreprise %}{{ entreprise.nom }}{% else %}SYGEPECO{% endif %}</span>
+        <svg class="breadcrumb-sep" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <span class="breadcrumb-current">{% block breadcrumb %}Accueil{% endblock %}</span>
       </div>
-      <div class="navbar-right">
-        <span class="badge-espace">🏢 Gestionnaire</span>
+      <div class="live-chip">
+        <span class="live-dot"></span>
+        En ligne
       </div>
     </header>
 
-    <!-- Messages Django -->
     {% if messages %}
-    <div style="padding:0 28px;margin-top:12px;">
+    <div style="padding:14px 36px 0;">
       {% for msg in messages %}
-      <div class="alert alert-{{ msg.tags }}" style="margin-bottom:8px;">{{ msg }}</div>
+      <div class="alert {% if 'success' in msg.tags %}alert-ok{% else %}alert-err{% endif %}">{{ msg }}</div>
       {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Contenu -->
-    <div class="page-content" style="padding:28px;">
+    <div class="content">
       {% block content %}{% endblock %}
     </div>
 
-  </main>
+  </div>
 </div>
 
 {% load static %}
 <script src="{% static 'SYGEPECO/js/main.js' %}"></script>
+<script>
+(function() {
+  var layout = document.getElementById('layout');
+  var btn    = document.getElementById('sidebarToggle');
+  if (!layout || !btn) return;
+  if (localStorage.getItem('sb_collapsed') === '1') layout.classList.add('collapsed');
+  btn.addEventListener('click', function() {
+    var c = layout.classList.toggle('collapsed');
+    localStorage.setItem('sb_collapsed', c ? '1' : '0');
+  });
+})();
+</script>
+
+{% load static %}
+<script src="{% static 'SYGEPECO/js/notifications.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

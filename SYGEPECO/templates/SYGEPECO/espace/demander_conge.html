@@ -1,115 +1,363 @@
 {% extends 'SYGEPECO/espace/base_espace.html' %}
+{% load static %}
 {% block title %}Demander un congé{% endblock %}
 {% block breadcrumb %}
-<span class="breadcrumb-sep"> / </span>
-<a href="{% url 'espace_mes_conges' %}" class="breadcrumb-item">Mes congés</a>
-<span class="breadcrumb-sep"> / </span>
-<span class="breadcrumb-item active">Nouvelle demande</span>
+<span class="topbar-sep">/</span>
+<a href="{% url 'espace_mes_conges' %}" style="color:var(--txt-2);text-decoration:none;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--txt-2)'">Mes congés</a>
+<span class="topbar-sep">/</span>
+<span class="topbar-current">Nouvelle demande</span>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Flatpickr date picker -->
+<link rel="stylesheet" href="{% static 'SYGEPECO/css/flatpickr.min.css' %}">
+<style>
+/* ── Flatpickr dark theme override ────────────────────────── */
+.flatpickr-calendar {
+  background: var(--card, #1a1a2e) !important;
+  border: 1px solid var(--line, rgba(255,255,255,.08)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.55) !important;
+  font-family: var(--font-sans, sans-serif) !important;
+  overflow: hidden;
+}
+.flatpickr-months {
+  background: transparent !important;
+  border-bottom: 1px solid var(--line, rgba(255,255,255,.08));
+  padding: 6px 0;
+}
+.flatpickr-month,
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  color: var(--txt, #f1f5f9) !important;
+  fill: var(--txt, #f1f5f9) !important;
+}
+.flatpickr-current-month { font-size: .92rem !important; font-weight: 600 !important; }
+.flatpickr-current-month select { color: var(--txt, #f1f5f9) !important; background: transparent !important; }
+.flatpickr-weekdays { background: transparent !important; }
+.flatpickr-weekday { color: var(--txt-2, #94a3b8) !important; background: transparent !important; font-size: .72rem !important; font-weight: 600 !important; }
+.flatpickr-day { color: var(--txt, #f1f5f9) !important; border-radius: 8px !important; }
+.flatpickr-day:hover { background: var(--teal, #14b8a6) !important; border-color: var(--teal, #14b8a6) !important; color: #fff !important; }
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+  background: var(--teal, #14b8a6) !important;
+  border-color: var(--teal, #14b8a6) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+.flatpickr-day.inRange { background: var(--teal-soft, rgba(20,184,166,.12)) !important; border-color: transparent !important; }
+.flatpickr-day.disabled, .flatpickr-day.disabled:hover { color: var(--txt-3, #475569) !important; opacity: .4 !important; background: transparent !important; cursor: not-allowed !important; }
+.flatpickr-day.today { border-color: var(--teal, #14b8a6) !important; }
+.flatpickr-day.today:hover { background: var(--teal, #14b8a6) !important; color: #fff !important; }
+.numInputWrapper:hover, .numInputWrapper { background: transparent !important; }
+.numInputWrapper input { color: var(--txt, #f1f5f9) !important; }
+.flatpickr-innerContainer { padding: 6px; }
+
+/* ── Date input wrapper with calendar icon ─────────────────── */
+.date-input-wrap { position: relative; }
+.date-input-wrap .ctrl { padding-right: 38px !important; cursor: pointer !important; }
+.date-input-wrap .cal-icon {
+  position: absolute;
+  right: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--teal, #14b8a6);
+  pointer-events: none;
+}
+/* ── Préavis badge ─────────────────────────────────────────── */
+.notice-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .7rem; font-weight: 600;
+  color: var(--amber, #f59e0b);
+  background: rgba(245,158,11,.1);
+  border: 1px solid rgba(245,158,11,.25);
+  border-radius: 20px; padding: 2px 9px; margin-top: 5px;
+}
+
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 620px;
+}
+.form-card-head {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+}
+.form-card-body { padding: 24px; }
+.form-card-foot {
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: flex-end; gap: 10px;
+  background: var(--card-2);
+}
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.solde-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--teal-soft);
+  border: 1px solid var(--teal-mid);
+  border-radius: var(--radius-sm);
+  margin-bottom: 22px;
+}
+.solde-num {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--teal);
+  line-height: 1;
+}
+.duree-calc {
+  display: none;
+  background: var(--emerald-soft);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--emerald);
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pg-head rise">
   <div>
-    <h1 class="page-title">Nouvelle demande de congé</h1>
-    <p class="page-subtitle">Remplissez le formulaire ci-dessous</p>
+    <div class="pg-eyebrow">Mes congés</div>
+    <h1 class="pg-title">Nouvelle demande de congé</h1>
   </div>
-  <a href="{% url 'espace_mes_conges' %}" class="btn btn-secondary">← Retour</a>
+  <a href="{% url 'espace_mes_conges' %}" class="btn btn-ghost" style="align-self:flex-end;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Retour
+  </a>
 </div>
 
-<div style="max-width:680px;">
-  <div class="card" style="padding:32px;">
-    <!-- Info solde -->
-    <div style="display:flex;gap:12px;margin-bottom:28px;padding:16px;background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);border-radius:var(--radius);align-items:center;">
-      <span style="font-size:1.5rem;">🏖</span>
-      <div>
-        <div style="font-weight:700;color:var(--espace-accent);">{{ solde_conges }} jour{{ solde_conges|pluralize }} restant{{ solde_conges|pluralize }}</div>
-        <div style="font-size:0.8125rem;color:var(--text-muted);">Solde annuel — quota de 30 jours</div>
+<div class="form-card rise rise-1">
+  <div class="form-card-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" width="18" height="18">
+      <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/><path d="M12 6v6l4 2"/>
+    </svg>
+    <span style="font-family:var(--font-serif);font-size:1rem;font-weight:600;color:var(--txt);">
+      Soumettre une demande de congé
+    </span>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="congeForm">
+    {% csrf_token %}
+    <div class="form-card-body">
+
+      <!-- Solde congé annuel -->
+      <div class="solde-box" {% if solde_annuel == 0 %}style="background:var(--rose-soft);border-color:rgba(244,63,94,.3);"{% endif %}>
+        <div>
+          <div class="solde-num" {% if solde_annuel == 0 %}style="color:var(--rose);"{% endif %}>{{ solde_annuel }}</div>
+        </div>
+        <div>
+          <div style="font-size:.78rem;font-weight:600;color:{% if solde_annuel == 0 %}var(--rose){% else %}var(--teal){% endif %};">
+            jour{{ solde_annuel|pluralize }} restant{{ solde_annuel|pluralize }} — Congé annuel
+          </div>
+          <div style="font-size:.7rem;color:var(--txt-2);">
+            Quota : 30 j &nbsp;·&nbsp; Utilisés / En attente : {{ jours_pris }} j
+          </div>
+          {% if solde_annuel == 0 %}
+          <div style="font-size:.7rem;color:var(--rose);margin-top:3px;font-weight:600;">
+            Quota épuisé — les autres types de congé restent disponibles.
+          </div>
+          {% endif %}
+        </div>
       </div>
-    </div>
 
-    <form method="post" id="congeForm">
-      {% csrf_token %}
-
-      <!-- Type de congé -->
       <div class="form-group">
-        <label class="form-label">Type de congé <span style="color:var(--accent-red);">*</span></label>
+        <label class="form-label">Type de congé *</label>
         {{ form.type_conge }}
-        {% if form.type_conge.errors %}
-        <div class="field-error">{{ form.type_conge.errors.0 }}</div>
-        {% endif %}
+        {% if form.type_conge.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.type_conge.errors.0 }}</div>{% endif %}
       </div>
 
-      <!-- Dates -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-grid-2">
+        <!-- Date de début -->
         <div class="form-group">
-          <label class="form-label">Date de début <span style="color:var(--accent-red);">*</span></label>
-          {{ form.date_debut }}
-          {% if form.date_debut.errors %}
-          <div class="field-error">{{ form.date_debut.errors.0 }}</div>
-          {% endif %}
+          <label class="form-label" for="id_date_debut">Date de début *</label>
+          <div class="date-input-wrap">
+            {{ form.date_debut }}
+            <svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="notice-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Préavis minimum de 7 jours requis
+          </div>
+          {% if form.date_debut.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.date_debut.errors.0 }}</div>{% endif %}
         </div>
+        <!-- Date de fin -->
         <div class="form-group">
-          <label class="form-label">Date de fin <span style="color:var(--accent-red);">*</span></label>
-          {{ form.date_fin }}
-          {% if form.date_fin.errors %}
-          <div class="field-error">{{ form.date_fin.errors.0 }}</div>
-          {% endif %}
+          <label class="form-label" for="id_date_fin">Date de fin *</label>
+          <div class="date-input-wrap">
+            {{ form.date_fin }}
+            <svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          {% if form.date_fin.errors %}<div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.date_fin.errors.0 }}</div>{% endif %}
         </div>
       </div>
 
-      <!-- Durée calculée dynamiquement -->
-      <div id="dureeCalc" style="display:none;margin-top:-8px;margin-bottom:16px;padding:10px 14px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-sm);font-size:0.875rem;color:#22C55E;">
-        <strong id="dureeText"></strong>
+      <!-- Durée calculée -->
+      <div class="duree-calc" id="dureeCalc">
+        <span id="dureeText"></span>
       </div>
 
-      <!-- Motif -->
       <div class="form-group">
-        <label class="form-label">Motif <span style="color:var(--text-muted);font-weight:400;">(optionnel)</span></label>
+        <label class="form-label">Motif <span style="color:var(--txt-3);font-weight:400;">(optionnel)</span></label>
         {{ form.motif }}
-        {% if form.motif.errors %}
-        <div class="field-error">{{ form.motif.errors.0 }}</div>
+      </div>
+
+      <!-- Document médical — affiché uniquement pour congé maladie -->
+      <div class="form-group" id="docMedicalWrap" style="display:none;">
+        <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2" width="14" height="14">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Justificatif médical <span style="color:var(--rose);margin-left:3px;">*&nbsp;obligatoire</span>
+        </label>
+        <div style="font-size:.7rem;color:var(--txt-2);margin-bottom:6px;">
+          Formats acceptés : PDF, JPG, PNG — le document doit attester votre arrêt maladie.
+        </div>
+        {{ form.document_medical }}
+        {% if form.document_medical.errors %}
+        <div style="font-size:.72rem;color:var(--rose);margin-top:4px;">{{ form.document_medical.errors.0 }}</div>
         {% endif %}
-        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Décrivez brièvement la raison de votre demande</div>
       </div>
 
       {% if form.non_field_errors %}
-      <div class="alert alert-danger" style="margin-bottom:16px;">
-        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+      <div style="background:var(--rose-soft);border:1px solid rgba(244,63,94,.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:.8rem;color:var(--rose);">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
       </div>
       {% endif %}
+    </div>
 
-      <div style="display:flex;gap:12px;margin-top:24px;">
-        <button type="submit" class="btn btn-primary" style="flex:1;">Soumettre la demande</button>
-        <a href="{% url 'espace_mes_conges' %}" class="btn btn-secondary">Annuler</a>
-      </div>
-    </form>
-  </div>
-
-  <!-- Note informative -->
-  <div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:var(--radius);font-size:0.8125rem;color:var(--text-muted);line-height:1.6;">
-    ℹ️ Votre demande sera transmise au service RH pour validation. Vous serez notifié dès qu'une décision est prise.
-  </div>
+    <div class="form-card-foot">
+      <a href="{% url 'espace_mes_conges' %}" class="btn btn-ghost">Annuler</a>
+      <button type="submit" class="btn btn-teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Soumettre la demande
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Flatpickr (version précise depuis jsDelivr) -->
+<script src="{% static 'SYGEPECO/js/flatpickr.min.js' %}"></script>
 <script>
-const dateDebut = document.getElementById('id_date_debut');
-const dateFin   = document.getElementById('id_date_fin');
-const dureeDiv  = document.getElementById('dureeCalc');
-const dureeText = document.getElementById('dureeText');
+/* ── Locale française intégrée (évite le second appel CDN) ── */
+flatpickr.localize({
+  firstDayOfWeek: 1,
+  weekdays: {
+    shorthand: ["Di","Lu","Ma","Me","Je","Ve","Sa"],
+    longhand:  ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"]
+  },
+  months: {
+    shorthand: ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"],
+    longhand:  ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"]
+  }
+});
 
-function calcDuree() {
-  if (!dateDebut.value || !dateFin.value) { dureeDiv.style.display = 'none'; return; }
-  const d1 = new Date(dateDebut.value);
-  const d2 = new Date(dateFin.value);
-  if (d2 < d1) { dureeDiv.style.display = 'none'; return; }
-  const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-  dureeText.textContent = `Durée : ${diff} jour${diff > 1 ? 's' : ''}`;
+/* ── Classe .ctrl sur tous les champs ──────────────────────── */
+document.querySelectorAll(
+  '.form-card-body input:not([type=submit]):not([type=file]), .form-card-body select, .form-card-body textarea'
+).forEach(function(el) { el.classList.add('ctrl'); });
+
+/* ── Calcul durée ─────────────────────────────────────────── */
+var dureeDiv  = document.getElementById('dureeCalc');
+var dureeText = document.getElementById('dureeText');
+
+function calcDuree(d1, d2) {
+  if (!d1 || !d2) { dureeDiv.style.display = 'none'; return; }
+  var diff = Math.round((d2 - d1) / 864e5) + 1;
+  if (diff < 1) { dureeDiv.style.display = 'none'; return; }
+  dureeText.textContent = 'Durée calculée : ' + diff + ' jour' + (diff > 1 ? 's' : '');
   dureeDiv.style.display = 'block';
 }
 
-dateDebut.addEventListener('change', calcDuree);
-dateFin.addEventListener('change', calcDuree);
+/* ── Date min = aujourd'hui + 7 jours (préavis obligatoire) ── */
+var today   = new Date();
+var minDate = new Date(today);
+minDate.setDate(today.getDate() + 7);
+
+/* Valeurs pré-remplies en cas d'erreur de formulaire */
+var initDebut = document.getElementById('id_date_debut') ? document.getElementById('id_date_debut').value : '';
+var initFin   = document.getElementById('id_date_fin')   ? document.getElementById('id_date_fin').value   : '';
+
+var fpDebut, fpFin;
+
+fpFin = flatpickr('#id_date_fin', {
+  dateFormat: 'Y-m-d',
+  defaultDate: initFin || null,
+  minDate: initDebut ? initDebut : minDate,
+  allowInput: false,
+  disableMobile: true,
+  clickOpens: true,
+  onChange: function(selectedDates) {
+    calcDuree(fpDebut ? fpDebut.selectedDates[0] : null, selectedDates[0]);
+  }
+});
+
+fpDebut = flatpickr('#id_date_debut', {
+  dateFormat: 'Y-m-d',
+  defaultDate: initDebut || null,
+  minDate: minDate,
+  allowInput: false,
+  disableMobile: true,
+  clickOpens: true,
+  onChange: function(selectedDates) {
+    var d1 = selectedDates[0];
+    if (d1) {
+      fpFin.set('minDate', d1);
+      var d2 = fpFin.selectedDates[0];
+      if (d2 && d2 < d1) { fpFin.clear(); }
+    }
+    calcDuree(d1, fpFin.selectedDates[0]);
+  }
+});
+
+/* Calcul initial si les deux dates sont pré-remplies */
+if (initDebut && initFin) {
+  calcDuree(new Date(initDebut), new Date(initFin));
+}
+
+/* ── Affichage conditionnel du justificatif médical ───────── */
+var typeConge = document.getElementById('id_type_conge');
+var docWrap   = document.getElementById('docMedicalWrap');
+var docInput  = document.getElementById('id_document_medical');
+
+function toggleDocMedical() {
+  if (typeConge && typeConge.value === 'MALADIE') {
+    docWrap.style.display = 'block';
+    if (docInput) docInput.required = true;
+  } else {
+    docWrap.style.display = 'none';
+    if (docInput) { docInput.required = false; docInput.value = ''; }
+  }
+}
+
+if (typeConge) {
+  typeConge.addEventListener('change', toggleDocMedical);
+  toggleDocMedical();
+}
 </script>
 {% endblock %}

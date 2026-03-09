@@ -8,9 +8,11 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Permissions</h1>
-    <p class="page-subtitle">{{ permissions.count }} demande{{ permissions.count|pluralize }}</p>
+    <p class="page-subtitle">{{ page_obj.paginator.count }} demande{{ page_obj.paginator.count|pluralize }}</p>
   </div>
+  {% if request.user.profile.role != 'MANAGER' %}
   <a href="{% url 'permission_create' %}" class="btn btn-primary">+ Nouvelle demande</a>
+  {% endif %}
 </div>
 
 <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
@@ -53,5 +55,7 @@
   {% else %}
   <div class="empty-state"><div class="empty-state-icon">🎫</div><div class="empty-state-title">Aucune demande de permission</div></div>
   {% endif %}
+
+{% include "SYGEPECO/partials/_pagination.html" %}
 </div>
 {% endblock %}

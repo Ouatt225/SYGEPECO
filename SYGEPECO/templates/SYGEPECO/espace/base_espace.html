@@ -1,161 +1,978 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="espace">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Mon Espace{% endblock %} — SYGEPECO</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'SYGEPECO/css/components.css' %}">
-  <style>
-    /* Palette espace contractuel : accent violet/indigo */
-    :root {
-      --espace-accent: #7C6AF7;
-      --espace-accent-dim: rgba(124, 106, 247, 0.15);
-      --espace-accent-light: #9B8BFF;
-    }
-    .sidebar { border-right-color: rgba(124,106,247,0.15); }
-    .nav-item.active { background: var(--espace-accent-dim); color: var(--espace-accent); }
-    .nav-item.active::before { background: var(--espace-accent); }
-    .logo-icon { background: linear-gradient(135deg, var(--espace-accent) 0%, #4A3CB5 100%); box-shadow: 0 4px 12px rgba(124,106,247,0.3); }
-    .btn-primary { background: linear-gradient(135deg, var(--espace-accent) 0%, #5340CC 100%); box-shadow: 0 8px 24px rgba(124,106,247,0.25); }
-    .btn-primary:hover { background: linear-gradient(135deg, var(--espace-accent-light) 0%, var(--espace-accent) 100%); color: #fff; }
 
-    /* Badge "Mon Espace" */
-    .espace-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--espace-accent-dim);
-      color: var(--espace-accent);
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 20px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-left: 10px;
-    }
+  <!-- Google Fonts : Poppins (UI) + Cormorant Garamond (titres) + DM Mono (données) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+  /* ════════════════════════════════════════════════════════════
+     DESIGN SYSTEM — MIDNIGHT & TEAL (Espace Contractuel)
+     Accent : Teal #06B6D4  ·  Fond : #060810
+  ════════════════════════════════════════════════════════════ */
+  :root {
+    /* ── Fonds ─────────────────────────────────────────── */
+    --ink      : #060810;
+    --surface  : #0C0D18;
+    --card     : #111220;
+    --card-2   : #171829;
+    --overlay  : rgba(6,8,16,.92);
+
+    /* ── Lignes / Bords ────────────────────────────────── */
+    --line     : rgba(255,255,255,.055);
+    --line-mid : rgba(255,255,255,.11);
+    --line-str : rgba(255,255,255,.18);
+
+    /* ── Texte ─────────────────────────────────────────── */
+    --txt   : #EEF0F8;
+    --txt-2 : #8B8FA8;
+    --txt-3 : #52566E;
+
+    /* ── Accent Teal (contractuel) ─────────────────────── */
+    --teal      : #06B6D4;
+    --teal-soft : rgba(6,182,212,.10);
+    --teal-mid  : rgba(6,182,212,.20);
+    --teal-glow : rgba(6,182,212,.35);
+
+    /* ── Couleurs sémantiques ──────────────────────────── */
+    --emerald      : #10B981;
+    --emerald-soft : rgba(16,185,129,.10);
+    --rose         : #F43F5E;
+    --rose-soft    : rgba(244,63,94,.10);
+    --amber        : #F59E0B;
+    --amber-soft   : rgba(245,158,11,.10);
+    --violet       : #8B5CF6;
+    --violet-soft  : rgba(139,92,246,.10);
+    --sky          : #38BDF8;
+    --sky-soft     : rgba(56,189,248,.10);
+
+    /* ── Typographie ───────────────────────────────────── */
+    --font-ui    : 'Poppins', sans-serif;
+    --font-serif : 'Cormorant Garamond', serif;
+    --font-mono  : 'DM Mono', monospace;
+
+    /* ── Layout ────────────────────────────────────────── */
+    --sidebar-w   : 240px;
+    --sidebar-col : 64px;
+    --topbar-h    : 56px;
+    --radius      : 12px;
+    --radius-sm   : 8px;
+    --radius-lg   : 18px;
+
+    /* ── Ombres ────────────────────────────────────────── */
+    --shadow-sm : 0 2px 8px rgba(0,0,0,.35);
+    --shadow    : 0 4px 20px rgba(0,0,0,.45);
+    --shadow-lg : 0 12px 40px rgba(0,0,0,.55);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--ink);
+    color: var(--txt);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-str); border-radius: 4px; }
+
+  /* ── Layout principal ──────────────────────────────────── */
+  .layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ════════════════════════════════════════════════════════
+     SIDEBAR
+  ════════════════════════════════════════════════════════ */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    transition: width .25s ease, min-width .25s ease;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 40;
+  }
+  .sidebar.collapsed {
+    width: var(--sidebar-col);
+    min-width: var(--sidebar-col);
+  }
+
+  /* Décoration — dot grid teal subtil */
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(6,182,212,.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sidebar > * { position: relative; z-index: 1; }
+
+  /* ── Brand ─────────────────────────────────────────────── */
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 14px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    min-height: 64px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* Hexagone SVG — accent teal */
+  .brand-gem {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px var(--teal-glow));
+    transition: filter .3s;
+  }
+  .brand-gem:hover { filter: drop-shadow(0 0 16px var(--teal-glow)); }
+
+  .brand-text { overflow: hidden; }
+  .brand-name {
+    font-family: var(--font-ui);
+    font-size: .82rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--txt);
+    line-height: 1.1;
+  }
+  .brand-agent {
+    font-family: var(--font-mono);
+    font-size: .62rem;
+    color: var(--teal);
+    letter-spacing: .04em;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+  }
+
+  /* ── Toggle collapse ───────────────────────────────────── */
+  .sb-toggle {
+    position: absolute;
+    top: 20px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--card-2);
+    border: 1px solid var(--line-mid);
+    color: var(--txt-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, color .2s, transform .25s;
+    z-index: 10;
+  }
+  .sb-toggle:hover { background: var(--teal-soft); color: var(--teal); }
+  .sidebar.collapsed .sb-toggle { transform: rotate(180deg); }
+  .sb-toggle svg { width: 10px; height: 10px; }
+
+  /* ── Navigation ────────────────────────────────────────── */
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 0;
+  }
+
+  .nav-section {
+    margin-bottom: 4px;
+  }
+  .nav-section-label {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--txt-3);
+    padding: 10px 16px 4px;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity .2s;
+  }
+  .sidebar.collapsed .nav-section-label { opacity: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    margin: 1px 8px;
+    color: var(--txt-2);
+    text-decoration: none;
+    font-size: .82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-item:hover {
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+  .nav-item.active {
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%;
+    width: 2px;
+    background: var(--teal);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .nav-icon svg { width: 16px; height: 16px; }
+  .nav-item:hover .nav-icon,
+  .nav-item.active .nav-icon {
+    background: var(--teal-mid);
+  }
+
+  .nav-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity .2s, width .2s;
+  }
+  .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+  /* ── Sidebar footer ────────────────────────────────────── */
+  .sidebar-foot {
+    border-top: 1px solid var(--line);
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    border: 1px solid var(--teal-mid);
+    color: var(--teal);
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-name {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--txt);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-role {
+    font-size: .65rem;
+    color: var(--txt-3);
+  }
+  .user-info { overflow: hidden; }
+
+  .sidebar.collapsed .user-info { display: none; }
+  .sidebar.collapsed .user-card { justify-content: center; }
+
+  .nav-logout {
+    color: var(--rose) !important;
+  }
+  .nav-logout:hover {
+    background: var(--rose-soft) !important;
+    color: var(--rose) !important;
+  }
+  .nav-logout:hover .nav-icon { background: var(--rose-soft) !important; }
+
+  /* ════════════════════════════════════════════════════════
+     ZONE PRINCIPALE
+  ════════════════════════════════════════════════════════ */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* ── Topbar ────────────────────────────────────────────── */
+  .topbar {
+    height: var(--topbar-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  /* Ligne gradient teal en bas */
+  .topbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    opacity: .4;
+  }
+
+  .topbar-toggle {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--txt-2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s, color .15s;
+  }
+  .topbar-toggle:hover { background: var(--teal-soft); color: var(--teal); }
+  .topbar-toggle svg { width: 14px; height: 14px; }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .78rem;
+    color: var(--txt-2);
+    overflow: hidden;
+    flex: 1;
+  }
+  .topbar-breadcrumb a {
+    color: var(--txt-2);
+    text-decoration: none;
+    transition: color .15s;
+  }
+  .topbar-breadcrumb a:hover { color: var(--teal); }
+  .topbar-sep { color: var(--txt-3); }
+  .topbar-current { color: var(--txt); font-weight: 600; }
+
+  /* Badge "Mon Espace" dans la topbar */
+  .topbar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--teal-mid);
+    flex-shrink: 0;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .topbar-date {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: var(--txt-3);
+  }
+
+  /* ── Page content ──────────────────────────────────────── */
+  .page-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 28px 40px;
+  }
+
+  /* ════════════════════════════════════════════════════════
+     MESSAGES DJANGO
+  ════════════════════════════════════════════════════════ */
+  .messages-zone {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .msg {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: .82rem;
+    border-left: 3px solid;
+    animation: slideIn .25s ease;
+  }
+  .msg-success { background: var(--emerald-soft); border-color: var(--emerald); color: var(--emerald); }
+  .msg-error   { background: var(--rose-soft);    border-color: var(--rose);    color: var(--rose); }
+  .msg-warning { background: var(--amber-soft);   border-color: var(--amber);   color: var(--amber); }
+  .msg-info    { background: var(--teal-soft);    border-color: var(--teal);    color: var(--teal); }
+  .msg-text { color: var(--txt); flex: 1; }
+  .msg-close {
+    background: none; border: none; cursor: pointer;
+    color: var(--txt-3); padding: 0; line-height: 1;
+    transition: color .15s;
+  }
+  .msg-close:hover { color: var(--txt); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ════════════════════════════════════════════════════════
+     COMPOSANTS GÉNÉRIQUES
+  ════════════════════════════════════════════════════════ */
+
+  /* ── Carte générique ───────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--txt);
+  }
+  .card-body { padding: 20px; }
+
+  /* ── Page header ───────────────────────────────────────── */
+  .pg-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .pg-eyebrow {
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 6px;
+  }
+  .pg-title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    color: var(--txt);
+    line-height: 1.15;
+  }
+  .pg-sub {
+    font-size: .78rem;
+    color: var(--txt-2);
+    margin-top: 4px;
+  }
+
+  /* ── Boutons ───────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  .btn-teal {
+    background: var(--teal);
+    color: #020f15;
+    border-color: var(--teal);
+    box-shadow: 0 4px 16px var(--teal-glow);
+  }
+  .btn-teal:hover {
+    background: #08d0f0;
+    box-shadow: 0 6px 24px var(--teal-glow);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--txt-2);
+    border-color: var(--line-mid);
+  }
+  .btn-ghost:hover {
+    background: var(--card-2);
+    color: var(--txt);
+    border-color: var(--line-str);
+  }
+
+  .btn-danger {
+    background: var(--rose-soft);
+    color: var(--rose);
+    border-color: rgba(244,63,94,.2);
+  }
+  .btn-danger:hover { background: rgba(244,63,94,.2); }
+
+  /* ── Badges statut ─────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .b-green  { background: var(--emerald-soft); color: var(--emerald); border-color: rgba(16,185,129,.2); }
+  .b-red    { background: var(--rose-soft);    color: var(--rose);    border-color: rgba(244,63,94,.2); }
+  .b-amber  { background: var(--amber-soft);   color: var(--amber);   border-color: rgba(245,158,11,.2); }
+  .b-teal   { background: var(--teal-soft);    color: var(--teal);    border-color: var(--teal-mid); }
+  .b-violet { background: var(--violet-soft);  color: var(--violet);  border-color: rgba(139,92,246,.2); }
+  .b-sky    { background: var(--sky-soft);     color: var(--sky);     border-color: rgba(56,189,248,.2); }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table thead tr {
+    background: var(--card-2);
+    border-bottom: 1px solid var(--line-mid);
+  }
+  .data-table th {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--txt-3);
+    padding: 10px 16px;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: .82rem;
+    color: var(--txt-2);
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr { transition: background .12s; }
+  .data-table tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .mono { font-family: var(--font-mono); font-size: .78rem; }
+
+  /* ── Empty state ───────────────────────────────────────── */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 56px 24px;
+    text-align: center;
+  }
+  .empty svg {
+    width: 48px; height: 48px;
+    color: var(--txt-3);
+    opacity: .5;
+  }
+
+  /* ── Formulaires ───────────────────────────────────────── */
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--txt-2);
+    margin-bottom: 6px;
+  }
+  .ctrl {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line-mid);
+    border-radius: var(--radius-sm);
+    color: var(--txt);
+    font-family: var(--font-ui);
+    font-size: .84rem;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+  }
+  .ctrl:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-soft);
+  }
+  select.ctrl { cursor: pointer; }
+  textarea.ctrl { resize: vertical; min-height: 90px; }
+
+  /* ── Rise animation ────────────────────────────────────── */
+  .rise { animation: rise .4s ease both; }
+  .rise-1 { animation-delay: .07s; }
+  .rise-2 { animation-delay: .14s; }
+  .rise-3 { animation-delay: .21s; }
+  .rise-4 { animation-delay: .28s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Divider info ──────────────────────────────────────── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0;
+  }
+  .info-cell {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  .info-cell:nth-child(3n) { border-right: none; }
+  .info-label {
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--txt-3);
+    margin-bottom: 4px;
+  }
+  .info-val {
+    font-size: .84rem;
+    color: var(--txt);
+    font-weight: 500;
+  }
   </style>
+
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+<div class="layout">
 
-<!-- Sidebar simplifiée -->
-<aside class="sidebar" id="sidebar">
-  <a href="{% url 'espace_home' %}" class="sidebar-logo">
-    <div class="logo-icon">👤</div>
-    <div class="logo-text">
-      <div class="logo-name">Mon Espace</div>
-      <div class="logo-tagline">{{ request.user.contractuel.get_full_name }}</div>
-    </div>
-  </a>
+  <!-- ══════════════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
 
-  <nav class="sidebar-nav">
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Navigation</div>
-      <a href="{% url 'espace_home' %}" class="nav-item">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Tableau de bord</span>
-      </a>
-      <a href="{% url 'espace_profil' %}" class="nav-item">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">Mon profil</span>
-      </a>
-      <a href="{% url 'espace_mon_contrat' %}" class="nav-item">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">Mon contrat</span>
-      </a>
-      <a href="{% url 'espace_mes_presences' %}" class="nav-item">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Mes présences</span>
-      </a>
-    </div>
+    <!-- Toggle collapse -->
+    <button class="sb-toggle" id="sbToggle" title="Réduire">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Demandes</div>
-      <a href="{% url 'espace_mes_conges' %}" class="nav-item">
-        <span class="nav-icon">🏖</span>
-        <span class="nav-label">Mes congés</span>
-      </a>
-      <a href="{% url 'espace_demander_conge' %}" class="nav-item">
-        <span class="nav-icon">＋</span>
-        <span class="nav-label">Demander congé</span>
-      </a>
-      <a href="{% url 'espace_mes_permissions' %}" class="nav-item">
-        <span class="nav-icon">🎫</span>
-        <span class="nav-label">Mes permissions</span>
-      </a>
-      <a href="{% url 'espace_demander_permission' %}" class="nav-item">
-        <span class="nav-icon">＋</span>
-        <span class="nav-label">Demander permission</span>
-      </a>
-    </div>
-  </nav>
+    <!-- Brand -->
+    <a href="{% url 'espace_home' %}" class="sidebar-brand">
+      <!-- Hexagone teal SVG -->
+      <svg class="brand-gem" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="rgba(6,182,212,.12)" stroke="#06B6D4" stroke-width="1.5"/>
+        <polygon points="20,8 31,14 31,26 20,32 9,26 9,14" fill="rgba(6,182,212,.06)" stroke="#06B6D4" stroke-width=".8" opacity=".6"/>
+        <circle cx="20" cy="20" r="4" fill="#06B6D4" opacity=".9"/>
+      </svg>
+      <div class="brand-text">
+        <div class="brand-name">Mon Espace</div>
+        <div class="brand-agent">{{ request.user.contractuel.matricule|default:"SYGEPECO" }}</div>
+      </div>
+    </a>
 
-  <div class="sidebar-footer">
-    <div class="sidebar-user">
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Personnel</div>
+
+        <a href="{% url 'espace_home' %}" class="nav-item {% if request.resolver_match.url_name == 'espace_home' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          <span class="nav-label">Tableau de bord</span>
+        </a>
+
+        <a href="{% url 'espace_profil' %}" class="nav-item {% if 'espace_profil' in request.resolver_match.url_name %}active{% endif %}">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </span>
+          <span class="nav-label">Mon profil</span>
+        </a>
+
+
+        <a href="{% url 'espace_mes_presences' %}" class="nav-item {% if request.resolver_match.url_name == 'espace_mes_presences' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </span>
+          <span class="nav-label">Mes présences</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Demandes</div>
+
+        <a href="{% url 'espace_mes_conges' %}" class="nav-item {% if 'espace_mes_conges' in request.resolver_match.url_name or request.resolver_match.url_name == 'espace_demander_conge' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </span>
+          <span class="nav-label">Mes congés</span>
+        </a>
+
+        <a href="{% url 'espace_mes_permissions' %}" class="nav-item {% if 'espace_mes_permissions' in request.resolver_match.url_name or request.resolver_match.url_name == 'espace_demander_permission' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 8 12 12 14 14"/>
+            </svg>
+          </span>
+          <span class="nav-label">Mes permissions</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Footer sidebar -->
+    <div class="sidebar-foot">
       {% with c=request.user.contractuel %}
-      {% if c.photo %}
-      <img src="{{ c.photo.url }}" class="avatar">
-      {% else %}
-      <div class="avatar-placeholder">{{ c.nom|slice:":1" }}{{ c.prenom|slice:":1" }}</div>
-      {% endif %}
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name">{{ c.get_full_name }}</div>
-        <div class="sidebar-user-role">{{ c.poste.titre|default:"Contractuel" }}</div>
+      <div class="user-card">
+        <div class="user-avatar">
+          {% if c.photo %}
+          <img src="{{ c.photo.url }}" alt="">
+          {% else %}
+          {{ c.nom|slice:":1" }}{{ c.prenom|slice:":1" }}
+          {% endif %}
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ c.get_full_name }}</div>
+          <div class="user-role">{{ c.poste.titre|default:"Contractuel" }}</div>
+        </div>
       </div>
       {% endwith %}
+
+      <a href="{% url 'changer_mot_de_passe' %}" class="nav-item">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+        <span class="nav-label">Mot de passe</span>
+      </a>
+
+      <a href="{% url 'logout' %}" class="nav-item nav-logout">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </span>
+        <span class="nav-label">Déconnexion</span>
+      </a>
     </div>
-    <a href="{% url 'logout' %}" class="nav-item" style="color:var(--accent-red);margin-top:4px;">
-      <span class="nav-icon">🚪</span>
-      <span class="nav-label">Déconnexion</span>
-    </a>
-  </div>
-</aside>
+  </aside>
 
-<!-- Contenu principal -->
-<div class="main-content" id="mainContent">
+  <!-- ══════════════════════════════════════════════════════
+       ZONE PRINCIPALE
+  ══════════════════════════════════════════════════════ -->
+  <div class="main">
 
-  <!-- Navbar -->
-  <nav class="navbar" id="navbar">
-    <div class="navbar-left">
-      <button class="btn-sidebar-toggle" id="btnSidebarToggle">☰</button>
-      <div class="navbar-breadcrumb">
-        <span class="breadcrumb-item"><a href="{% url 'espace_home' %}" style="color:var(--text-muted);text-decoration:none;">Mon Espace</a></span>
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="topbarToggle" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <nav class="topbar-breadcrumb">
+        <a href="{% url 'espace_home' %}">Mon Espace</a>
         {% block breadcrumb %}{% endblock %}
-        <span class="espace-badge">👤 Contractuel</span>
+      </nav>
+
+      <div class="topbar-right">
+        <span class="topbar-badge">
+          <svg width="8" height="8" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8" fill="currentColor"/></svg>
+          Contractuel
+        </span>
+        <span class="topbar-date" id="tbDate"></span>
+        <a href="{% url 'espace_profil_modifier' %}" class="btn btn-ghost" style="font-size:.72rem;padding:6px 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Modifier profil
+        </a>
       </div>
-    </div>
-    <div class="navbar-right">
-      <span class="navbar-date" id="navbarDate"></span>
-      <a href="{% url 'espace_profil_modifier' %}" class="btn btn-secondary btn-sm">⚙ Mon profil</a>
-    </div>
-  </nav>
+    </header>
 
-  <!-- Messages Django -->
-  {% if messages %}
-  <div class="django-messages">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" data-auto-dismiss>
-      <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✗{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}</span>
-      <span>{{ message }}</span>
-      <button class="alert-close" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;">✕</button>
+    <!-- Messages Django -->
+    {% if messages %}
+    <div style="padding: 12px 28px 0;" id="msgZone">
+      {% for message in messages %}
+      <div class="msg msg-{{ message.tags }}">
+        {% if message.tags == 'success' %}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        {% elif message.tags == 'error' %}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        {% else %}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% endif %}
+        <span class="msg-text">{{ message }}</span>
+        <button class="msg-close" onclick="this.parentElement.remove()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
+    {% endif %}
+
+    <!-- Contenu page -->
+    <main class="page-wrap">
+      {% block content %}{% endblock %}
+    </main>
   </div>
-  {% endif %}
 
-  <main class="page-content fade-in">
-    {% block content %}{% endblock %}
-  </main>
 </div>
 
-<script src="{% static 'SYGEPECO/js/main.js' %}"></script>
-<script src="{% static 'SYGEPECO/js/dashboard-3d.js' %}"></script>
+<script>
+/* ── Sidebar collapse ─────────────────────────────────────── */
+(function() {
+  var sb  = document.getElementById('sidebar');
+  var btn = document.getElementById('sbToggle');
+  var tb  = document.getElementById('topbarToggle');
+
+  function applyState(collapsed) {
+    if (collapsed) { sb.classList.add('collapsed'); }
+    else { sb.classList.remove('collapsed'); }
+    localStorage.setItem('espace_sb', collapsed ? '1' : '0');
+  }
+
+  // Restaure état
+  if (localStorage.getItem('espace_sb') === '1') applyState(true);
+
+  if (btn) btn.addEventListener('click', function() {
+    applyState(!sb.classList.contains('collapsed'));
+  });
+  if (tb) tb.addEventListener('click', function() {
+    applyState(!sb.classList.contains('collapsed'));
+  });
+})();
+
+/* ── Date dans la topbar ──────────────────────────────────── */
+(function() {
+  var el = document.getElementById('tbDate');
+  if (!el) return;
+  var d = new Date();
+  var jours = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mois  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  el.textContent = jours[d.getDay()] + ' ' + d.getDate() + ' ' + mois[d.getMonth()] + ' ' + d.getFullYear();
+})();
+
+/* ── Auto-dismiss messages après 5s ──────────────────────── */
+(function() {
+  var msgs = document.querySelectorAll('.msg');
+  msgs.forEach(function(m) {
+    setTimeout(function() {
+      m.style.transition = 'opacity .4s';
+      m.style.opacity = '0';
+      setTimeout(function() { m.remove(); }, 400);
+    }, 5000);
+  });
+})();
+</script>
+
+{% load static %}
+<script src="{% static 'SYGEPECO/js/notifications.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

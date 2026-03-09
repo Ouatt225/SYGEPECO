@@ -9,29 +9,57 @@ document.addEventListener('DOMContentLoaded', function () {
   const navbar  = document.getElementById('navbar');
   const mainContent = document.getElementById('mainContent');
   const btnToggle = document.getElementById('btnSidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
 
   const SIDEBAR_KEY = 'sygepeco_sidebar_collapsed';
   let collapsed = localStorage.getItem(SIDEBAR_KEY) === 'true';
 
+  const isMobile = () => window.innerWidth < 768;
+
+  function closeMobileSidebar() {
+    sidebar?.classList.remove('mobile-open');
+    overlay?.classList.remove('active');
+  }
+
   function applySidebarState() {
-    if (collapsed) {
-      sidebar?.classList.add('collapsed');
-      navbar?.classList.add('sidebar-collapsed');
-      mainContent?.classList.add('sidebar-collapsed');
-    } else {
+    if (isMobile()) {
       sidebar?.classList.remove('collapsed');
       navbar?.classList.remove('sidebar-collapsed');
       mainContent?.classList.remove('sidebar-collapsed');
+    } else {
+      closeMobileSidebar();
+      if (collapsed) {
+        sidebar?.classList.add('collapsed');
+        navbar?.classList.add('sidebar-collapsed');
+        mainContent?.classList.add('sidebar-collapsed');
+      } else {
+        sidebar?.classList.remove('collapsed');
+        navbar?.classList.remove('sidebar-collapsed');
+        mainContent?.classList.remove('sidebar-collapsed');
+      }
     }
   }
 
   applySidebarState();
 
   btnToggle?.addEventListener('click', () => {
-    collapsed = !collapsed;
-    localStorage.setItem(SIDEBAR_KEY, collapsed);
-    applySidebarState();
+    if (isMobile()) {
+      const isOpen = sidebar?.classList.contains('mobile-open');
+      if (isOpen) {
+        closeMobileSidebar();
+      } else {
+        sidebar?.classList.add('mobile-open');
+        overlay?.classList.add('active');
+      }
+    } else {
+      collapsed = !collapsed;
+      localStorage.setItem(SIDEBAR_KEY, collapsed);
+      applySidebarState();
+    }
   });
+
+  overlay?.addEventListener('click', closeMobileSidebar);
+  window.addEventListener('resize', applySidebarState);
 
   // ─── Auto-dismiss alerts ─────────────────────────────────
   const alerts = document.querySelectorAll('.alert[data-auto-dismiss]');

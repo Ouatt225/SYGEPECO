@@ -1,154 +1,274 @@
 {% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
 {% block title %}Tableau de bord{% endblock %}
 {% block breadcrumb %}Tableau de bord{% endblock %}
-
 {% block extra_css %}
 <style>
-.ent-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 18px;
-  margin-bottom: 28px;
-}
-.ent-kpi {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-  overflow: hidden;
-  transition: transform .25s, box-shadow .25s;
-}
-.ent-kpi:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
-.ent-kpi::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 100px; height: 100px;
-  border-radius: 50%;
-  background: var(--ent-accent-dim);
-}
-.kpi-icon { font-size: 1.6rem; }
-.kpi-val {
-  font-size: 2rem;
-  font-weight: 800;
-  background: var(--ent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.kpi-lbl { font-size: .78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.dash-hero{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;gap:24px;}
+.dash-eyebrow{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.dash-company-name{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;line-height:1;background:linear-gradient(135deg,#F0D080 0%,#D4A853 45%,#F0D080 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.dash-sub{font-size:.78rem;color:var(--txt-2);margin-top:8px;font-weight:500;letter-spacing:.04em;}
+.dash-date{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--txt-2);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px;letter-spacing:.04em;align-self:flex-start;}
+.dash-date-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px rgba(16,185,129,.5);}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:32px;}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:780px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-scene{perspective:900px;perspective-origin:50% 50%;}
+.kpi-card{position:relative;border-radius:16px;padding:24px 20px 20px;cursor:default;transform-style:preserve-3d;will-change:transform;transition:transform .08s linear,box-shadow .25s;background:var(--card);border:1px solid var(--line-mid);box-shadow:0 1px 0 rgba(212,168,83,.1),0 4px 12px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.3),0 24px 48px rgba(0,0,0,.2);}
+.kpi-card::before{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.02) 40%,transparent 100%);pointer-events:none;z-index:2;}
+.kpi-card::after{content:'';position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--kpi-color) 0%,transparent 70%);opacity:.22;pointer-events:none;filter:blur(12px);transition:opacity .3s;}
+.kpi-card:hover::after{opacity:.45;}
+.kpi-card:hover{box-shadow:0 2px 0 rgba(212,168,83,.15),0 8px 24px rgba(0,0,0,.5),0 24px 60px rgba(0,0,0,.35),0 40px 80px rgba(0,0,0,.2),0 0 40px var(--kpi-glow);}
+.kpi-depth{position:absolute;bottom:-5px;left:8px;right:8px;height:12px;border-radius:0 0 14px 14px;background:rgba(0,0,0,.5);filter:blur(4px);z-index:-1;transition:bottom .08s linear,opacity .3s;}
+.kpi-card:hover .kpi-depth{bottom:-10px;opacity:.8;}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.kpi-icon-wrap{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--kpi-icon-bg);border:1px solid var(--kpi-border);flex-shrink:0;position:relative;z-index:3;}
+.kpi-icon-wrap svg{width:20px;height:20px;color:var(--kpi-color);}
+.kpi-trend{font-size:.58rem;font-weight:800;letter-spacing:.08em;padding:3px 8px;border-radius:20px;background:var(--kpi-icon-bg);color:var(--kpi-color);border:1px solid var(--kpi-border);position:relative;z-index:3;}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:800;line-height:1;background:var(--kpi-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;position:relative;z-index:3;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));}
+.kpi-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--txt-2);margin-top:6px;position:relative;z-index:3;}
+.kpi-line{margin-top:14px;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--kpi-color),transparent);opacity:.35;position:relative;z-index:3;}
+.kpi--gold{--kpi-color:#D4A853;--kpi-gradient:linear-gradient(135deg,#F0D080,#D4A853);--kpi-icon-bg:rgba(212,168,83,.1);--kpi-border:rgba(212,168,83,.25);--kpi-glow:rgba(212,168,83,.12);}
+.kpi--emerald{--kpi-color:#10B981;--kpi-gradient:linear-gradient(135deg,#34D399,#10B981);--kpi-icon-bg:rgba(16,185,129,.1);--kpi-border:rgba(16,185,129,.25);--kpi-glow:rgba(16,185,129,.12);}
+.kpi--sky{--kpi-color:#38BDF8;--kpi-gradient:linear-gradient(135deg,#7DD3FC,#38BDF8);--kpi-icon-bg:rgba(56,189,248,.1);--kpi-border:rgba(56,189,248,.25);--kpi-glow:rgba(56,189,248,.12);}
+.kpi--amber{--kpi-color:#F59E0B;--kpi-gradient:linear-gradient(135deg,#FCD34D,#F59E0B);--kpi-icon-bg:rgba(245,158,11,.1);--kpi-border:rgba(245,158,11,.25);--kpi-glow:rgba(245,158,11,.12);}
+.kpi--rose{--kpi-color:#F43F5E;--kpi-gradient:linear-gradient(135deg,#FB7185,#F43F5E);--kpi-icon-bg:rgba(244,63,94,.1);--kpi-border:rgba(244,63,94,.25);--kpi-glow:rgba(244,63,94,.12);}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+.dash-panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+.dash-panel-head{padding:18px 22px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.dash-panel-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--txt-2);display:flex;align-items:center;gap:8px;}
+.dash-panel-title::before{content:'';width:3px;height:12px;border-radius:2px;background:linear-gradient(180deg,var(--gold-light),var(--gold));flex-shrink:0;}
+.dash-panel-body{padding:20px 22px;}
+.dash-panel-link{font-size:.68rem;color:var(--gold);font-weight:700;text-decoration:none;letter-spacing:.04em;transition:color .18s;}
+.dash-panel-link:hover{color:var(--gold-light);}
+.dept-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.dept-row:last-child{margin-bottom:0;}
+.dept-name{font-size:.78rem;color:var(--txt-2);width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dept-track{flex:1;height:6px;border-radius:3px;background:rgba(212,168,83,.07);position:relative;overflow:hidden;}
+.dept-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));position:absolute;left:0;top:0;animation:fillSlide .8s cubic-bezier(.22,1,.36,1) both;}
+@keyframes fillSlide{from{width:0 !important;}}
+.dept-count{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;color:var(--gold);min-width:24px;text-align:right;}
+.quick-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;text-decoration:none;color:var(--txt);border:1px solid var(--line);background:rgba(255,255,255,.015);transition:background .2s,border-color .2s,transform .2s;margin-bottom:10px;}
+.quick-item:last-child{margin-bottom:0;}
+.quick-item:hover{background:var(--gold-soft);border-color:var(--line-mid);transform:translateX(4px);}
+.quick-item-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.quick-item-text{flex:1;}
+.quick-item-title{font-size:.82rem;font-weight:700;color:var(--txt);}
+.quick-item-sub{font-size:.7rem;color:var(--txt-2);margin-top:2px;}
+.quick-item-badge{font-size:.6rem;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.04em;}
+.quick-item-arrow{color:var(--txt-3);flex-shrink:0;}
 
-.dept-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.dept-fill {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--ent-gradient);
-  transition: width .6s ease;
-}
+
+/* ── Alertes congés ─────────────────────────────────────────────────── */
+.alertes-wrap{margin-bottom:20px;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;background:var(--card);}
+.alertes-head{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);}
+.alertes-title{font-size:.78rem;font-weight:700;color:var(--txt);letter-spacing:.04em;text-transform:uppercase;flex:1;}
+.alertes-badge{background:rgba(239,68,68,.2);color:#EF4444;border-radius:20px;padding:1px 8px;font-size:.72rem;font-weight:800;}
+.alertes-close{background:none;border:none;color:var(--txt-2);cursor:pointer;font-size:.78rem;padding:2px 6px;border-radius:6px;transition:background .15s;}
+.alertes-close:hover{background:rgba(255,255,255,.08);}
+.alerte-item{display:flex;align-items:center;gap:14px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.81rem;color:var(--txt);}
+.alerte-item:last-child{border-bottom:none;}
+.alerte-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.alerte-rouge{background:rgba(239,68,68,.05);}
+.alerte-orange{background:rgba(245,158,11,.05);}
+.alerte-vert{background:rgba(34,197,94,.05);}
+.alerte-rouge .alerte-dot{background:#EF4444;box-shadow:0 0 6px #EF4444;}
+.alerte-orange .alerte-dot{background:#F59E0B;box-shadow:0 0 6px #F59E0B;}
+.alerte-vert .alerte-dot{background:#22C55E;box-shadow:0 0 6px #22C55E;}
+.alerte-content{flex:1;line-height:1.5;}
+.alerte-tag{display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;margin-right:6px;vertical-align:1px;}
+.alerte-tag-rouge{background:rgba(239,68,68,.2);color:#EF4444;}
+.alerte-tag-orange{background:rgba(245,158,11,.2);color:#F59E0B;}
+.alerte-tag-vert{background:rgba(34,197,94,.2);color:#22C55E;}
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- En-tête -->
-<div class="page-header">
+<div class="dash-hero rise">
   <div>
-    <h1 class="page-title">
-      {% if entreprise %}{{ entreprise.nom }}{% else %}Toutes les entreprises{% endif %}
-    </h1>
-    <p class="page-subtitle">Tableau de bord — vue gestionnaire</p>
+    <div class="dash-eyebrow">Espace Entreprise</div>
+    <h1 class="dash-company-name">{% if entreprise %}{{ entreprise.nom }}{% else %}Vue Globale{% endif %}</h1>
+    <p class="dash-sub">Tableau de bord &mdash; vue gestionnaire</p>
   </div>
-  <a href="{% url 'entreprise_espace_agents' %}" class="btn-ent">👥 Voir les agents</a>
+  <div class="dash-date"><span class="dash-date-dot"></span><span id="dashDate"></span></div>
 </div>
 
-<!-- KPIs -->
-<div class="ent-kpi-grid">
-  <div class="ent-kpi">
-    <span class="kpi-icon">👥</span>
-    <div class="kpi-val">{{ total }}</div>
-    <div class="kpi-lbl">Total agents</div>
+
+<!-- ── Alertes congés ─────────────────────────────────────────── -->
+{% if alertes_conges.total %}
+<div class="alertes-wrap rise" id="alertesConges">
+  <div class="alertes-head">
+    <span class="alertes-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Alertes congés
+    </span>
+    <span class="alertes-badge">{{ alertes_conges.total }}</span>
+    <button class="alertes-close" onclick="document.getElementById('alertesConges').style.display='none'" title="Fermer">✕</button>
   </div>
-  <div class="ent-kpi">
-    <span class="kpi-icon">✅</span>
-    <div class="kpi-val">{{ actifs }}</div>
-    <div class="kpi-lbl">Agents actifs</div>
+  {% for cg in alertes_conges.j1 %}
+  <div class="alerte-item alerte-rouge">
+    <span class="alerte-dot"></span>
+    <div class="alerte-content">
+      <span class="alerte-tag alerte-tag-rouge">⚠ Demain</span>
+      <strong>{{ cg.contractuel.nom }} {{ cg.contractuel.prenom }}</strong>
+      — {{ cg.get_type_conge_display }}
+      du <strong>{{ cg.date_debut|date:"d/m/Y" }}</strong>
+      au {{ cg.date_fin|date:"d/m/Y" }}
+      ({{ cg.nb_jours }}j)
+    </div>
   </div>
-  <div class="ent-kpi">
-    <span class="kpi-icon">🕐</span>
-    <div class="kpi-val">{{ presences_today }}</div>
-    <div class="kpi-lbl">Présents aujourd'hui</div>
+  {% endfor %}
+  {% for cg in alertes_conges.j7 %}
+  <div class="alerte-item alerte-orange">
+    <span class="alerte-dot"></span>
+    <div class="alerte-content">
+      <span class="alerte-tag alerte-tag-orange">📅 Dans 7 jours</span>
+      <strong>{{ cg.contractuel.nom }} {{ cg.contractuel.prenom }}</strong>
+      — {{ cg.get_type_conge_display }}
+      du <strong>{{ cg.date_debut|date:"d/m/Y" }}</strong>
+      au {{ cg.date_fin|date:"d/m/Y" }}
+      ({{ cg.nb_jours }}j)
+    </div>
   </div>
-  <div class="ent-kpi">
-    <span class="kpi-icon">🌴</span>
-    <div class="kpi-val">{{ conges_attente }}</div>
-    <div class="kpi-lbl">Congés en attente</div>
+  {% endfor %}
+  {% for cg in alertes_conges.nouveaux %}
+  <div class="alerte-item alerte-vert">
+    <span class="alerte-dot"></span>
+    <div class="alerte-content">
+      <span class="alerte-tag alerte-tag-vert">✓ Approuvé</span>
+      <strong>{{ cg.contractuel.nom }} {{ cg.contractuel.prenom }}</strong>
+      — {{ cg.get_type_conge_display }}
+      du <strong>{{ cg.date_debut|date:"d/m/Y" }}</strong>
+      au {{ cg.date_fin|date:"d/m/Y" }}
+      ({{ cg.nb_jours }}j)
+    </div>
   </div>
-  <div class="ent-kpi">
-    <span class="kpi-icon">📋</span>
-    <div class="kpi-val">{{ permissions_attente }}</div>
-    <div class="kpi-lbl">Permissions en attente</div>
-  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<!-- ── Fin alertes ────────────────────────────────────────────── -->
+
+<div class="kpi-grid rise rise-1">
+  <div class="kpi-scene"><div class="kpi-card kpi--gold" data-tilt>
+    <div class="kpi-depth"></div>
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span class="kpi-trend">TOTAL</span>
+    </div>
+    <div class="kpi-value">{{ total }}</div><div class="kpi-label">Agents</div><div class="kpi-line"></div>
+  </div></div>
+  <div class="kpi-scene"><div class="kpi-card kpi--emerald" data-tilt>
+    <div class="kpi-depth"></div>
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <span class="kpi-trend">ACTIFS</span>
+    </div>
+    <div class="kpi-value">{{ actifs }}</div><div class="kpi-label">En poste</div><div class="kpi-line"></div>
+  </div></div>
+  <div class="kpi-scene"><div class="kpi-card kpi--sky" data-tilt>
+    <div class="kpi-depth"></div>
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <span class="kpi-trend">TODAY</span>
+    </div>
+    <div class="kpi-value">{{ presences_today }}</div><div class="kpi-label">Pr&eacute;sents</div><div class="kpi-line"></div>
+  </div></div>
+  <div class="kpi-scene"><div class="kpi-card kpi--amber" data-tilt>
+    <div class="kpi-depth"></div>
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      {% if conges_attente > 0 %}<span class="kpi-trend">URGENT</span>{% endif %}
+    </div>
+    <div class="kpi-value">{{ conges_attente }}</div><div class="kpi-label">Cong&eacute;s en attente</div><div class="kpi-line"></div>
+  </div></div>
+  <div class="kpi-scene"><div class="kpi-card kpi--rose" data-tilt>
+    <div class="kpi-depth"></div>
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      {% if permissions_attente > 0 %}<span class="kpi-trend">URGENT</span>{% endif %}
+    </div>
+    <div class="kpi-value">{{ permissions_attente }}</div><div class="kpi-label">Permissions en attente</div><div class="kpi-line"></div>
+  </div></div>
 </div>
 
-<!-- Répartition par département -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
-
-  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
-    <h3 style="font-size:1rem;font-weight:700;margin-bottom:18px;">Répartition par département</h3>
-    {% if dept_stats %}
-      {% for d in dept_stats %}
-      <div class="dept-bar">
-        <span style="font-size:.82rem;color:var(--text-muted);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          {{ d.departement__nom|default:"—" }}
-        </span>
-        <div style="flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:8px;">
-          <div class="dept-fill" style="width:{% if total %}{% widthratio d.total total 100 %}%{% else %}0%{% endif %};"></div>
+<div class="dash-grid rise rise-2">
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <div class="dash-panel-title">R&eacute;partition par direction</div>
+      <a href="{% url 'entreprise_espace_agents' %}" class="dash-panel-link">Voir tous &rarr;</a>
+    </div>
+    <div class="dash-panel-body">
+      {% if dept_stats %}
+        {% for d in dept_stats %}
+        <div class="dept-row">
+          <span class="dept-name">{{ d.direction__nom|default:"Non assign&eacute;" }}</span>
+          <div class="dept-track"><div class="dept-fill" style="width:{% if total %}{% widthratio d.total total 100 %}%{% else %}0%{% endif %};"></div></div>
+          <span class="dept-count">{{ d.total }}</span>
         </div>
-        <span style="font-size:.82rem;font-weight:700;color:var(--ent-accent-light);min-width:28px;text-align:right;">{{ d.total }}</span>
-      </div>
-      {% endfor %}
-    {% else %}
-      <p style="color:var(--text-muted);font-size:.875rem;">Aucune donnée disponible.</p>
-    {% endif %}
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--txt-2);font-size:.85rem;text-align:center;padding:24px 0;">Aucune donn&eacute;e.</p>
+      {% endif %}
+    </div>
   </div>
-
-  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
-    <h3 style="font-size:1rem;font-weight:700;margin-bottom:18px;">Accès rapides</h3>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <a href="{% url 'entreprise_espace_conges' %}?statut=EN_ATTENTE" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
-        <span style="font-size:1.3rem;">🌴</span>
-        <div>
-          <div style="font-weight:600;font-size:.875rem;">Congés en attente</div>
-          <div style="font-size:.75rem;color:var(--text-muted);">{{ conges_attente }} demande{{ conges_attente|pluralize }}</div>
-        </div>
-        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+  <div class="dash-panel">
+    <div class="dash-panel-head"><div class="dash-panel-title">Acc&egrave;s rapides</div></div>
+    <div class="dash-panel-body">
+      <a href="{% url 'entreprise_espace_conges' %}?statut=EN_ATTENTE" class="quick-item">
+        <div class="quick-item-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="quick-item-text"><div class="quick-item-title">Cong&eacute;s en attente</div><div class="quick-item-sub">{{ conges_attente }} demande{{ conges_attente|pluralize }}</div></div>
+        {% if conges_attente > 0 %}<span class="quick-item-badge" style="background:rgba(245,158,11,.1);color:#F59E0B;border:1px solid rgba(245,158,11,.2);">{{ conges_attente }}</span>{% endif %}
+        <svg class="quick-item-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
-      <a href="{% url 'entreprise_espace_permissions' %}?statut=EN_ATTENTE" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
-        <span style="font-size:1.3rem;">📋</span>
-        <div>
-          <div style="font-weight:600;font-size:.875rem;">Permissions en attente</div>
-          <div style="font-size:.75rem;color:var(--text-muted);">{{ permissions_attente }} demande{{ permissions_attente|pluralize }}</div>
-        </div>
-        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+      <a href="{% url 'entreprise_espace_permissions' %}?statut=EN_ATTENTE" class="quick-item">
+        <div class="quick-item-icon" style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);border-radius:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="quick-item-text"><div class="quick-item-title">Permissions en attente</div><div class="quick-item-sub">{{ permissions_attente }} demande{{ permissions_attente|pluralize }}</div></div>
+        {% if permissions_attente > 0 %}<span class="quick-item-badge" style="background:rgba(244,63,94,.1);color:#F43F5E;border:1px solid rgba(244,63,94,.2);">{{ permissions_attente }}</span>{% endif %}
+        <svg class="quick-item-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
-      <a href="{% url 'entreprise_espace_presences' %}" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;text-decoration:none;color:var(--text-primary);transition:background .2s;">
-        <span style="font-size:1.3rem;">🕐</span>
-        <div>
-          <div style="font-weight:600;font-size:.875rem;">Présences du mois</div>
-          <div style="font-size:.75rem;color:var(--text-muted);">Voir le suivi de présence</div>
-        </div>
-        <span style="margin-left:auto;color:var(--ent-accent-light);">→</span>
+      <a href="{% url 'entreprise_espace_presences' %}" class="quick-item">
+        <div class="quick-item-icon" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="quick-item-text"><div class="quick-item-title">Pr&eacute;sences du jour</div><div class="quick-item-sub">{{ presences_today }} pr&eacute;sent{{ presences_today|pluralize }} aujourd'hui</div></div>
+        <svg class="quick-item-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="{% url 'entreprise_espace_agents' %}" class="quick-item">
+        <div class="quick-item-icon" style="background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2);border-radius:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="#D4A853" stroke-width="1.8" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="quick-item-text"><div class="quick-item-title">Mes agents</div><div class="quick-item-sub">{{ actifs }} actif{{ actifs|pluralize }} sur {{ total }}</div></div>
+        <svg class="quick-item-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
     </div>
   </div>
-
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  var el=document.getElementById('dashDate');
+  if(el) el.textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var MAX_ROT=14,MAX_LIFT=16;
+  document.querySelectorAll('[data-tilt]').forEach(function(card){
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect(),dx=(e.clientX-r.left-r.width/2)/(r.width/2),dy=(e.clientY-r.top-r.height/2)/(r.height/2);
+      card.style.transform='rotateX('+(-dy*MAX_ROT)+'deg) rotateY('+(dx*MAX_ROT)+'deg) translateZ('+MAX_LIFT+'px) scale(1.02)';
+    });
+    card.addEventListener('mouseleave',function(){
+      card.style.transition='transform .45s cubic-bezier(.22,1,.36,1),box-shadow .3s';
+      card.style.transform='rotateX(0) rotateY(0) translateZ(0) scale(1)';
+      setTimeout(function(){card.style.transition='transform .08s linear,box-shadow .25s';},450);
+    });
+    card.addEventListener('mouseenter',function(){card.style.transition='transform .08s linear,box-shadow .15s';});
+  });
+  document.querySelectorAll('.kpi-value').forEach(function(el){
+    var t=parseInt(el.textContent,10);
+    if(isNaN(t)||t===0) return;
+    var s=null,d=900;
+    function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/d,1);el.textContent=Math.round((1-Math.pow(1-p,3))*t);if(p<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  });
+})();
+</script>
 {% endblock %}

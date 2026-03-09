@@ -41,6 +41,16 @@
     {% if conge.commentaire_rh %}
     <div class="info-item" style="grid-column:span 3;"><div class="info-item-label">Commentaire RH</div><div class="info-item-value" style="white-space:pre-line;">{{ conge.commentaire_rh }}</div></div>
     {% endif %}
+    {% if conge.document_medical %}
+    <div class="info-item" style="grid-column:span 3;">
+      <div class="info-item-label">Justificatif médical</div>
+      <div class="info-item-value">
+        <a href="{% url 'conge_document_medical' conge.pk %}" target="_blank" class="btn btn-secondary btn-sm">
+          📄 Télécharger / Visualiser le justificatif
+        </a>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

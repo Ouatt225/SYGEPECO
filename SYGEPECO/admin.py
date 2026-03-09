@@ -1,17 +1,31 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    UserProfile, Departement, Poste, TypeContrat,
+    UserProfile, Direction, Poste, TypeContrat,
     Contractuel, Contrat, Presence, Conge, Permission, ActionLog, Entreprise
 )
 
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role_badge', 'telephone')
-    list_filter  = ('role',)
-    list_editable_fields = ()
+    list_display  = ('user', 'role_badge', 'direction_display', 'entreprise', 'telephone')
+    list_filter   = ('role',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name')
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'role', 'telephone', 'photo')
+        }),
+        ('Affectation', {
+            'fields': ('direction', 'entreprise'),
+            'description': (
+                "Pour un Manager : choisir la Direction qu'il supervise. "
+                "Pour une Entreprise : choisir l'Entreprise geree."
+            ),
+        }),
+    )
+
+    class Media:
+        js = ('admin/js/userprofile_role.js',)
 
     BADGE_COLORS = {
         'ADMINISTRATEUR': ('#DC2626', '#FEF2F2'),
@@ -31,6 +45,12 @@ class UserProfileAdmin(admin.ModelAdmin):
             bg, color, obj.get_role_display()
         )
 
+    @admin.display(description='Direction')
+    def direction_display(self, obj):
+        if obj.role == 'MANAGER' and obj.direction:
+            return obj.direction.nom
+        return '—'
+
 
 @admin.register(Entreprise)
 class EntrepriseAdmin(admin.ModelAdmin):
@@ -44,16 +64,16 @@ class EntrepriseAdmin(admin.ModelAdmin):
         return obj.nb_contractuels()
 
 
-@admin.register(Departement)
-class DepartementAdmin(admin.ModelAdmin):
+@admin.register(Direction)
+class DirectionAdmin(admin.ModelAdmin):
     list_display = ('nom', 'responsable', 'created_at')
     search_fields = ('nom',)
 
 
 @admin.register(Poste)
 class PosteAdmin(admin.ModelAdmin):
-    list_display = ('titre', 'departement')
-    list_filter = ('departement',)
+    list_display = ('titre', 'direction')
+    list_filter = ('direction',)
     search_fields = ('titre',)
 
 
@@ -64,8 +84,8 @@ class TypeContratAdmin(admin.ModelAdmin):
 
 @admin.register(Contractuel)
 class ContractuelAdmin(admin.ModelAdmin):
-    list_display = ('matricule', 'nom', 'prenom', 'entreprise', 'departement', 'poste', 'statut', 'date_embauche', 'user')
-    list_filter = ('statut', 'entreprise', 'departement', 'genre')
+    list_display = ('matricule', 'nom', 'prenom', 'entreprise', 'direction', 'poste', 'statut', 'date_embauche', 'user')
+    list_filter = ('statut', 'entreprise', 'direction', 'genre')
     search_fields = ('matricule', 'nom', 'prenom', 'email')
     readonly_fields = ('created_at', 'updated_at')
     autocomplete_fields = ['user']
@@ -103,8 +123,8 @@ class CongeAdmin(admin.ModelAdmin):
 
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('contractuel', 'date', 'heure_debut', 'heure_fin', 'statut', 'approuve_par')
-    list_filter = ('statut', 'date')
+    list_display = ('contractuel', 'date_debut', 'date_fin', 'statut', 'approuve_par')
+    list_filter = ('statut', 'date_debut')
     search_fields = ('contractuel__nom', 'contractuel__prenom')
     readonly_fields = ('created_at',)
 

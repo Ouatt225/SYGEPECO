@@ -180,9 +180,11 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Entreprises</h1>
-    <p class="page-subtitle">{{ entreprises.count }} entreprise{{ entreprises.count|pluralize }} enregistrée{{ entreprises.count|pluralize }}</p>
+    <p class="page-subtitle">{{ page_obj.paginator.count }} entreprise{{ page_obj.paginator.count|pluralize }} enregistrée{{ page_obj.paginator.count|pluralize }}{% if manager_direction %} — {{ manager_direction.nom }}{% endif %}</p>
   </div>
+  {% if request.user.profile.role != 'MANAGER' %}
   <a href="{% url 'entreprise_create' %}" class="btn btn-primary">+ Nouvelle entreprise</a>
+  {% endif %}
 </div>
 
 <!-- Barre de recherche -->
@@ -193,7 +195,7 @@
 
 <!-- Grille 3D -->
 <div class="entreprise-grid">
-  {% for e in entreprises %}
+  {% for item in entreprises_data %}{% with e=item.e %}
   <div class="card-3d-wrapper">
     <div class="card-entreprise" data-id="{{ e.pk }}">
 
@@ -234,11 +236,11 @@
       <!-- Stats 3D -->
       <div class="stat-bar">
         <div class="stat-item">
-          <div class="stat-val">{{ e.nb_contractuels }}</div>
+          <div class="stat-val">{{ item.nb_actifs }}</div>
           <div class="stat-lbl">Agents actifs</div>
         </div>
         <div class="stat-item">
-          <div class="stat-val secondary">{{ e.contractuels.count }}</div>
+          <div class="stat-val secondary">{{ item.nb_total }}</div>
           <div class="stat-lbl">Total agents</div>
         </div>
       </div>
@@ -260,14 +262,17 @@
 
     </div>
   </div>
-  {% empty %}
+  {% endwith %}{% empty %}
   <div class="empty-state" style="grid-column:1/-1;">
     <div class="empty-state-icon">🏢</div>
     <div class="empty-state-title">Aucune entreprise trouvée</div>
-    <a href="{% url 'entreprise_create' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Ajouter une entreprise</a>
+    {% if request.user.profile.role != 'MANAGER' %}<a href="{% url 'entreprise_create' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">Ajouter une entreprise</a>{% endif %}
   </div>
   {% endfor %}
 </div>
+
+{% include "SYGEPECO/partials/_pagination.html" %}
+
 {% endblock %}
 
 {% block extra_js %}

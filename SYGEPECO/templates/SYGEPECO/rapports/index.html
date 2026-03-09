@@ -4,6 +4,49 @@
 <span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Rapports</span>
 {% endblock %}
 
+
+{% block extra_css %}
+<style>
+.rapport-card{position:relative;border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:14px;overflow:hidden;border:1px solid rgba(255,255,255,.07);background:var(--bg-card);transform-style:preserve-3d;transform:rotateX(3deg) rotateY(0deg);transition:transform .35s cubic-bezier(.17,.67,.35,1.2),box-shadow .35s ease,border-color .35s ease;will-change:transform;}
+.rapport-card:hover{transform:rotateX(-4deg) rotateY(4deg) translateY(-8px) scale(1.02);border-color:rgba(255,255,255,.14);}
+.rapport-card::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;border-radius:20px 20px 0 0;background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);pointer-events:none;z-index:1;}
+.rapport-card::after{content:'';position:absolute;inset:-1px;border-radius:21px;opacity:0;transition:opacity .35s ease;pointer-events:none;z-index:0;}
+.rapport-card:hover::after{opacity:1;}
+.rapport-card>*{position:relative;z-index:2;}
+.rapport-card.blue{box-shadow:0 8px 32px rgba(74,108,247,.15),0 2px 8px rgba(0,0,0,.2);}
+.rapport-card.blue:hover{box-shadow:0 24px 60px rgba(74,108,247,.3),inset 0 1px 0 rgba(255,255,255,.1);}
+.rapport-card.blue::after{background:linear-gradient(135deg,rgba(74,108,247,.5) 0%,transparent 60%);}
+.rapport-card.gold{box-shadow:0 8px 32px rgba(212,168,83,.15),0 2px 8px rgba(0,0,0,.2);}
+.rapport-card.gold:hover{box-shadow:0 24px 60px rgba(212,168,83,.3),inset 0 1px 0 rgba(255,255,255,.1);}
+.rapport-card.gold::after{background:linear-gradient(135deg,rgba(212,168,83,.5) 0%,transparent 60%);}
+.rapport-card.green{box-shadow:0 8px 32px rgba(34,197,94,.15),0 2px 8px rgba(0,0,0,.2);}
+.rapport-card.green:hover{box-shadow:0 24px 60px rgba(34,197,94,.3),inset 0 1px 0 rgba(255,255,255,.1);}
+.rapport-card.green::after{background:linear-gradient(135deg,rgba(34,197,94,.5) 0%,transparent 60%);}
+.rapport-card.purple{box-shadow:0 8px 32px rgba(168,85,247,.15),0 2px 8px rgba(0,0,0,.2);}
+.rapport-card.purple:hover{box-shadow:0 24px 60px rgba(168,85,247,.3),inset 0 1px 0 rgba(255,255,255,.1);}
+.rapport-card.purple::after{background:linear-gradient(135deg,rgba(168,85,247,.5) 0%,transparent 60%);}
+.r-value{font-size:2.4rem;font-weight:900;line-height:1;transform:translateZ(12px);transition:transform .35s ease;}
+.rapport-card:hover .r-value{transform:translateZ(22px);}
+.r-value.blue{background:linear-gradient(135deg,#4A6CF7,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.r-value.gold{background:linear-gradient(135deg,#D4A853,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.r-value.green{background:linear-gradient(135deg,#22C55E,#4ADE80);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.r-value.purple{background:linear-gradient(135deg,#A855F7,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.r-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transform:translateZ(16px);transition:transform .35s ease;flex-shrink:0;}
+.rapport-card:hover .r-icon-wrap{transform:translateZ(28px) scale(1.08);}
+.r-icon-wrap.blue{background:rgba(74,108,247,.18);box-shadow:0 4px 16px rgba(74,108,247,.3);}
+.r-icon-wrap.gold{background:rgba(212,168,83,.18);box-shadow:0 4px 16px rgba(212,168,83,.3);}
+.r-icon-wrap.green{background:rgba(34,197,94,.18);box-shadow:0 4px 16px rgba(34,197,94,.3);}
+.r-icon-wrap.purple{background:rgba(168,85,247,.18);box-shadow:0 4px 16px rgba(168,85,247,.3);}
+.r-select{flex:1;min-width:80px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text-primary);padding:7px 10px;font-size:.78rem;outline:none;}
+.r-btn{padding:8px 16px;border-radius:10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid;display:inline-flex;align-items:center;gap:6px;transition:transform .18s;transform:translateZ(12px);}
+.rapport-card:hover .r-btn{transform:translateZ(22px);}
+.r-btn.blue{background:rgba(74,108,247,.2);color:#818CF8;border-color:rgba(74,108,247,.4);}
+.r-btn.gold{background:rgba(212,168,83,.2);color:#D4A853;border-color:rgba(212,168,83,.4);}
+.r-btn.green{background:rgba(34,197,94,.2);color:#4ADE80;border-color:rgba(34,197,94,.4);}
+.r-btn.purple{background:rgba(168,85,247,.2);color:#C084FC;border-color:rgba(168,85,247,.4);}
+.r-bg{position:absolute;top:-16px;right:-10px;font-size:5.5rem;opacity:.05;pointer-events:none;z-index:1;transform:rotate(10deg);}
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
@@ -13,22 +56,22 @@
 </div>
 
 <!-- ── 4 Cartes de téléchargement ─────────────────────────────── -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:36px;">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:24px;margin-bottom:36px;perspective:1200px;">
 
   <!-- Carte Présences -->
-  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;">
+  <div class="rapport-card blue" style="">
     <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:.05;pointer-events:none;">📋</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:48px;height:48px;border-radius:12px;background:rgba(74,108,247,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">📋</div>
+      <div class="r-icon-wrap blue">📋</div>
       <div>
         <div style="font-weight:700;font-size:1rem;color:var(--text-primary);">Rapport Présences</div>
         <div style="font-size:.78rem;color:var(--text-muted);">Pointages par agent</div>
       </div>
     </div>
-    <div style="font-size:2rem;font-weight:800;color:#4A6CF7;"><span class="counter-value">{{ total_presences_mois }}</span><span style="font-size:.9rem;font-weight:400;color:var(--text-muted);margin-left:6px;">ce mois</span></div>
+    <div style=""><span class="r-value blue"><span class="counter-value">{{ total_presences_mois }}</span></span><span style="font-size:.85rem;color:var(--text-muted);margin-left:8px;">ce mois</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <form method="get" action="{% url 'rapports_exporter' %}" style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
-        <select name="mois" style="flex:1;min-width:90px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="mois" class="r-select">
           <option value="1" {% if mois_courant == 1 %}selected{% endif %}>Janvier</option>
           <option value="2" {% if mois_courant == 2 %}selected{% endif %}>Février</option>
           <option value="3" {% if mois_courant == 3 %}selected{% endif %}>Mars</option>
@@ -42,21 +85,21 @@
           <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
           <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
         </select>
-        <select name="annee" style="width:80px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="annee" class="r-select" style="flex:none;width:78px;">
           <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
           <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
           <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
         </select>
-        <button type="submit" style="background:rgba(74,108,247,.2);color:#4A6CF7;border:1px solid rgba(74,108,247,.3);border-radius:8px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;">📥 Télécharger</button>
+        <button type="submit" class="r-btn blue">📥 Télécharger</button>
       </form>
     </div>
   </div>
 
   <!-- Carte Congés -->
-  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;">
+  <div class="rapport-card gold" style="">
     <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:.05;pointer-events:none;">🏖</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:48px;height:48px;border-radius:12px;background:rgba(212,168,83,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🏖</div>
+      <div class="r-icon-wrap gold">🏖</div>
       <div>
         <div style="font-weight:700;font-size:1rem;color:var(--text-primary);">Rapport Congés</div>
         <div style="font-size:.78rem;color:var(--text-muted);">Demandes et statuts</div>
@@ -64,7 +107,7 @@
     </div>
     <div style="display:flex;gap:16px;">
       <div>
-        <div style="font-size:2rem;font-weight:800;color:#D4A853;"><span class="counter-value">{{ conges_mois }}</span></div>
+        <div style=""><span class="r-value gold"><span class="counter-value">{{ conges_mois }}</span></div>
         <div style="font-size:.72rem;color:var(--text-muted);">ce mois</div>
       </div>
       {% if conges_attente %}
@@ -75,7 +118,7 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <form method="get" action="{% url 'rapports_exporter_conges' %}" style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
-        <select name="mois" style="flex:1;min-width:90px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="mois" class="r-select">
           <option value="">Tous les mois</option>
           <option value="1" {% if mois_courant == 1 %}selected{% endif %}>Janvier</option>
           <option value="2" {% if mois_courant == 2 %}selected{% endif %}>Février</option>
@@ -90,22 +133,22 @@
           <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
           <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
         </select>
-        <select name="annee" style="width:80px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="annee" class="r-select" style="flex:none;width:78px;">
           <option value="">—</option>
           <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
           <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
           <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
         </select>
-        <button type="submit" style="background:rgba(212,168,83,.2);color:#D4A853;border:1px solid rgba(212,168,83,.3);border-radius:8px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;">📥 Télécharger</button>
+        <button type="submit" class="r-btn gold">📥 Télécharger</button>
       </form>
     </div>
   </div>
 
   <!-- Carte Permissions -->
-  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;">
+  <div class="rapport-card green" style="">
     <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:.05;pointer-events:none;">🔓</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:48px;height:48px;border-radius:12px;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔓</div>
+      <div class="r-icon-wrap green">🔓</div>
       <div>
         <div style="font-weight:700;font-size:1rem;color:var(--text-primary);">Rapport Permissions</div>
         <div style="font-size:.78rem;color:var(--text-muted);">Sorties et autorisations</div>
@@ -113,7 +156,7 @@
     </div>
     <div style="display:flex;gap:16px;">
       <div>
-        <div style="font-size:2rem;font-weight:800;color:#22C55E;"><span class="counter-value">{{ permissions_mois }}</span></div>
+        <div style=""><span class="r-value green"><span class="counter-value">{{ permissions_mois }}</span></div>
         <div style="font-size:.72rem;color:var(--text-muted);">ce mois</div>
       </div>
       {% if permissions_attente %}
@@ -124,7 +167,7 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <form method="get" action="{% url 'rapports_exporter_permissions' %}" style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
-        <select name="mois" style="flex:1;min-width:90px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="mois" class="r-select">
           <option value="">Tous les mois</option>
           <option value="1" {% if mois_courant == 1 %}selected{% endif %}>Janvier</option>
           <option value="2" {% if mois_courant == 2 %}selected{% endif %}>Février</option>
@@ -139,28 +182,28 @@
           <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
           <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
         </select>
-        <select name="annee" style="width:80px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-size:.8rem;">
+        <select name="annee" class="r-select" style="flex:none;width:78px;">
           <option value="">—</option>
           <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
           <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
           <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
         </select>
-        <button type="submit" style="background:rgba(34,197,94,.2);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;">📥 Télécharger</button>
+        <button type="submit" class="r-btn green">📥 Télécharger</button>
       </form>
     </div>
   </div>
 
   <!-- Carte Contractuels actifs -->
-  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;">
+  <div class="rapport-card purple" style="">
     <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:.05;pointer-events:none;">👥</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:48px;height:48px;border-radius:12px;background:rgba(168,85,247,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">👥</div>
+      <div class="r-icon-wrap purple">👥</div>
       <div>
         <div style="font-weight:700;font-size:1rem;color:var(--text-primary);">Contractuels actifs</div>
         <div style="font-size:.78rem;color:var(--text-muted);">Liste complète avec postes</div>
       </div>
     </div>
-    <div style="font-size:2rem;font-weight:800;color:#A855F7;"><span class="counter-value">{{ total_actifs }}</span><span style="font-size:.9rem;font-weight:400;color:var(--text-muted);margin-left:6px;">agents</span></div>
+    <div style=""><span class="r-value purple"><span class="counter-value">{{ total_actifs }}</span></span><span style="font-size:.85rem;color:var(--text-muted);margin-left:8px;">agents</span></div>
     <div>
       <a href="{% url 'rapports_exporter_contractuels' %}" style="display:inline-flex;align-items:center;gap:8px;background:rgba(168,85,247,.2);color:#A855F7;border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:600;text-decoration:none;width:100%;justify-content:center;">
         📥 Télécharger la liste complète
@@ -170,57 +213,30 @@
 
 </div>
 
-<!-- ── Graphiques ─────────────────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-
-  <!-- Répartition par département -->
-  <div class="card">
-    <div class="card-header"><h3 class="card-title">🏢 Contractuels par département</h3></div>
-    {% if stats_dept %}
-    {% with max=stats_dept.0.total %}
-    {% for s in stats_dept %}
-    <div class="stat-bar">
-      <div class="stat-bar-label">{{ s.departement__nom|default:"Non défini" }}</div>
-      <div class="stat-bar-track">
-        <div class="stat-bar-fill" style="width:{% widthratio s.total max 100 %}%;"></div>
-      </div>
-      <span class="stat-bar-value">{{ s.total }}</span>
-    </div>
-    {% endfor %}
-    {% endwith %}
-    {% else %}
-    <div class="empty-state" style="padding:30px;"><div class="empty-state-icon">🏢</div><div class="empty-state-title">Aucune donnée</div></div>
-    {% endif %}
-    <div style="height:220px;margin-top:20px;">
-      <canvas id="chartDept"></canvas>
-    </div>
-  </div>
-
-  <!-- Contrats par type -->
-  <div class="card">
-    <div class="card-header"><h3 class="card-title">📋 Contrats par type</h3></div>
-    <div style="height:280px;">
-      <canvas id="chartContrats"></canvas>
-    </div>
-  </div>
-
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+document.querySelectorAll('.rapport-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const dx = (e.clientX-(r.left+r.width/2))/(r.width/2);
+    const dy = (e.clientY-(r.top+r.height/2))/(r.height/2);
+    const px = ((e.clientX-r.left)/r.width)*100;
+    const py = ((e.clientY-r.top)/r.height)*100;
+    card.style.transform = 'rotateX('+((-dy*12).toFixed(1))+'deg) rotateY('+((dx*12).toFixed(1))+'deg) translateY(-8px) scale(1.02)';
+    card.style.background = 'radial-gradient(circle at '+px+'% '+py+'%, rgba(255,255,255,.04) 0%, var(--bg-card) 60%)';
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'rotateX(3deg) rotateY(0deg)';
+    card.style.background = '';
+    card.style.transition = 'transform .5s cubic-bezier(.17,.67,.35,1.2), box-shadow .5s ease, background .5s ease';
+    setTimeout(() => card.style.transition = '', 500);
+  });
+  card.addEventListener('mouseenter', () => { card.style.transition = 'transform .1s ease, box-shadow .2s ease'; });
+});
 document.addEventListener('DOMContentLoaded', () => {
-  const deptData = {
-    labels: [{% for s in stats_dept %}"{{ s.departement__nom|default:'Non défini' }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-    values: [{% for s in stats_dept %}{{ s.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
-  };
-  initDeptChart('chartDept', deptData);
 
-  const contratsData = {
-    labels: [{% for c in contrats_par_type %}"{{ c.type_contrat__nom }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-    values: [{% for c in contrats_par_type %}{{ c.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
-  };
-  initContratsChart('chartContrats', contratsData);
 });
 </script>
 {% endblock %}

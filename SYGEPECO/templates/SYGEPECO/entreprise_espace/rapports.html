@@ -1,0 +1,426 @@
+{% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
+{% block title %}Rapports{% endblock %}
+{% block breadcrumb %}Rapports{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════════════════════════
+   3D CARDS GRID
+══════════════════════════════════════════════════════════════ */
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  perspective: 1200px;        /* context 3D pour les enfants */
+}
+
+/* ── Carte de rapport ─────────────────────────────────────────── */
+.report-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(4deg) rotateY(-3deg) translateZ(0);
+  transition: transform .35s cubic-bezier(.2,0,.2,1),
+              box-shadow .35s cubic-bezier(.2,0,.2,1),
+              border-color .2s;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.4),
+    0 2px 6px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  cursor: default;
+}
+
+.report-card:hover {
+  transform: rotateX(0deg) rotateY(0deg) translateY(-8px) translateZ(20px);
+  border-color: var(--rc-color, var(--gold));
+  box-shadow:
+    0 24px 48px rgba(0,0,0,.5),
+    0 8px 16px rgba(0,0,0,.3),
+    0 0 0 1px var(--rc-color, var(--gold)),
+    0 0 40px var(--rc-glow, var(--gold-glow)),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* Trait coloré en haut */
+.report-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--rc-color, var(--gold)), var(--rc-color2, var(--gold-light)));
+  z-index: 2;
+}
+
+/* Orbe de couleur en arrière-plan */
+.report-card::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: var(--rc-color, var(--gold));
+  opacity: .05; filter: blur(30px);
+  pointer-events: none;
+  transition: opacity .35s;
+}
+.report-card:hover::after { opacity: .12; }
+
+/* Couleurs par carte */
+.rc-gold    { --rc-color:#D4A853; --rc-color2:#F0D080; --rc-glow:rgba(212,168,83,.3); }
+.rc-emerald { --rc-color:#10B981; --rc-color2:#34D399; --rc-glow:rgba(16,185,129,.25); }
+.rc-sky     { --rc-color:#38BDF8; --rc-color2:#7DD3FC; --rc-glow:rgba(56,189,248,.25); }
+.rc-rose    { --rc-color:#F43F5E; --rc-color2:#FB7185; --rc-glow:rgba(244,63,94,.25); }
+
+/* ── Corps de la carte ─────────────────────────────────────────── */
+.rc-body { padding: 28px 24px 20px; }
+
+.rc-icon-wrap {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  margin-bottom: 18px;
+  position: relative;
+  transition: background .2s, border-color .2s;
+}
+.report-card:hover .rc-icon-wrap {
+  background: rgba(var(--rc-rgb, 212,168,83), .1);
+  border-color: var(--rc-color, var(--gold));
+}
+.rc-icon-wrap svg {
+  width: 22px; height: 22px;
+  color: var(--rc-color, var(--gold));
+}
+
+.rc-tag {
+  font-size: .58rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--rc-color, var(--gold));
+  margin-bottom: 6px;
+}
+
+.rc-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem; font-weight: 700;
+  color: var(--txt); line-height: 1.15;
+  letter-spacing: -.01em;
+  margin-bottom: 8px;
+}
+
+.rc-desc {
+  font-size: .78rem; color: var(--txt-2);
+  line-height: 1.5; font-weight: 500;
+  min-height: 40px;
+}
+
+/* ── Sélecteur mois/année ──────────────────────────────────────── */
+.rc-selectors {
+  display: flex; gap: 8px;
+  padding: 16px 24px 0;
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.rc-selectors select {
+  flex: 1; min-width: 80px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--txt);
+  font-family: 'Syne', sans-serif;
+  font-size: .75rem;
+  outline: none;
+  transition: border-color .18s;
+  color-scheme: dark;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236E7492' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+.rc-selectors select:focus {
+  border-color: var(--rc-color, var(--gold));
+  box-shadow: 0 0 0 2px rgba(212,168,83,.1);
+}
+
+/* ── Bouton télécharger ─────────────────────────────────────────── */
+.rc-foot { padding: 14px 24px 22px; }
+
+.btn-download {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  width: 100%; padding: 11px 20px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--rc-color, var(--gold)), var(--rc-color2, var(--gold-light)));
+  border: none; cursor: pointer;
+  color: #0a0d12;
+  font-family: 'Syne', sans-serif;
+  font-size: .8rem; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 4px 16px var(--rc-glow, var(--gold-glow));
+  transition: opacity .2s, transform .2s, box-shadow .2s;
+}
+.btn-download:hover {
+  opacity: .92;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--rc-glow, var(--gold-glow));
+}
+.btn-download svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── Section note ───────────────────────────────────────────────── */
+.rapports-note {
+  margin-top: 32px;
+  padding: 18px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.rapports-note svg { width: 16px; height: 16px; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+.rapports-note p { font-size: .78rem; color: var(--txt-2); line-height: 1.55; font-weight: 500; }
+.rapports-note strong { color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -------------------------------------------------------->
+<div class="pg-head rise">
+  <div>
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+      Exports
+    </div>
+    <h1 class="pg-title">Rapports</h1>
+    <p class="pg-sub">Téléchargez vos données en format Excel</p>
+  </div>
+</div>
+
+<!-- Grille 3D -------------------------------------------------->
+<div class="reports-grid rise rise-1">
+
+  <!-- ── Rapport Présences ── -->
+  <div class="report-card rc-gold">
+    <div class="rc-body">
+      <div class="rc-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="rc-tag">Présences</div>
+      <div class="rc-title">Rapport de présence</div>
+      <div class="rc-desc">
+        Récapitulatif mensuel — arrivées, départs, statuts et taux de présence de vos agents.
+      </div>
+    </div>
+    <form method="get" action="{% url 'entreprise_export_presences' %}">
+      <div class="rc-selectors">
+        <select name="mois">
+          <option value="1"  {% if mois_courant == 1  %}selected{% endif %}>Janvier</option>
+          <option value="2"  {% if mois_courant == 2  %}selected{% endif %}>Février</option>
+          <option value="3"  {% if mois_courant == 3  %}selected{% endif %}>Mars</option>
+          <option value="4"  {% if mois_courant == 4  %}selected{% endif %}>Avril</option>
+          <option value="5"  {% if mois_courant == 5  %}selected{% endif %}>Mai</option>
+          <option value="6"  {% if mois_courant == 6  %}selected{% endif %}>Juin</option>
+          <option value="7"  {% if mois_courant == 7  %}selected{% endif %}>Juillet</option>
+          <option value="8"  {% if mois_courant == 8  %}selected{% endif %}>Août</option>
+          <option value="9"  {% if mois_courant == 9  %}selected{% endif %}>Septembre</option>
+          <option value="10" {% if mois_courant == 10 %}selected{% endif %}>Octobre</option>
+          <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
+          <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
+        </select>
+        <select name="annee">
+          <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
+          <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
+          <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
+        </select>
+      </div>
+      <div class="rc-foot">
+        <button type="submit" class="btn-download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger Excel
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Rapport Congés ── -->
+  <div class="report-card rc-emerald">
+    <div class="rc-body">
+      <div class="rc-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="rc-tag">Congés</div>
+      <div class="rc-title">Rapport des congés</div>
+      <div class="rc-desc">
+        Toutes les demandes de congé — types, périodes, durées et statuts d'approbation.
+      </div>
+    </div>
+    <form method="get" action="{% url 'entreprise_export_conges' %}">
+      <div class="rc-selectors">
+        <select name="mois">
+          <option value="1"  {% if mois_courant == 1  %}selected{% endif %}>Janvier</option>
+          <option value="2"  {% if mois_courant == 2  %}selected{% endif %}>Février</option>
+          <option value="3"  {% if mois_courant == 3  %}selected{% endif %}>Mars</option>
+          <option value="4"  {% if mois_courant == 4  %}selected{% endif %}>Avril</option>
+          <option value="5"  {% if mois_courant == 5  %}selected{% endif %}>Mai</option>
+          <option value="6"  {% if mois_courant == 6  %}selected{% endif %}>Juin</option>
+          <option value="7"  {% if mois_courant == 7  %}selected{% endif %}>Juillet</option>
+          <option value="8"  {% if mois_courant == 8  %}selected{% endif %}>Août</option>
+          <option value="9"  {% if mois_courant == 9  %}selected{% endif %}>Septembre</option>
+          <option value="10" {% if mois_courant == 10 %}selected{% endif %}>Octobre</option>
+          <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
+          <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
+        </select>
+        <select name="annee">
+          <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
+          <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
+          <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
+        </select>
+      </div>
+      <div class="rc-foot">
+        <button type="submit" class="btn-download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger Excel
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Rapport Permissions ── -->
+  <div class="report-card rc-sky">
+    <div class="rc-body">
+      <div class="rc-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="rc-tag">Permissions</div>
+      <div class="rc-title">Rapport des permissions</div>
+      <div class="rc-desc">
+        Toutes les sorties autorisées — dates, horaires, motifs et statuts d'approbation.
+      </div>
+    </div>
+    <form method="get" action="{% url 'entreprise_export_permissions' %}">
+      <div class="rc-selectors">
+        <select name="mois">
+          <option value="1"  {% if mois_courant == 1  %}selected{% endif %}>Janvier</option>
+          <option value="2"  {% if mois_courant == 2  %}selected{% endif %}>Février</option>
+          <option value="3"  {% if mois_courant == 3  %}selected{% endif %}>Mars</option>
+          <option value="4"  {% if mois_courant == 4  %}selected{% endif %}>Avril</option>
+          <option value="5"  {% if mois_courant == 5  %}selected{% endif %}>Mai</option>
+          <option value="6"  {% if mois_courant == 6  %}selected{% endif %}>Juin</option>
+          <option value="7"  {% if mois_courant == 7  %}selected{% endif %}>Juillet</option>
+          <option value="8"  {% if mois_courant == 8  %}selected{% endif %}>Août</option>
+          <option value="9"  {% if mois_courant == 9  %}selected{% endif %}>Septembre</option>
+          <option value="10" {% if mois_courant == 10 %}selected{% endif %}>Octobre</option>
+          <option value="11" {% if mois_courant == 11 %}selected{% endif %}>Novembre</option>
+          <option value="12" {% if mois_courant == 12 %}selected{% endif %}>Décembre</option>
+        </select>
+        <select name="annee">
+          <option value="2024" {% if annee_courante == 2024 %}selected{% endif %}>2024</option>
+          <option value="2025" {% if annee_courante == 2025 %}selected{% endif %}>2025</option>
+          <option value="2026" {% if annee_courante == 2026 %}selected{% endif %}>2026</option>
+        </select>
+      </div>
+      <div class="rc-foot">
+        <button type="submit" class="btn-download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger Excel
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Rapport Agents ── -->
+  <div class="report-card rc-rose">
+    <div class="rc-body">
+      <div class="rc-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="rc-tag">Effectifs</div>
+      <div class="rc-title">Liste des agents</div>
+      <div class="rc-desc">
+        Annuaire complet de vos agents actifs — postes, directions, contacts et dates d'embauche.
+      </div>
+    </div>
+    <div style="padding:16px 24px 0;border-top:1px solid var(--line);margin-top:20px;">
+      <p style="font-size:.72rem;color:var(--txt-2);font-weight:500;padding-bottom:14px;">
+        Export instantané — aucun filtre nécessaire.
+      </p>
+    </div>
+    <div class="rc-foot">
+      <a href="{% url 'entreprise_export_agents' %}" class="btn-download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Télécharger Excel
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Note bas de page -------------------------------------------->
+<div class="rapports-note rise rise-2">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <p>
+    Les fichiers téléchargés sont au format <strong>.xlsx</strong> (Microsoft Excel).
+    Les données sont <strong>filtrées automatiquement</strong> sur vos agents uniquement.
+    Les rapports de présences, congés et permissions peuvent être filtrés par mois et année avant téléchargement.
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Effet 3D dynamique au mouvement de la souris sur chaque carte */
+document.querySelectorAll('.report-card').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
+    var cx = rect.left + rect.width  / 2;
+    var cy = rect.top  + rect.height / 2;
+    var dx = (e.clientX - cx) / (rect.width  / 2);
+    var dy = (e.clientY - cy) / (rect.height / 2);
+    var rx =  dy * 10;   /* tilt vertical  */
+    var ry = -dx * 10;   /* tilt horizontal */
+    card.style.transform =
+      'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateY(-8px) translateZ(20px)';
+  });
+
+  card.addEventListener('mouseleave', function() {
+    card.style.transform = 'rotateX(4deg) rotateY(-3deg) translateZ(0)';
+    /* Retour smooth géré par la transition CSS */
+  });
+});
+</script>
+{% endblock %}
