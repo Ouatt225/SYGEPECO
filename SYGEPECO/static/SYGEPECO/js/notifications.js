@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'syg_notifs_v1';
+  var STORAGE_KEY = 'syg_notifs_v1'; // Cle sessionStorage — changer la version si le format change
   var _audioCtx   = null;   // contexte partagé (créé une seule fois)
   var _userReady  = false;  // true dès qu'une interaction a eu lieu
 
@@ -46,11 +46,11 @@
           osc.frequency.value = freq;
           osc.connect(gain);
           gain.connect(ctx.destination);
-          gain.gain.setValueAtTime(0.28, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+          gain.gain.setValueAtTime(0.28, t);  // Volume initial : 0.28 (modere)
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32); // Fondu exponentiel vers 0 en 0.32s (anti-clic)
           osc.start(t);
           osc.stop(t + 0.32);
-          t += 0.26;
+          t += 0.26; // Espacement entre les notes : 260ms
         } catch (e) {}
       });
     };
@@ -165,8 +165,8 @@
   function init() {
     /* Pré-créer le contexte pour qu'il soit prêt */
     getCtx();
-    setTimeout(checkNotifications, 2000);
-    setInterval(checkNotifications, 5 * 60 * 1000);
+    setTimeout(checkNotifications, 2000);   // Delai initial 2s (laisser la page charger)
+    setInterval(checkNotifications, 5 * 60 * 1000); // Verif toutes les 5 min
   }
 
   if (document.readyState === 'loading') {

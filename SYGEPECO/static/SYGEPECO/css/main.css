@@ -1,3 +1,11 @@
+/* ===============================================================
+   SYGEPECO — main.css
+   Styles de base partagés par tous les espaces (RH, Espace,
+   Entreprise). Importe les variables CSS, reset, typographie,
+   composants réutilisables (boutons, cartes, tables, forms).
+   Charge AVANT dashboard.css et components.css.
+   =============================================================== */
+
 /* ═══════════════════════════════════════════════════════════
    SYGEPECO — Variables & Reset Global  •  Design v2
    ═══════════════════════════════════════════════════════════ */
@@ -71,11 +79,11 @@ body {
   font-size: 14px;
   line-height: 1.65;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;  /* Lissage police sur macOS/Safari */
+  -moz-osx-font-smoothing: grayscale;  /* Lissage police sur Firefox/macOS */
 }
 
-/* Scrollbar */
+/* Scrollbar — personnalisée pour s'integrer au theme sombre (webkit only) */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-secondary); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 3px; }
@@ -312,7 +320,7 @@ table.data-table tbody td:first-child { color: var(--text-primary); font-weight:
   font-family: inherit;
   transition: all var(--transition);
   outline: none;
-  appearance: none;
+  appearance: none; /* Supprime le style natif du navigateur sur les select */
 }
 
 .form-control:focus, .form-select:focus {
@@ -324,6 +332,7 @@ table.data-table tbody td:first-child { color: var(--text-primary); font-weight:
 .form-control::placeholder { color: var(--text-muted); }
 
 .form-select {
+  /* Fleche SVG encodée en base64 pour eviter une requete reseau */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%234A4A68' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -358,7 +367,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   font-size: 0.8125rem;
   font-weight: 500;
   border: 1px solid;
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px); /* Effet verre depoli — support: Chrome, Edge, Safari */
   animation: slideInRight 0.28s var(--transition);
   box-shadow: var(--shadow-md);
 }
@@ -450,6 +459,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   50%       { opacity: 0.5; }
 }
 
+/* shimmer : effet de chargement skeleton sur les elements en attente */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }

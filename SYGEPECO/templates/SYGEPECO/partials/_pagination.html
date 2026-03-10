@@ -1,3 +1,4 @@
+{# Partial: _pagination.html | Composant de pagination reutilisable. Attend la variable 'page_obj' (Django Paginator). #}
 {% if page_obj.has_other_pages %}
 <nav style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;">
   {% if page_obj.has_previous %}

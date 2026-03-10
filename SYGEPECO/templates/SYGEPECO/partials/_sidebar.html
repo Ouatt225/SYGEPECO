@@ -1,3 +1,4 @@
+{# Partial: _sidebar.html | Barre de navigation laterale. Adapte les liens selon le role (MANAGER ne voit pas Entreprises ni Contrats). Inclus dans base.html. #}
 {% load static %}
 <aside class="sidebar" id="sidebar">
 
@@ -15,7 +16,10 @@
     </div>
   </a>
 
-  <!-- Navigation -->
+  <!-- ═══ NAVIGATION PRINCIPALE ═══
+       - Masque "Entreprises" et "Contrats" pour le role MANAGER
+       - Badges rouges sur Conges/Permissions si en attente
+       - Lien Admin visible uniquement pour is_superuser -->
   <nav class="sidebar-nav">
 
     <!-- Principal -->
@@ -173,6 +177,7 @@
 
   </nav>
 
+  <!-- ═══ PIED SIDEBAR : avatar + nom + role + bouton deconnexion ═══ -->
   <!-- Profil footer -->
   <div class="sidebar-footer">
     <div class="sidebar-user">

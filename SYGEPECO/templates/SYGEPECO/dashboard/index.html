@@ -1,3 +1,4 @@
+{# Template: dashboard/index.html | Tableau de bord RH principal. Contexte: total_actifs, presences_today, taux_presence, conges_attente, permissions_attente, absents_today, en_conge_today, en_permission_today, alertes_conges, anniversaires, contrats_expirer. #}
 {% extends 'SYGEPECO/base.html' %}
 {% load static %}
 
@@ -29,7 +30,8 @@
   </div>
 
 
-  <!-- Stats principales (4 cartes 3D) -->
+  <!-- ═══ STATS PRINCIPALES : 4 cartes 3D (gold=effectif, blue=presences, green=conges, red=permissions) ═══
+     Les .counter-value sont animes de 0 vers leur valeur par dashboard-3d.js -->
   <div class="stats-grid">
 
     <div class="stat-card gold">
@@ -120,7 +122,7 @@
     </div>
   </div>
 
-  <!-- Dashboard grid: graphique + alertes -->
+  <!-- ═══ GRILLE PRINCIPALE : graphique presences (7j) + panneau alertes RH ═══ -->
   <div class="dashboard-grid">
 
     <!-- Graphique présences -->
@@ -134,6 +136,7 @@
       </div>
     </div>
 
+    <!-- ═══ ALERTES RH : J-1, J-7, approuves recents, anniversaires, contrats expirant ═══ -->
     <!-- Alertes RH -->
     <div class="alerts-panel">
       <div class="alerts-header">

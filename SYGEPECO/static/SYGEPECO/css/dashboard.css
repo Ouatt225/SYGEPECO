@@ -1,3 +1,13 @@
+/* ===============================================================
+   SYGEPECO — dashboard.css
+   Styles specifiques au tableau de bord RH :
+   - Grilles de stats (4 cartes + 3 mini-cartes)
+   - Effets 3D sur les cartes (perspective + tilt souris)
+   - Compteurs animes (CSS uniquement, JS dans dashboard-3d.js)
+   - Panneau d'alertes RH
+   - Responsive : 4 colonnes → 2 → 1
+   =============================================================== */
+
 /* ═══════════════════════════════════════════════════════════
    SYGEPECO — Dashboard 3D & Animations  •  v2
    ═══════════════════════════════════════════════════════════ */
@@ -8,7 +18,7 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   margin-bottom: 28px;
-  perspective: 1400px;
+  perspective: 1400px; /* Contexte 3D parent — amplifie l'effet tilt des cartes enfants */
 }
 
 /* ─── Stat Card 3D ──────────────────────────────────────── */
@@ -21,11 +31,12 @@
   overflow: hidden;
   cursor: default;
   transition: transform var(--transition-slow), box-shadow var(--transition-slow), border-color var(--transition);
-  transform-style: preserve-3d;
-  will-change: transform;
+  transform-style: preserve-3d; /* Preserve le contexte 3D pour les enfants (tilt JS) */
+  will-change: transform; /* Prepare la couche GPU avant l'animation */
 }
 
-/* Ligne accent haut */
+/* ::before — ligne lumineuse sur le haut de la carte au survol
+   (gradient transparent → couleur → transparent) */
 .stat-card::before {
   content: '';
   position: absolute;
@@ -38,7 +49,8 @@
 
 .stat-card:hover::before { opacity: 1; left: 10%; right: 10%; }
 
-/* Halo couleur fond */
+/* ::after — halo lumineux en coin superieur droit de la carte
+   (cercle flou semi-transparent, agrandit au survol) */
 .stat-card::after {
   content: '';
   position: absolute;
@@ -243,6 +255,8 @@
 .tilt-card .tilt-layer { transform: translateZ(20px); }
 
 /* ─── Animations ────────────────────────────────────────── */
+/* glowPulse : animation infinie sur la carte gold au survol
+   (pulsation de l'ombre portee) */
 @keyframes glowPulse {
   0%, 100% { box-shadow: 0 24px 64px rgba(200,144,46,.08); }
   50%       { box-shadow: 0 24px 64px rgba(200,144,46,.22); }
@@ -254,6 +268,7 @@
 .expiry-list .expiry-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
 .expiry-list .expiry-item:last-child { border-bottom: none; }
 .expiry-days { font-size: 0.6875rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; min-width: 44px; text-align: center; letter-spacing: 0.02em; }
+/* Codes couleur : urgent (<7j)=rouge, warning (7-30j)=orange, ok(>30j)=vert */
 .expiry-days.urgent  { background: var(--accent-red-dim);    color: var(--accent-red); }
 .expiry-days.warning { background: var(--accent-orange-dim); color: var(--accent-orange); }
 .expiry-days.ok      { background: var(--accent-green-dim);  color: var(--accent-green); }

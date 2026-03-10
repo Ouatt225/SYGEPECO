@@ -1,9 +1,11 @@
+{# Template: conges/list.html | Liste des conges avec filtres statut. Contexte: conges (QuerySet), filter_statut, role. #}
 {% extends 'SYGEPECO/base.html' %}
 {% block title %}Congés{% endblock %}
 {% block breadcrumb %}
 <span class="breadcrumb-sep"> / </span><span class="breadcrumb-item active">Congés</span>
 {% endblock %}
 
+{# Section : filtres de statut + tableau des conges avec actions selon role #}
 {% block content %}
 <div class="page-header">
   <div>

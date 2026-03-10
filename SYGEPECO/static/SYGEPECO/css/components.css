@@ -1,3 +1,13 @@
+/* ===============================================================
+   SYGEPECO — components.css
+   Composants structurels : Sidebar, Navbar, Login, User Menu.
+   Gere aussi tout le comportement responsive :
+   - Sidebar collapsible (desktop) / drawer (mobile)
+   - Navbar fixe avec backdrop-filter
+   - Overlay mobile semi-transparent
+   Breakpoints : < 768px (mobile), 768-1023px (tablette)
+   =============================================================== */
+
 /* ═══════════════════════════════════════════════════════════
    SYGEPECO — Sidebar, Navbar, Login & Composants UI  •  v2
    ═══════════════════════════════════════════════════════════ */
@@ -18,6 +28,7 @@
 
 .sidebar.collapsed { width: 70px; }
 
+/* En mode collapsed : labels → width:0 + opacity:0 (transition douce) */
 .sidebar.collapsed .nav-label,
 .sidebar.collapsed .sidebar-section-title,
 .sidebar.collapsed .nav-badge,
@@ -59,7 +70,7 @@
 
 /* ── Navigation ──────────────────────────────────────────── */
 .sidebar-nav { flex: 1; overflow-y: auto; padding: 16px 0 8px; scrollbar-width: none; }
-.sidebar-nav::-webkit-scrollbar { display: none; }
+.sidebar-nav::-webkit-scrollbar { display: none; } /* Masquer scrollbar mais garder le scroll */
 
 .sidebar-section { margin-bottom: 4px; }
 
@@ -101,7 +112,7 @@
   border: 1px solid rgba(200,144,46,.15);
 }
 
-.nav-item.active::before {
+/* Indicateur de page active : barre verticale or a gauche de l'item */.nav-item.active::before {
   content: '';
   position: absolute;
   left: -10px; top: 50%;
@@ -163,8 +174,7 @@
   right: 0;
   height: var(--navbar-height);
   background: rgba(6,6,15,.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);  /* Effet verre depoli sur la navbar */.  -webkit-backdrop-filter: blur(20px); /* Prefixe Safari requis */
   border-bottom: 1px solid rgba(255,255,255,.055);
   display: flex;
   align-items: center;
@@ -221,6 +231,7 @@
 .btn-notif:hover { background: rgba(255,255,255,.07); color: var(--text-primary); border-color: var(--border-mid); }
 .btn-notif svg { width: 16px; height: 16px; }
 
+/* Point rouge animé sur le bouton de notification (clignote avec @keyframes pulse) */
 .notif-dot {
   position: absolute;
   top: 7px; right: 7px;
@@ -260,6 +271,7 @@
   overflow: hidden;
 }
 
+/* Formes decoratives floues en arriere-plan de la page login (pointer-events:none pour ne pas gener la saisie) */
 .login-bg-shapes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
 .login-shape { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.055; }
@@ -346,6 +358,7 @@
   animation: dropdownFadeIn 0.15s ease;
 }
 
+/* Animation d'apparition du menu utilisateur (dropdown) */
 @keyframes dropdownFadeIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }

@@ -1,7 +1,15 @@
 /* ═══════════════════════════════════════════════════════════
-   SYGEPECO — Charts (Chart.js)
+   SYGEPECO — charts.js
+   Initialisation des graphiques Chart.js 4.x :
+   - initPresenceChart : barres groupees (present/absent) sur 7 jours
+     -> Donnees depuis /api/chart-presences/
+   - initContratsChart : donut repartition types de contrats
+     -> Donnees passees directement depuis le template
+   - initDeptChart    : barres horizontales par direction
+     -> Donnees passees directement depuis le template
    ═══════════════════════════════════════════════════════════ */
 
+// Constantes de style partagees entre tous les graphiques (theme sombre SYGEPECO)
 const CHART_DEFAULTS = {
   color: '#A0A0B0',
   fontFamily: "'Inter', 'Segoe UI', sans-serif",
@@ -52,7 +60,7 @@ function initPresenceChart(canvasId) {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
+          interaction: { mode: 'index', intersect: false }, // Tooltip groupee : affiche toutes les series a x
           plugins: {
             legend: {
               labels: { color: '#A0A0B0', boxWidth: 12, borderRadius: 3 },
@@ -81,7 +89,7 @@ function initPresenceChart(canvasId) {
         },
       });
     })
-    .catch(console.error);
+    .catch(console.error); // Erreur reseau ou API : logge en console
 }
 
 // ─── Graphique Contrats (donut) ──────────────────────────
@@ -110,7 +118,7 @@ function initContratsChart(canvasId, data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '70%',
+      cutout: '70%', // Epaisseur de l'anneau du donut (70% = anneau fin)
       plugins: {
         legend: {
           position: 'bottom',
@@ -158,7 +166,7 @@ function initDeptChart(canvasId, data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: 'y',
+      indexAxis: 'y', // Barres horizontales (l'axe des categories est vertical)
       plugins: {
         legend: { display: false },
         tooltip: {

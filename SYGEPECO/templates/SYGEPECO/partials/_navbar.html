@@ -1,3 +1,8 @@
+{# Partial: _navbar.html | Barre de navigation superieure fixe. Affiche date, bouton notifications, menu utilisateur avec dropdown. #}
+<!-- ═══ NAVBAR ═══
+     - Gauche : toggle sidebar + fil d'ariane (breadcrumb)
+     - Droite : date dynamique (JS) + bouton notifications + menu utilisateur
+     breadcrumb injecte via {% block breadcrumb %} dans chaque template enfant -->
 <nav class="navbar" id="navbar">
   <div class="navbar-left">
     <button class="btn-sidebar-toggle" id="btnSidebarToggle" title="Reduire la sidebar">

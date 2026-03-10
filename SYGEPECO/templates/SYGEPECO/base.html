@@ -1,6 +1,8 @@
+{# Template: base.html | Layout principal RH/Admin/Manager. Inclut sidebar, navbar, messages Django, scripts JS. Etendre avec {% extends 'SYGEPECO/base.html' %} #}
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
+<!-- ═══ HEAD : meta, polices Google, CDN Chart.js/FullCalendar, CSS ═══ -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,11 +24,14 @@
 </head>
 <body>
 
+<!-- ═══ SIDEBAR : navigation laterale (partial) ═══ -->
 {% include 'SYGEPECO/partials/_sidebar.html' %}
 
 <div class="main-content" id="mainContent">
+  <!-- ═══ NAVBAR : barre superieure fixe (partial) ═══ -->
   {% include 'SYGEPECO/partials/_navbar.html' %}
 
+  <!-- ═══ MESSAGES DJANGO : toasts auto-dismiss (4s) ═══ -->
   <!-- Messages Django -->
   {% if messages %}
   <div class="django-messages">
@@ -42,11 +47,13 @@
   </div>
   {% endif %}
 
+  <!-- ═══ CONTENU DE LA PAGE : injecte par {% block content %} ═══ -->
   <main class="page-content fade-in">
     {% block content %}{% endblock %}
   </main>
 </div>
 
+<!-- ═══ SCRIPTS : ordre important (main.js → 3d → charts → calendar → notifs) ═══ -->
 <script src="{% static 'SYGEPECO/js/main.js' %}"></script>
 <script src="{% static 'SYGEPECO/js/dashboard-3d.js' %}"></script>
 <script src="{% static 'SYGEPECO/js/charts.js' %}"></script>

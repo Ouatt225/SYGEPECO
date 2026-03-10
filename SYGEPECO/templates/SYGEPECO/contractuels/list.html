@@ -1,3 +1,4 @@
+{# Template: contractuels/list.html | Liste paginee des contractuels avec recherche et filtres. Contexte: contractuels (Page), directions, search_query, filter_direction, filter_statut. #}
 {% extends 'SYGEPECO/base.html' %}
 {% block title %}Contractuels{% endblock %}
 {% block breadcrumb %}
@@ -5,6 +6,7 @@
 <span class="breadcrumb-item active">Contractuels</span>
 {% endblock %}
 
+{# Section : barre de recherche + filtres direction/statut + tableau pagine #}
 {% block content %}
 <div class="page-header">
   <div>

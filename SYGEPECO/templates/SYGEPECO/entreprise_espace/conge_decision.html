@@ -1,3 +1,4 @@
+{# Template: entreprise_espace/conge_decision.html | Formulaire approbation/rejet conge depuis l'espace entreprise. Contexte: conge, action. #}
 {% extends 'SYGEPECO/entreprise_espace/base_entreprise.html' %}
 {% block title %}{% if action == 'approuver' %}Approuver{% else %}Rejeter{% endif %} le congé{% endblock %}
 {% block breadcrumb %}Congés / Décision finale{% endblock %}
