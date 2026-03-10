@@ -1,9 +1,30 @@
+"""
+Vue principale du tableau de bord RH.
+Calcule les KPIs en temps réel : effectifs, présences, congés, alertes contrats.
+"""
 from ._base import *
 
 
 @login_required
 @rh_required
 def dashboard(request):
+    """Tableau de bord principal — KPIs et alertes RH.
+
+    Calcule en temps réel (filtré par direction pour les Managers) :
+      - Effectif actif / total
+      - Présences et taux d'assiduité du jour
+      - Congés et permissions EN_ATTENTE
+      - Anniversaires dans les 30 prochains jours
+      - Contrats expirant dans les 30 prochains jours
+
+    Accès : @login_required + rôles RH/Admin/Manager.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template dashboard/index.html.
+"""
     today = date.today()
     manager_direction = get_manager_direction(request.user)
 

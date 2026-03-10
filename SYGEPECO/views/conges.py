@@ -1,3 +1,7 @@
+"""
+Gestion du workflow congés : EN_ATTENTE → VALIDE_MANAGER → APPROUVE/REJETE.
+Téléchargement sécurisé des justificatifs médicaux avec contrôle d'accès IDOR.
+"""
 import logging
 
 logger = logging.getLogger('SYGEPECO')
@@ -9,6 +13,18 @@ from django.core.paginator import Paginator
 @login_required
 @rh_required
 def conge_list(request):
+    """Liste des congés filtrée selon le rôle de l'utilisateur.
+
+    - Admin/DRH/RH : tous les congés
+    - Manager : sa direction uniquement
+    - Entreprise : ses agents uniquement
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template conges/list.html.
+"""
     statut = request.GET.get('statut', '')
     qs = Conge.objects.select_related('contractuel', 'approuve_par').all()
     manager_dir = get_manager_direction(request.user)
@@ -24,6 +40,15 @@ def conge_list(request):
 @login_required
 @rh_required
 def conge_detail(request, pk):
+    """Détail d'une demande de congé.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire du congé.
+
+    Returns:
+        HttpResponse : template conges/detail.html.
+"""
     conge = get_object_or_404(Conge, pk=pk)
     return render(request, 'SYGEPECO/conges/detail.html', {'conge': conge})
 
@@ -31,6 +56,14 @@ def conge_detail(request, pk):
 @login_required
 @rh_required
 def conge_create(request):
+    """Crée une demande de congé (par le RH pour un agent).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     form = CongeForm(request.POST or None)
     manager_dir = get_manager_direction(request.user)
     if manager_dir:
@@ -57,6 +90,18 @@ def _conge_rh_decision(request, pk):
 @login_required
 @rh_required
 def conge_approuver(request, pk):
+    """Approuve une demande de congé (étape RH/DRH).
+
+    Requiert que le congé soit au statut VALIDE_MANAGER.
+    Enregistre l'approbateur et la date. Log l'action.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire du congé.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     conge, err = _conge_rh_decision(request, pk)
     if err: return err
     form = CongeDecisionForm(request.POST or None, instance=conge)
@@ -75,6 +120,17 @@ def conge_approuver(request, pk):
 @login_required
 @rh_required
 def conge_rejeter(request, pk):
+    """Rejette une demande de congé (étape RH/DRH).
+
+    Enregistre le motif de refus via CongeDecisionForm.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire du congé.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     conge, err = _conge_rh_decision(request, pk)
     if err: return err
     form = CongeDecisionForm(request.POST or None, instance=conge)
@@ -93,6 +149,18 @@ def conge_rejeter(request, pk):
 @login_required
 @rh_required
 def conge_valider_manager(request, pk):
+    """Pré-validation Manager (1re étape du workflow congé).
+
+    Passe le statut de EN_ATTENTE → VALIDE_MANAGER.
+    Vérifie que le congé appartient à la direction du Manager.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire du congé.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     conge = get_object_or_404(Conge, pk=pk)
     manager_dir = get_manager_direction(request.user)
     if manager_dir and conge.contractuel.direction != manager_dir:
@@ -116,6 +184,17 @@ def conge_valider_manager(request, pk):
 @login_required
 @rh_required
 def conge_rejeter_manager(request, pk):
+    """Rejet Manager (1re étape du workflow congé).
+
+    Passe le statut à REJETE sans passer par RH.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire du congé.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     conge = get_object_or_404(Conge, pk=pk)
     manager_dir = get_manager_direction(request.user)
     if manager_dir and conge.contractuel.direction != manager_dir:
@@ -138,6 +217,17 @@ def conge_rejeter_manager(request, pk):
 
 @login_required
 def entreprise_conge_approuver(request, pk):
+    """Approuve un conge depuis l espace Entreprise.
+
+    Verifie que le conge appartient a un agent de l entreprise connectee.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Cle primaire du conge.
+
+    Returns:
+        HttpResponseRedirect vers la liste des conges entreprise.
+"""
     ent, err = ent_check(request)
     if err: return err
     conge = get_object_or_404(Conge, pk=pk)
@@ -161,6 +251,15 @@ def entreprise_conge_approuver(request, pk):
 
 @login_required
 def entreprise_conge_rejeter(request, pk):
+    """Rejette un conge depuis l espace Entreprise.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Cle primaire du conge.
+
+    Returns:
+        HttpResponseRedirect vers la liste des conges entreprise.
+"""
     ent, err = ent_check(request)
     if err: return err
     conge = get_object_or_404(Conge, pk=pk)

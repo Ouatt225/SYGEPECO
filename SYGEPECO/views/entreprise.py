@@ -1,3 +1,7 @@
+"""
+Espace dédié aux entreprises clientes.
+Gestion de leurs agents, congés, permissions, présences et exports Excel.
+"""
 from ._base import *
 from django.core.paginator import Paginator
 from django.db.models import Count, Q as Qdb
@@ -6,6 +10,14 @@ from django.db.models import Count, Q as Qdb
 @login_required
 @rh_required
 def entreprise_list(request):
+    """Liste des entreprises avec nombre d'agents (admin uniquement).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprises/list.html.
+"""
     q = request.GET.get('q', '')
     manager_direction = get_manager_direction(request.user)
 
@@ -49,6 +61,15 @@ def entreprise_list(request):
 @login_required
 @rh_required
 def entreprise_detail(request, pk):
+    """Fiche détaillée d'une entreprise avec ses contractuels actifs.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire de l'entreprise.
+
+    Returns:
+        HttpResponse : template entreprises/detail.html.
+"""
     entreprise = get_object_or_404(Entreprise, pk=pk)
     contractuels = entreprise.contractuels.select_related('poste', 'direction').all()
     md = get_manager_direction(request.user)
@@ -62,6 +83,14 @@ def entreprise_detail(request, pk):
 @login_required
 @administrateur_required
 def entreprise_create(request):
+    """Crée une nouvelle entreprise (admin uniquement).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     from ..forms import EntrepriseForm
     form = EntrepriseForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
@@ -76,6 +105,15 @@ def entreprise_create(request):
 @login_required
 @administrateur_required
 def entreprise_update(request, pk):
+    """Modifie une entreprise existante (admin uniquement).
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire de l'entreprise.
+
+    Returns:
+        HttpResponse : formulaire pré-rempli ou redirection.
+"""
     from ..forms import EntrepriseForm
     entreprise = get_object_or_404(Entreprise, pk=pk)
     form = EntrepriseForm(request.POST or None, request.FILES or None, instance=entreprise)
@@ -91,6 +129,15 @@ def entreprise_update(request, pk):
 @login_required
 @administrateur_required
 def entreprise_delete(request, pk):
+    """Supprime une entreprise (admin uniquement, POST).
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire de l'entreprise.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     entreprise = get_object_or_404(Entreprise, pk=pk)
     if request.method == 'POST':
         nom = entreprise.nom
@@ -103,6 +150,19 @@ def entreprise_delete(request, pk):
 
 @login_required
 def entreprise_espace_home(request):
+    """Tableau de bord de l'espace Entreprise.
+
+    Affiche : nombre d'agents actifs, congés EN_ATTENTE,
+    présences du jour, contrats expirant bientôt.
+
+    Accès : @entreprise_required.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/home.html.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -129,6 +189,14 @@ def entreprise_espace_home(request):
 
 @login_required
 def entreprise_espace_agents(request):
+    """Liste des agents actifs de l'entreprise connectée.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/agents.html.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -152,6 +220,16 @@ def entreprise_espace_agents(request):
 
 @login_required
 def entreprise_espace_conges(request):
+    """Gestion des congés des agents de l'entreprise.
+
+    Filtrable par statut. Inclut les boutons Approuver/Rejeter.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/conges.html.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -176,6 +254,14 @@ def entreprise_espace_conges(request):
 
 @login_required
 def entreprise_espace_permissions(request):
+    """Gestion des permissions des agents de l'entreprise.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/permissions.html.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -198,6 +284,16 @@ def entreprise_espace_permissions(request):
 
 @login_required
 def entreprise_espace_presences(request):
+    """Présences des agents de l'entreprise pour une date donnée.
+
+    Paramètre GET : `date` (défaut : aujourd'hui).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/presences.html.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -221,6 +317,14 @@ def entreprise_espace_presences(request):
 
 @login_required
 def entreprise_espace_presence_create(request):
+    """Enregistre une présence pour un agent de l'entreprise.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     if not hasattr(request.user, 'profile') or request.user.profile.role not in (
             'ENTREPRISE', 'ADMINISTRATEUR', 'DRH'):
         messages.error(request, "Acces non autorise.")
@@ -245,6 +349,14 @@ def entreprise_espace_presence_create(request):
 
 @login_required
 def entreprise_espace_contrats(request):
+    """Contrats actifs des agents de l'entreprise.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/contrats.html.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     qs = Contrat.objects.select_related('contractuel', 'type_contrat').all()
@@ -265,6 +377,14 @@ def entreprise_espace_contrats(request):
 
 @login_required
 def entreprise_espace_rapports(request):
+    """Page des rapports et exports de l'espace Entreprise.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template entreprise_espace/rapports.html.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     today = date.today()
@@ -275,6 +395,19 @@ def entreprise_espace_rapports(request):
 
 
 def _xlsx_export(request, qs_fn, headers, row_fn, col_widths, filename_prefix):
+    """Helper générique pour les exports Excel de l'espace Entreprise.
+
+    Args:
+        request: HttpRequest Django.
+        qs_fn (callable): Fonction retournant le QuerySet à exporter.
+        headers (list[str]): En-têtes des colonnes.
+        row_fn (callable): Fonction (obj) → liste de valeurs par ligne.
+        col_widths (list[int]): Largeurs des colonnes.
+        filename_prefix (str): Préfixe du nom de fichier Excel.
+
+    Returns:
+        HttpResponse : fichier .xlsx en attachment.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     try:
@@ -320,6 +453,16 @@ def _xlsx_export(request, qs_fn, headers, row_fn, col_widths, filename_prefix):
 
 @login_required
 def entreprise_export_presences(request):
+    """Exporte les présences de l'entreprise en Excel.
+
+    Paramètre GET : `date` (défaut : aujourd'hui).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     try:
@@ -371,6 +514,14 @@ def entreprise_export_presences(request):
 
 @login_required
 def entreprise_export_conges(request):
+    """Exporte les congés de l'entreprise en Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     try:
@@ -425,6 +576,14 @@ def entreprise_export_conges(request):
 
 @login_required
 def entreprise_export_permissions(request):
+    """Exporte les permissions de l'entreprise en Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     try:
@@ -477,6 +636,14 @@ def entreprise_export_permissions(request):
 
 @login_required
 def entreprise_export_agents(request):
+    """Exporte la liste des agents actifs de l'entreprise en Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel.
+"""
     entreprise, err = ent_check(request)
     if err: return err
     try:

@@ -1,3 +1,7 @@
+"""
+Serveur de médias protégés (justificatifs médicaux, photos contractuels).
+Vérifie les droits d'accès avant de servir le fichier.
+"""
 import logging
 
 logger = logging.getLogger('SYGEPECO')

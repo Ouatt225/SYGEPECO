@@ -1,3 +1,7 @@
+"""
+Espace personnel des contractuels (self-service).
+Consultation et demande de congés/permissions. Modification de profil restreinte.
+"""
 from io import BytesIO
 from ._base import *
 from ..utils import solde_conges_annuel
@@ -5,6 +9,19 @@ from ..utils import solde_conges_annuel
 
 @contractuel_required
 def espace_home(request):
+    """Tableau de bord personnel du contractuel.
+
+    Affiche : solde de congés annuels, présences du mois,
+    contrat actif, alertes fin de contrat.
+
+    Accès : @contractuel_required uniquement.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/home.html.
+"""
     c = request.user.contractuel
     today = date.today()
     contrat_actif = c.get_contrat_actif()
@@ -43,6 +60,14 @@ def espace_home(request):
 
 @contractuel_required
 def espace_profil(request):
+    """Affiche le profil du contractuel connecté (lecture seule).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/profil.html.
+"""
     c = request.user.contractuel
     return render(request, 'SYGEPECO/espace/profil.html', {
         'contractuel': c,
@@ -52,6 +77,17 @@ def espace_profil(request):
 
 @contractuel_required
 def espace_profil_modifier(request):
+    """Permet au contractuel de modifier ses informations personnelles.
+
+    Champs modifiables uniquement : photo, email, téléphone, adresse.
+    Le matricule, poste et direction ne sont PAS modifiables.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     c = request.user.contractuel
     form = EspaceProfilForm(request.POST or None, request.FILES or None, instance=c)
     if form.is_valid():
@@ -70,6 +106,14 @@ def espace_profil_modifier(request):
 
 @contractuel_required
 def espace_mes_conges(request):
+    """Liste des congés du contractuel connecté.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/mes_conges.html.
+"""
     c = request.user.contractuel
     return render(request, 'SYGEPECO/espace/mes_conges.html', {
         'conges': c.conges.all().order_by('-created_at'),
@@ -79,6 +123,17 @@ def espace_mes_conges(request):
 
 @contractuel_required
 def espace_demander_conge(request):
+    """Soumission d'une demande de congé par le contractuel.
+
+    Validations : délai de prévenance 7 jours, quota annuel,
+    chevauchement de dates, limites par type de congé.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     c = request.user.contractuel
     annee = date.today().year
     jours_pris = sum(
@@ -107,6 +162,14 @@ def espace_demander_conge(request):
 
 @contractuel_required
 def espace_mes_permissions(request):
+    """Liste des permissions du contractuel connecté.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/mes_permissions.html.
+"""
     c = request.user.contractuel
     return render(request, 'SYGEPECO/espace/mes_permissions.html', {
         'permissions': c.permissions.all().order_by('-created_at'),
@@ -116,6 +179,16 @@ def espace_mes_permissions(request):
 
 @contractuel_required
 def espace_demander_permission(request):
+    """Soumission d'une demande de permission par le contractuel.
+
+    Durée maximale : 3 jours consécutifs.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     c = request.user.contractuel
     form = EspacePermissionForm(request.POST or None)
     if form.is_valid():
@@ -133,6 +206,14 @@ def espace_demander_permission(request):
 
 @contractuel_required
 def espace_mon_contrat(request):
+    """Affiche le contrat actif du contractuel connecté (lecture seule).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/mon_contrat.html.
+"""
     c = request.user.contractuel
     contrat_actif = c.get_contrat_actif()
     autres = (c.contrats.exclude(pk=contrat_actif.pk).order_by('-created_at')
@@ -146,6 +227,17 @@ def espace_mon_contrat(request):
 
 @contractuel_required
 def espace_mes_presences(request):
+    """Présences du contractuel par mois (navigable).
+
+    Paramètres GET : `mois` et `annee` (défaut : mois courant).
+    Affiche les libellés de mois en français.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template espace/mes_presences.html.
+"""
     c = request.user.contractuel
     today = date.today()
     mois  = int(request.GET.get('mois',  today.month))
@@ -176,6 +268,14 @@ def espace_mes_presences(request):
 
 @contractuel_required
 def espace_telecharger_profil(request):
+    """Génère et télécharge la fiche PDF personnelle du contractuel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : PDF en attachment.
+"""
     from ..utils import build_fiche_pdf
     c = request.user.contractuel
     buf = build_fiche_pdf(c)

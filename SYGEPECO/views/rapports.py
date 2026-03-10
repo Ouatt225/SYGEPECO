@@ -1,15 +1,40 @@
+"""
+Rapports statistiques et exports Excel.
+Agrégats par direction et type de contrat. Historique des actions RH.
+"""
 from ._base import *
 
 
 @login_required
 @rh_required
 def calendrier(request):
+    """Affiche le calendrier interactif FullCalendar.
+
+    Les événements sont chargés dynamiquement via /api/calendrier-events/.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template calendrier/index.html.
+"""
     return render(request, 'SYGEPECO/calendrier/index.html')
 
 
 @login_required
 @rh_required
 def rapports(request):
+    """Tableau de bord des rapports statistiques.
+
+    Agrège : contractuels par direction, contrats par type,
+    présences du mois, congés et permissions par statut.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template rapports/index.html.
+"""
     today = date.today()
     manager_direction = get_manager_direction(request.user)
 
@@ -71,6 +96,16 @@ def rapports(request):
 @login_required
 @rh_required
 def rapports_exporter(request):
+    """Exporte le rapport de présences en fichier Excel (.xlsx).
+
+    Paramètres GET : `mois` et `annee` (défaut : mois courant).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel en attachment.
+"""
     today = date.today()
     mois = int(request.GET.get('mois', today.month))
     annee = int(request.GET.get('annee', today.year))
@@ -81,6 +116,14 @@ def rapports_exporter(request):
 @login_required
 @rh_required
 def rapports_exporter_conges(request):
+    """Exporte la liste des congés en fichier Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel en attachment.
+"""
     mois_param = request.GET.get('mois', '')
     annee_param = request.GET.get('annee', '')
     mois = int(mois_param) if mois_param else None
@@ -92,6 +135,14 @@ def rapports_exporter_conges(request):
 @login_required
 @rh_required
 def rapports_exporter_permissions(request):
+    """Exporte la liste des permissions en fichier Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel en attachment.
+"""
     mois_param = request.GET.get('mois', '')
     annee_param = request.GET.get('annee', '')
     mois = int(mois_param) if mois_param else None
@@ -103,6 +154,14 @@ def rapports_exporter_permissions(request):
 @login_required
 @rh_required
 def rapports_exporter_contractuels(request):
+    """Exporte la liste des contractuels actifs en fichier Excel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        FileResponse : fichier Excel en attachment.
+"""
     direction = get_manager_direction(request.user)
     return export_contractuels_excel(direction=direction)
 
@@ -110,5 +169,16 @@ def rapports_exporter_contractuels(request):
 @login_required
 @rh_required
 def historique(request):
+    """Journal d'audit des actions RH (100 dernières).
+
+    Affiche : utilisateur, action, modèle, date.
+    Réservé aux rôles RH et supérieurs.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template historique/index.html.
+"""
     logs = ActionLog.objects.select_related('utilisateur').all()[:100]
     return render(request, 'SYGEPECO/historique/index.html', {'logs': logs})

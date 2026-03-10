@@ -1,3 +1,7 @@
+"""
+Pointage quotidien et rapports de présence mensuel.
+Filtrable par date et direction.
+"""
 from ._base import *
 from django.core.paginator import Paginator
 
@@ -5,6 +9,17 @@ from django.core.paginator import Paginator
 @login_required
 @rh_required
 def presence_list(request):
+    """Liste des présences pour une date donnée (aujourd'hui par défaut).
+
+    Paginée à 20 enregistrements par page.
+    Les Managers ne voient que leur direction.
+
+    Args:
+        request: HttpRequest Django. Paramètre GET `date` (YYYY-MM-DD).
+
+    Returns:
+        HttpResponse : template presences/list.html.
+"""
     today = date.today()
     date_filtre = request.GET.get('date', str(today))
     try:
@@ -25,6 +40,14 @@ def presence_list(request):
 @login_required
 @rh_required
 def presence_create(request):
+    """Enregistre une présence pour un contractuel.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     form = PresenceForm(request.POST or None)
     manager_dir = get_manager_direction(request.user)
     if manager_dir:
@@ -41,6 +64,16 @@ def presence_create(request):
 @login_required
 @rh_required
 def presence_rapport(request):
+    """Rapport de présence mensuel agrégé par contractuel.
+
+    Compte les jours PRESENT/ABSENT/RETARD par agent pour le mois sélectionné.
+
+    Args:
+        request: HttpRequest Django. Paramètres GET `mois` et `annee`.
+
+    Returns:
+        HttpResponse : template presences/rapport.html.
+"""
     today = date.today()
     manager_dir = get_manager_direction(request.user)
     is_manager = manager_dir is not None

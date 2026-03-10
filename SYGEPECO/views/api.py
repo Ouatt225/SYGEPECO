@@ -1,9 +1,23 @@
+"""
+Endpoints JSON internes utilisés par le frontend (dashboard, calendrier, notifications).
+Toutes les routes requièrent une session authentifiée.
+"""
 from ._base import *
 
 
 @login_required
 @rh_required
 def api_dashboard_stats(request):
+    """Retourne les KPIs du dashboard au format JSON.
+
+    Inclut : effectif actif, présences du jour, congés EN_ATTENTE.
+
+    Args:
+        request: HttpRequest Django (authentifié).
+
+    Returns:
+        JsonResponse : {total_contractuels, presences_today, conges_attente}.
+"""
     today = date.today()
     return JsonResponse({
         'total_actifs': Contractuel.objects.filter(statut='ACTIF').count(),
@@ -16,6 +30,17 @@ def api_dashboard_stats(request):
 @login_required
 @rh_required
 def api_calendrier_events(request):
+    """Retourne les événements du calendrier au format JSON (FullCalendar).
+
+    Inclut les congés APPROUVES et permissions APPROUVEES.
+    Codes couleur : congé=bleu, permission=vert.
+
+    Args:
+        request: HttpRequest Django (authentifié).
+
+    Returns:
+        JsonResponse : liste d'événements [{id, title, start, end, color}].
+"""
     events = []
     for c in Conge.objects.filter(statut='APPROUVE').select_related('contractuel'):
         events.append({
@@ -39,6 +64,14 @@ def api_calendrier_events(request):
 @login_required
 @rh_required
 def api_chart_presences(request):
+    """Données du graphique de présences des 7 derniers jours.
+
+    Args:
+        request: HttpRequest Django (authentifié).
+
+    Returns:
+        JsonResponse : {labels, present, absent} — tableaux de 7 valeurs.
+"""
     today = date.today()
     labels, presents, absents = [], [], []
     for i in range(6, -1, -1):
@@ -51,6 +84,17 @@ def api_chart_presences(request):
 
 @login_required
 def api_postes_entreprise(request):
+    """Retourne les postes disponibles pour une entreprise (AJAX).
+
+    Utilisé dans le formulaire de création de contractuel pour
+    filtrer les postes selon l'entreprise sélectionnée.
+
+    Args:
+        request: HttpRequest Django. Paramètre GET `entreprise_id`.
+
+    Returns:
+        JsonResponse : liste [{id, titre, direction}].
+"""
     entreprise_id = request.GET.get('entreprise_id')
     if not entreprise_id:
         postes = Poste.objects.select_related('direction').all().order_by('titre')
@@ -69,6 +113,20 @@ def api_postes_entreprise(request):
 
 @login_required
 def api_conges_notifs(request):
+    """Notifications de congés imminents (J-7 et J-1).
+
+    Filtre selon le rôle :
+      - Admin/DRH/RH → tous les congés approuvés
+      - Manager → sa direction
+      - Entreprise → ses agents
+      - Employé → ses propres congés
+
+    Args:
+        request: HttpRequest Django (authentifié).
+
+    Returns:
+        JsonResponse : [{id, key, agent, type_conge, date_debut, days_until}].
+"""
     # Retourne les conges approuves debutant dans 1 ou 7 jours pour l utilisateur courant.
     from datetime import date, timedelta
     today = date.today()

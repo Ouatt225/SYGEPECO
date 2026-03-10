@@ -1,7 +1,25 @@
+"""
+Vues d'authentification — connexion, déconnexion, changement de mot de passe.
+Redirection intelligente par rôle après login.
+"""
 from ._base import *
 
 
 def login_view(request):
+    """Gère la connexion utilisateur avec redirection par rôle.
+
+    Redirige les utilisateurs déjà connectés vers leur espace.
+    Après login :
+      - Contractuel (EMPLOYE) → /espace/
+      - Entreprise → /entreprise-espace/
+      - RH/Admin/Manager → /dashboard/
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire de login ou redirection.
+"""
     if request.user.is_authenticated:
         return redirect_by_role(request.user)
     form = LoginForm(request, data=request.POST or None)
@@ -14,6 +32,14 @@ def login_view(request):
 
 @login_required
 def logout_view(request):
+    """Déconnecte l'utilisateur et redirige vers la page de login.
+
+    Args:
+        request: HttpRequest Django (doit être authentifié).
+
+    Returns:
+        HttpResponseRedirect vers /auth/login/.
+"""
     logout(request)
     return redirect("login")
 
@@ -21,6 +47,16 @@ def logout_view(request):
 
 @login_required
 def changer_mot_de_passe(request):
+    """Permet à l'utilisateur connecté de changer son mot de passe.
+
+    Met à jour le hash de session pour éviter la déconnexion automatique.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection après succès.
+"""
     from django.contrib.auth.forms import PasswordChangeForm
     from django.contrib.auth import update_session_auth_hash
     if request.method == "POST":

@@ -1,3 +1,7 @@
+"""
+Context processor global injecté dans tous les templates.
+Fournit les compteurs de notifications et les anniversaires proches (avec cache Django).
+"""
 from datetime import date, timedelta
 from django.core.cache import cache
 from django.db.models import Q

@@ -1,9 +1,23 @@
+"""
+Modeles de donnees SYGEPECO.
+
+Hierarchie : Entreprise > Direction > Poste > Contractuel > Contrat/Presence/Conge/Permission.
+ActionLog assure la tracabilite de toutes les actions RH.
+"""
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 
 class UserProfile(models.Model):
+    """Profil utilisateur etendu — lie a un compte Django User.
+
+    Chaque User Django a exactement un UserProfile avec :
+      - role : ADMINISTRATEUR | DRH | RH | MANAGER | ENTREPRISE | EMPLOYE
+      - direction : obligatoire si role=MANAGER
+      - entreprise : obligatoire si role=ENTREPRISE
+    """
+
     ROLE_CHOICES = [
         ('ADMINISTRATEUR', 'Administrateur'),
         ('ENTREPRISE', 'Entreprise'),
@@ -31,6 +45,7 @@ class UserProfile(models.Model):
     )
 
     def __str__(self):
+        """Retourne l'identifiant de l'utilisateur."""
         return f"{self.user.get_full_name()} — {self.get_role_display()}"
 
     class Meta:
@@ -39,6 +54,11 @@ class UserProfile(models.Model):
 
 
 class Direction(models.Model):
+    """Direction (departement) avec un responsable optionnel.
+
+    Les contractuels, postes et managers sont rattaches a une Direction.
+    """
+
     nom = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     responsable = models.ForeignKey(
@@ -47,6 +67,7 @@ class Direction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Retourne le nom de la Direction."""
         return self.nom
 
     class Meta:
@@ -56,11 +77,17 @@ class Direction(models.Model):
 
 
 class Poste(models.Model):
+    """Poste de travail rattache a une Direction.
+
+    direction peut etre NULL (SET_NULL) si la Direction est supprimee.
+    """
+
     titre = models.CharField(max_length=100)
     direction = models.ForeignKey(Direction, on_delete=models.SET_NULL, null=True, blank=True, related_name='postes')
     description = models.TextField(blank=True)
 
     def __str__(self):
+        """Retourne le titre et la direction du poste."""
         dir_nom = self.direction.nom if self.direction else "—"
         return f"{self.titre} ({dir_nom})"
 
@@ -71,11 +98,17 @@ class Poste(models.Model):
 
 
 class TypeContrat(models.Model):
+    """Type de contrat de travail (CDI, CDD, Stage, Prestation, Interim).
+
+    duree_max_jours permet de verifier l expiration des contrats a duree limitee.
+    """
+
     nom = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
     duree_max_jours = models.IntegerField(null=True, blank=True, help_text="Durée max en jours (vide = illimité)")
 
     def __str__(self):
+        """Retourne le nom du type de contrat."""
         return self.nom
 
     class Meta:
@@ -85,6 +118,12 @@ class TypeContrat(models.Model):
 
 
 class Entreprise(models.Model):
+    """Entreprise cliente — scope des utilisateurs role=ENTREPRISE.
+
+    Chaque entreprise a un UserProfile.role=ENTREPRISE pour acceder
+    a son espace dedie /entreprise-espace/.
+    """
+
     SECTEUR_CHOICES = [
         ('SECURITE',    'Sécurité / Gardiennage'),
         ('BTP',         'BTP / Construction'),
@@ -106,9 +145,11 @@ class Entreprise(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Retourne le sigle ou le nom de l'entreprise."""
         return self.sigle if self.sigle else self.nom
 
     def nb_contractuels(self):
+        """Compte les contractuels actifs de cette entreprise."""
         return self.contractuels.filter(statut='ACTIF').count()
 
     class Meta:
@@ -118,6 +159,13 @@ class Entreprise(models.Model):
 
 
 class Contractuel(models.Model):
+    """Agent contractuel — entite centrale du systeme.
+
+    Lie optionnellement a un User Django (role=EMPLOYE) pour l espace personnel.
+    Appartient a une Entreprise et une Direction.
+    Methodes utiles : get_full_name(), get_contrat_actif().
+    """
+
     STATUT_CHOICES = [
         ('ACTIF', 'Actif'),
         ('INACTIF', 'Inactif'),
@@ -169,12 +217,15 @@ class Contractuel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Retourne le matricule et le nom complet du contractuel."""
         return f"{self.matricule} — {self.nom} {self.prenom}"
 
     def get_full_name(self):
+        """Retourne le nom complet formaté : Prenom NOM."""
         return f"{self.nom} {self.prenom}"
 
     def get_contrat_actif(self):
+        """Retourne le contrat actuellement en cours (EN_COURS), ou None."""
         return self.contrats.filter(statut='EN_COURS').first()
 
     class Meta:
@@ -184,6 +235,12 @@ class Contractuel(models.Model):
 
 
 class Contrat(models.Model):
+    """Contrat de travail liant un Contractuel a un TypeContrat.
+
+    Workflow : EN_COURS -> EXPIRE | RESILIE | RENOUVELE.
+    Un contractuel ne devrait avoir qu un seul contrat EN_COURS a la fois.
+    """
+
     STATUT_CHOICES = [
         ('EN_COURS', 'En cours'),
         ('EXPIRE', 'Expiré'),
@@ -201,9 +258,11 @@ class Contrat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Retourne la representation texte du contrat."""
         return f"Contrat {self.type_contrat} — {self.contractuel}"
 
     def is_expired(self):
+        """Retourne True si la date de fin du contrat est passee."""
         if self.date_fin:
             return self.date_fin < timezone.now().date()
         return False
@@ -215,6 +274,12 @@ class Contrat(models.Model):
 
 
 class Presence(models.Model):
+    """Enregistrement de presence quotidien (pointage).
+
+    Statuts : PRESENT, ABSENT, RETARD, JUSTIFIE.
+    heure_arrivee et heure_depart sont optionnelles (absences).
+    """
+
     STATUT_CHOICES = [
         ('PRESENT', 'Présent'),
         ('ABSENT', 'Absent'),
@@ -231,6 +296,7 @@ class Presence(models.Model):
     observations = models.TextField(blank=True)
 
     def __str__(self):
+        """Retourne la representation texte de la presence (contractuel, date, statut)."""
         return f"{self.contractuel} — {self.date} ({self.get_statut_display()})"
 
     class Meta:
@@ -241,6 +307,12 @@ class Presence(models.Model):
 
 
 class Conge(models.Model):
+    """Demande de conge avec workflow de validation a 3 etapes.
+
+    Workflow : EN_ATTENTE -> VALIDE_MANAGER -> APPROUVE | REJETE.
+    Types : ANNUEL, MALADIE (avec document_medical), MATERNITE, PATERNITE, SANS_SOLDE.
+    """
+
     TYPE_CHOICES = [
         ('ANNUEL', 'Congé annuel'),
         ('MALADIE', 'Congé maladie'),
@@ -279,9 +351,11 @@ class Conge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Retourne la representation texte du conge."""
         return f"{self.contractuel} — {self.get_type_conge_display()} ({self.date_debut} → {self.date_fin})"
 
     def nb_jours(self):
+        """Calcule la duree du conge en jours calendaires (date debut et fin incluses)."""
         delta = self.date_fin - self.date_debut
         return delta.days + 1
 
@@ -292,6 +366,12 @@ class Conge(models.Model):
 
 
 class Permission(models.Model):
+    """Permission d absence de courte duree.
+
+    Workflow simplifie : EN_ATTENTE -> APPROUVE | REJETE.
+    Duree maximale : 3 jours consecutifs (validee dans EspacePermissionForm).
+    """
+
     STATUT_CHOICES = [
         ('EN_ATTENTE', 'En attente'),
         ('APPROUVE', 'Approuvé'),
@@ -309,6 +389,7 @@ class Permission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Retourne la representation texte de la permission."""
         return f"{self.contractuel} — Permission {self.date_debut} → {self.date_fin}"
 
     class Meta:
@@ -318,6 +399,12 @@ class Permission(models.Model):
 
 
 class ActionLog(models.Model):
+    """Journal d audit immuable des actions RH.
+
+    Enregistre automatiquement via utils.log_action().
+    Aucune modification ou suppression autorisee depuis l admin (has_change_permission=False).
+    """
+
     utilisateur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='actions')
     action = models.CharField(max_length=200)
     modele_concerne = models.CharField(max_length=50, blank=True)
@@ -326,6 +413,7 @@ class ActionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Retourne la representation texte du log d'action."""
         return f"{self.utilisateur} — {self.action} ({self.created_at.strftime('%d/%m/%Y %H:%M')})"
 
     class Meta:

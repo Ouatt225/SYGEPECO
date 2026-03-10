@@ -1,3 +1,7 @@
+"""
+Middleware de routage par rôle.
+Redirige automatiquement les utilisateurs vers leur espace selon leur rôle.
+"""
 import logging
 
 logger = logging.getLogger('SYGEPECO')

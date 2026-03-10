@@ -1,3 +1,7 @@
+"""
+Utilitaires partagés entre toutes les vues.
+Récupération de l'entreprise associée à un utilisateur.
+"""
 import json
 from datetime import date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404

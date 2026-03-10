@@ -1,3 +1,7 @@
+"""
+Gestion des permissions d'absence courte durée.
+Workflow : EN_ATTENTE → APPROUVE/REJETE par RH ou Entreprise.
+"""
 from ._base import *
 from django.core.paginator import Paginator
 
@@ -5,6 +9,14 @@ from django.core.paginator import Paginator
 @login_required
 @rh_required
 def permission_list(request):
+    """Liste des permissions filtrée selon le rôle.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : template permissions/list.html.
+"""
     statut = request.GET.get('statut', '')
     qs = Permission.objects.select_related('contractuel', 'approuve_par').all()
     manager_dir = get_manager_direction(request.user)
@@ -20,6 +32,15 @@ def permission_list(request):
 @login_required
 @rh_required
 def permission_detail(request, pk):
+    """Détail d'une demande de permission.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire de la permission.
+
+    Returns:
+        HttpResponse : template permissions/detail.html.
+"""
     perm = get_object_or_404(Permission, pk=pk)
     return render(request, 'SYGEPECO/permissions/detail.html', {'permission': perm})
 
@@ -27,6 +48,14 @@ def permission_detail(request, pk):
 @login_required
 @rh_required
 def permission_create(request):
+    """Crée une demande de permission (par le RH pour un agent).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     form = PermissionForm(request.POST or None)
     manager_dir = get_manager_direction(request.user)
     if manager_dir:
@@ -53,6 +82,15 @@ def _perm_rh_decision(request, pk):
 @login_required
 @rh_required
 def permission_approuver(request, pk):
+    """Approuve une permission (RH/DRH).
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire de la permission.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     perm, err = _perm_rh_decision(request, pk)
     if err: return err
     form = PermissionDecisionForm(request.POST or None, instance=perm)
@@ -70,6 +108,15 @@ def permission_approuver(request, pk):
 @login_required
 @rh_required
 def permission_rejeter(request, pk):
+    """Rejette une permission avec motif (RH/DRH).
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire de la permission.
+
+    Returns:
+        HttpResponseRedirect vers la liste.
+"""
     perm, err = _perm_rh_decision(request, pk)
     if err: return err
     form = PermissionDecisionForm(request.POST or None, instance=perm)
@@ -86,6 +133,17 @@ def permission_rejeter(request, pk):
 
 @login_required
 def entreprise_permission_approuver(request, pk):
+    """Approuve une permission depuis l'espace Entreprise.
+
+    Vérifie que la permission concerne un agent de l'entreprise.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire de la permission.
+
+    Returns:
+        HttpResponseRedirect vers la liste entreprise.
+"""
     ent, err = ent_check(request)
     if err: return err
     perm = get_object_or_404(Permission, pk=pk)
@@ -105,6 +163,15 @@ def entreprise_permission_approuver(request, pk):
 
 @login_required
 def entreprise_permission_rejeter(request, pk):
+    """Rejette une permission depuis l'espace Entreprise.
+
+    Args:
+        request: HttpRequest Django (POST).
+        pk (int): Clé primaire de la permission.
+
+    Returns:
+        HttpResponseRedirect vers la liste entreprise.
+"""
     ent, err = ent_check(request)
     if err: return err
     perm = get_object_or_404(Permission, pk=pk)

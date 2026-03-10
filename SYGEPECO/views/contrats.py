@@ -1,3 +1,7 @@
+"""
+CRUD des contrats de travail (CDI, CDD, Stage, Prestation).
+Inclut le renouvellement automatique avec transfert des données.
+"""
 from ._base import *
 from django.core.paginator import Paginator
 
@@ -5,6 +9,16 @@ from django.core.paginator import Paginator
 @login_required
 @rh_required
 def contrat_list(request):
+    """Liste paginée des contrats de travail.
+
+    Filtrable par statut (EN_COURS, EXPIRE, RESILIE, RENOUVELE).
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : 15 contrats par page.
+"""
     qs = Contrat.objects.select_related('contractuel', 'type_contrat').all()
     manager_dir = get_manager_direction(request.user)
     if manager_dir:
@@ -20,6 +34,15 @@ def contrat_list(request):
 @login_required
 @rh_required
 def contrat_detail(request, pk):
+    """Détail d'un contrat de travail.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire du contrat.
+
+    Returns:
+        HttpResponse : template contrats/detail.html.
+"""
     contrat = get_object_or_404(Contrat, pk=pk)
     return render(request, 'SYGEPECO/contrats/detail.html', {'contrat': contrat})
 
@@ -27,6 +50,16 @@ def contrat_detail(request, pk):
 @login_required
 @rh_required
 def contrat_create(request):
+    """Crée un nouveau contrat lié à un contractuel.
+
+    Sauvegarde created_by = utilisateur connecté. Log l'action.
+
+    Args:
+        request: HttpRequest Django.
+
+    Returns:
+        HttpResponse : formulaire ou redirection.
+"""
     form = ContratForm(request.POST or None)
     manager_dir = get_manager_direction(request.user)
     if manager_dir:
@@ -46,6 +79,15 @@ def contrat_create(request):
 @login_required
 @rh_required
 def contrat_update(request, pk):
+    """Modifie un contrat existant.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire du contrat.
+
+    Returns:
+        HttpResponse : formulaire pré-rempli ou redirection.
+"""
     obj = get_object_or_404(Contrat, pk=pk)
     form = ContratForm(request.POST or None, instance=obj)
     if form.is_valid():
@@ -60,6 +102,18 @@ def contrat_update(request, pk):
 @login_required
 @rh_required
 def contrat_renouveler(request, pk):
+    """Renouvelle un contrat expirant.
+
+    Passe l'ancien contrat à statut RENOUVELE.
+    Crée un nouveau contrat pré-rempli avec les données de l'ancien.
+
+    Args:
+        request: HttpRequest Django.
+        pk (int): Clé primaire du contrat à renouveler.
+
+    Returns:
+        HttpResponse : formulaire pré-rempli pour le nouveau contrat.
+"""
     ancien = get_object_or_404(Contrat, pk=pk)
     if request.method == 'POST':
         form = ContratForm(request.POST)

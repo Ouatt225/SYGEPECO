@@ -1,3 +1,7 @@
+"""
+Décorateurs de contrôle d'accès par rôle pour SYGEPECO.
+Rôles disponibles : ADMINISTRATEUR, DRH, RH, MANAGER, ENTREPRISE, EMPLOYE.
+"""
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib import messages

@@ -1,3 +1,7 @@
+"""
+Fonctions utilitaires partagées : exports Excel, calculs RH, génération PDF.
+Protège les exports contre l'injection de formules CSV.
+"""
 from django.http import HttpResponse
 from .models import ActionLog, Contractuel, Presence, Conge, Permission
 from .constants import (
@@ -51,6 +55,15 @@ def get_manager_direction(user):
 
 
 def log_action(user, action, modele='', objet_id=None, details=''):
+    """Enregistre une action dans le journal d'audit ActionLog.
+
+    Args:
+        user: Objet User Django ayant effectué l'action.
+        action (str): Description de l'action (ex: 'Congé approuvé').
+        modele (str): Nom du modèle concerné.
+        objet_id (int | None): PK de l'objet concerné.
+        details (str): Détails supplémentaires.
+"""
     ActionLog.objects.create(
         utilisateur=user,
         action=action,
@@ -111,6 +124,16 @@ def solde_conges_annuel(contractuel, annee=None):
 
 
 def export_presences_excel(mois, annee, direction=None):
+    """Génère un rapport Excel des présences pour un mois donné.
+
+    Args:
+        mois (int): Mois (1-12).
+        annee (int): Année (ex: 2025).
+        direction (Direction | None): Filtre par direction (None = toutes).
+
+    Returns:
+        HttpResponse : fichier Excel avec présences colorées par statut.
+"""
     if not _OPENPYXL_OK:
         return HttpResponse("openpyxl non installé.", status=500)
 
@@ -146,6 +169,16 @@ def export_presences_excel(mois, annee, direction=None):
 
 
 def export_conges_excel(mois=None, annee=None, direction=None):
+    """Génère un rapport Excel des congés.
+
+    Args:
+        mois (int | None): Filtre par mois (None = tous).
+        annee (int | None): Filtre par année.
+        direction (Direction | None): Filtre par direction.
+
+    Returns:
+        HttpResponse : fichier Excel.
+"""
     if not _OPENPYXL_OK:
         return HttpResponse("openpyxl non installé.", status=500)
 
@@ -192,6 +225,16 @@ def export_conges_excel(mois=None, annee=None, direction=None):
 
 
 def export_permissions_excel(mois=None, annee=None, direction=None):
+    """Génère un rapport Excel des permissions.
+
+    Args:
+        mois (int | None): Filtre par mois.
+        annee (int | None): Filtre par année.
+        direction (Direction | None): Filtre par direction.
+
+    Returns:
+        HttpResponse : fichier Excel.
+"""
     if not _OPENPYXL_OK:
         return HttpResponse("openpyxl non installé.", status=500)
 
@@ -236,6 +279,14 @@ def export_permissions_excel(mois=None, annee=None, direction=None):
 
 
 def export_contractuels_excel(direction=None):
+    """Exporte la liste des contractuels actifs en Excel.
+
+    Args:
+        direction (Direction | None): Filtre par direction (None = tous).
+
+    Returns:
+        HttpResponse : fichier Excel avec les fiches agents.
+"""
     if not _OPENPYXL_OK:
         return HttpResponse("openpyxl non installé.", status=500)
 
