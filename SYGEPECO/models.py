@@ -249,8 +249,8 @@ class Contrat(models.Model):
     ]
     contractuel = models.ForeignKey(Contractuel, on_delete=models.CASCADE, related_name='contrats')
     type_contrat = models.ForeignKey(TypeContrat, on_delete=models.PROTECT)
-    date_debut = models.DateField()
-    date_fin = models.DateField(null=True, blank=True)
+    date_debut = models.DateField(db_index=True)       # periodes actives, alertes
+    date_fin   = models.DateField(null=True, blank=True, db_index=True)  # is_expired(), alertes renouvellement
     salaire = models.DecimalField(max_digits=12, decimal_places=2)
     observations = models.TextField(blank=True)
     statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='EN_COURS', db_index=True)
@@ -292,7 +292,7 @@ class Presence(models.Model):
     date = models.DateField(default=timezone.now, db_index=True)  # filtre par mois/annee
     heure_arrivee = models.TimeField(null=True, blank=True)
     heure_depart = models.TimeField(null=True, blank=True)
-    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='PRESENT')
+    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='PRESENT', db_index=True)  # COUNT par statut
     observations = models.TextField(blank=True)
 
     def __str__(self):
@@ -378,10 +378,10 @@ class Permission(models.Model):
         ('REJETE', 'Rejeté'),
     ]
     contractuel = models.ForeignKey(Contractuel, on_delete=models.CASCADE, related_name='permissions')
-    date_debut = models.DateField()
-    date_fin = models.DateField()
-    motif = models.TextField()
-    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE', db_index=True)
+    date_debut = models.DateField(db_index=True)       # filtres par mois/periode
+    date_fin   = models.DateField()
+    motif      = models.TextField()
+    statut     = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE', db_index=True)
     approuve_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='permissions_approuvees'
     )
