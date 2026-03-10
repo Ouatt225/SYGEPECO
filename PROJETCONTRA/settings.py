@@ -112,6 +112,22 @@ CACHES = {
     }
 }
 
+
+# ─── Media proteges ──────────────────────────────────────────────────────────
+# Les fichiers /media/ sont servis par SYGEPECO/views/media_serve.py
+# qui applique @login_required + controle de role sur les dossiers sensibles.
+#
+# Production (Nginx) : activer X-Accel-Redirect pour efficacite maximale.
+#   SYGEPECO_USE_XACCEL = True   # decommenter en production
+#
+# Configurer Nginx :
+#   location /protected-media/ {
+#       internal;
+#       alias /chemin/vers/media/;
+#   }
+#   location /media/ {
+#       proxy_pass http://django;   # passe par Django (auth verifiee)
+#   }
 # ─── Rate limiting ───────────────────────────────────────────────────────────
 # Implementation manuelle dans SYGEPECO/views/auth.py (_rl_is_blocked / _rl_record).
 # Cles cache : 'rl:login:ip:<ip>' et 'rl:login:user:<username>' (TTL 300s).
