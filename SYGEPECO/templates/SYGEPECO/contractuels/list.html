@@ -98,7 +98,10 @@
           <div style="display:flex;gap:6px;justify-content:center;">
             <a href="{% url 'contractuel_detail' c.pk %}" class="btn btn-secondary btn-sm" title="Voir">👁</a>
             <a href="{% url 'contractuel_update' c.pk %}" class="btn btn-secondary btn-sm" title="Modifier">✏</a>
-            <a href="{% url 'contractuel_delete' c.pk %}" class="btn btn-secondary btn-sm" title="Supprimer" style="color:var(--accent-red);" data-confirm="Supprimer {{ c.get_full_name }} ?">🗑</a>
+            <button type="button" class="btn btn-secondary btn-sm" title="Supprimer"
+                      style="color:var(--accent-red);"
+                      data-delete-url="{% url 'contractuel_delete' c.pk %}"
+                      data-delete-name="{{ c.get_full_name }}">&#x1F5D1;</button>
           </div>
         </td>
       </tr>

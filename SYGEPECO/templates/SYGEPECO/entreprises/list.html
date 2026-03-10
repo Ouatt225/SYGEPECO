@@ -258,7 +258,11 @@
       <div class="card-actions">
         <a href="{% url 'entreprise_detail' e.pk %}" class="btn btn-sm btn-primary" style="flex:1;text-align:center;">Voir détails</a>
         <a href="{% url 'entreprise_update' e.pk %}" class="btn btn-sm btn-secondary" title="Modifier">✏</a>
-        <a href="{% url 'entreprise_delete' e.pk %}" class="btn btn-sm" style="background:rgba(239,68,68,.15);color:var(--accent-red);" title="Supprimer">🗑</a>
+        <button type="button" class="btn btn-sm" title="Supprimer"
+                style="background:rgba(239,68,68,.15);color:var(--accent-red);"
+                data-delete-url="{% url 'entreprise_delete' e.pk %}"
+                data-delete-name="{{ e.nom }}"
+                data-delete-message="Tous les contractuels associes a cette entreprise seront affectes.">&#x1F5D1;</button>
       </div>
 
     </div>

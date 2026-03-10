@@ -139,6 +139,102 @@
 <script src="{% static 'SYGEPECO/js/calendar.js' %}"></script>
 
 <script src="{% static 'SYGEPECO/js/notifications.js' %}"></script>
+
+{# Modale de confirmation de suppression — partagee sur toutes les pages. #}
+{# Declenchement : <button data-delete-url="..." data-delete-name="...">  #}
+<div id="dmOverlay" class="delete-modal-overlay"
+     role="dialog" aria-modal="true" aria-labelledby="dmTitle">
+  <div class="delete-modal-card">
+
+    <!-- En-tete -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <div class="dm-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+      </div>
+      <h3 id="dmTitle"
+          style="color:var(--text-primary);font-size:1.05rem;font-weight:700;margin:0;">
+        Confirmer la suppression
+      </h3>
+    </div>
+
+    <!-- Corps -->
+    <p style="color:var(--text-muted);font-size:.875rem;margin:0 0 4px;">
+      Vous etes sur le point de supprimer :
+    </p>
+    <span id="dmItemName" class="dm-item-name">—</span>
+    <p id="dmMessage"
+       style="color:var(--text-muted);font-size:.8rem;margin:0 0 24px;line-height:1.5;">
+      Cette action est irreversible.
+    </p>
+
+    <!-- Actions -->
+    <form id="dmForm" method="post">
+      {% csrf_token %}
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+        <button type="button" id="dmCancel" class="btn btn-secondary">Annuler</button>
+        <button type="submit" class="btn btn-danger">Supprimer definitivement</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+/* Modale suppression — evenement delegue, zero dependance externe.
+   Ecoute les clics sur [data-delete-url] partout dans le DOM.
+   Attributs supportes :
+     data-delete-url     : URL de l'action POST de suppression (obligatoire)
+     data-delete-name    : nom de l'element affiche dans la modale
+     data-delete-message : message personnalise (optionnel)                 */
+(function () {
+  'use strict';
+  var overlay  = document.getElementById('dmOverlay');
+  var form     = document.getElementById('dmForm');
+  var nameEl   = document.getElementById('dmItemName');
+  var msgEl    = document.getElementById('dmMessage');
+  var cancelBtn = document.getElementById('dmCancel');
+  if (!overlay) return;
+
+  function openModal(url, name, message) {
+    form.action = url;
+    nameEl.textContent = name || 'cet element';
+    msgEl.textContent  = message || 'Cette action est irreversible.';
+    overlay.classList.add('dm-active');
+    cancelBtn.focus();   /* accessibilite : focus sur Annuler a l'ouverture */
+  }
+
+  function closeModal() {
+    overlay.classList.remove('dm-active');
+  }
+
+  /* Clic sur n'importe quel bouton portant data-delete-url */
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest('[data-delete-url]');
+    if (!trigger) return;
+    e.preventDefault();
+    openModal(
+      trigger.dataset.deleteUrl,
+      trigger.dataset.deleteName,
+      trigger.dataset.deleteMessage
+    );
+  });
+
+  /* Fermeture */
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeModal();   /* clic sur le fond */
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();     /* touche Echap */
+  });
+})();
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -60,7 +60,13 @@
       {% endif %}
     </div>
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-      <a href="{% url 'entreprise_delete' entreprise.pk %}" class="btn btn-sm" style="background:rgba(239,68,68,.12);color:var(--accent-red);width:100%;text-align:center;">Supprimer l'entreprise</a>
+      <button type="button" class="btn btn-sm"
+              style="background:rgba(239,68,68,.12);color:var(--accent-red);width:100%;text-align:center;"
+              data-delete-url="{% url 'entreprise_delete' entreprise.pk %}"
+              data-delete-name="{{ entreprise.nom }}"
+              data-delete-message="Tous les contractuels associes a cette entreprise seront affectes.">
+          Supprimer l'entreprise
+        </button>
     </div>
   </div>
 
