@@ -97,6 +97,26 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+
+# ─── Cache ──────────────────────────────────────────────────────────────────
+# LocMemCache en développement. En production, remplacer par Redis :
+#   BACKEND: 'django.core.cache.backends.redis.RedisCache'
+#   LOCATION: config('REDIS_URL', default='redis://127.0.0.1:6379/1')
+CACHES = {
+    'default': {
+        # DatabaseCache : utilise PostgreSQL (pas de service supplementaire).
+        # Shared entre tous les workers -> compteurs rate-limit coherents.
+        # Initialisation : python manage.py createcachetable
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'sygepeco_cache',
+    }
+}
+
+# ─── Rate limiting ───────────────────────────────────────────────────────────
+# Implementation manuelle dans SYGEPECO/views/auth.py (_rl_is_blocked / _rl_record).
+# Cles cache : 'rl:login:ip:<ip>' et 'rl:login:user:<username>' (TTL 300s).
+# Pour passer a Redis en production, seul le backend CACHES doit changer.
+
 # ─── Sécurité production ────────────────────────────────────────────────────
 # Ces paramètres s'activent automatiquement hors mode DEBUG.
 # En développement (DEBUG=True) ils sont désactivés pour ne pas bloquer HTTP.

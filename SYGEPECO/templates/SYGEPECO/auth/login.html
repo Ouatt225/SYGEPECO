@@ -469,6 +469,18 @@
         <p class="form-subtitle">Entrez vos identifiants pour continuer</p>
       </div>
 
+      {# Bloc rate limit — affiché si trop de tentatives (HTTP 429) #}
+      {% if ratelimited %}
+      <div class="error-box" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);margin-bottom:20px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>
+          <strong style="color:#EF4444;">Trop de tentatives.</strong><br>
+          Votre accès est temporairement bloqué (5&nbsp;minutes).
+          Veuillez patienter avant de réessayer.
+        </span>
+      </div>
+      {% endif %}
+
       {% if form.non_field_errors %}
       <div class="error-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">

@@ -2,7 +2,7 @@
 <!-- ═══ NAVBAR ═══
      - Gauche : toggle sidebar + fil d'ariane (breadcrumb)
      - Droite : date dynamique (JS) + bouton notifications + menu utilisateur
-     breadcrumb injecte via {% block breadcrumb %} dans chaque template enfant -->
+     breadcrumb injecte via [ block breadcrumb ] dans chaque template enfant -->
 <nav class="navbar" id="navbar">
   <div class="navbar-left">
     <button class="btn-sidebar-toggle" id="btnSidebarToggle" title="Reduire la sidebar">
@@ -14,7 +14,7 @@
     </button>
     <div class="navbar-breadcrumb">
       <span class="breadcrumb-item"><a href="{% url 'dashboard' %}" style="color:var(--text-muted);text-decoration:none;font-weight:600;">SYGEPECO</a></span>
-      {% block breadcrumb %}{% endblock %}
+      {# breadcrumb desormais gere via base.html (block inline) #}
     </div>
   </div>
 
