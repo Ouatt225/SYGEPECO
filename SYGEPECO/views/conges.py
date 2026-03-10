@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger('SYGEPECO')
+
 from ._base import *
 from django.core.paginator import Paginator
 
@@ -201,7 +205,7 @@ def conge_document_medical(request, pk):
     try:
         if request.user.profile.role in ("ADMINISTRATEUR", "DRH", "RH", "MANAGER"):
             can_access = True
-    except Exception:
+    except Exception:  # Superuser ou compte sans UserProfile
         pass
 
     # Agent lui-même
@@ -221,14 +225,11 @@ def conge_document_medical(request, pk):
             pass
 
     if not can_access:
-        # Debug temporaire — affiche la raison exacte du refus
-        try:
-            role = request.user.profile.role if hasattr(request.user, 'profile') else 'NO_PROFILE'
-            ent_id = request.user.profile.entreprise_id if hasattr(request.user, 'profile') else 'N/A'
-            c_ent_id = conge.contractuel.entreprise_id if conge.contractuel else 'NO_CONTRACTUEL'
-        except Exception as _dbg_e:
-            role, ent_id, c_ent_id = f'ERR:{_dbg_e}', '?', '?'
-        messages.error(request, f"Accès refusé — role={role} | profile.ent={ent_id} | conge.ctr.ent={c_ent_id}")
+        logger.warning(
+            'conge_document_medical: accès refusé user=%s conge_pk=%s',
+            request.user.username, pk,
+        )
+        messages.error(request, "Accès refusé : vous n'êtes pas autorisé à consulter ce document.")
         if hasattr(request.user, "contractuel") and request.user.contractuel:
             return redirect("espace_home")
         try:

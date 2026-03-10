@@ -3,27 +3,63 @@
   'use strict';
 
   var STORAGE_KEY = 'syg_notifs_v1';
+  var _audioCtx   = null;   // contexte partagé (créé une seule fois)
+  var _userReady  = false;  // true dès qu'une interaction a eu lieu
+
+  /* ── Contexte audio partagé ───────────────────────────────────── */
+  function getCtx() {
+    if (!_audioCtx) {
+      try {
+        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) { return null; }
+    }
+    return _audioCtx;
+  }
+
+  /* Déverrouiller le contexte dès la première interaction */
+  function unlockAudio() {
+    if (_userReady) return;
+    _userReady = true;
+    var ctx = getCtx();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(function () {});
+    }
+  }
+  ['click', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+    document.addEventListener(ev, unlockAudio, { once: false, passive: true });
+  });
 
   /* ── Sons ────────────────────────────────────────────────────── */
   function playSound(urgent) {
-    try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      var notes = urgent ? [523, 784, 1047] : [523, 659];
-      var t = ctx.currentTime + 0.05;
+    var ctx = getCtx();
+    if (!ctx) return;
+
+    /* Resume si suspendu (premier chargement sans interaction) puis joue */
+    var doPlay = function () {
+      var notes = urgent ? [523, 659, 784, 1047] : [523, 659];
+      var t = ctx.currentTime + 0.04;
       notes.forEach(function (freq) {
-        var osc  = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        gain.gain.setValueAtTime(0.22, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
-        osc.start(t);
-        osc.stop(t + 0.28);
-        t += 0.22;
+        try {
+          var osc  = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.28, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+          osc.start(t);
+          osc.stop(t + 0.32);
+          t += 0.26;
+        } catch (e) {}
       });
-    } catch (e) { /* Web Audio non supporté */ }
+    };
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(doPlay).catch(function () {});
+    } else {
+      doPlay();
+    }
   }
 
   /* ── Conteneur de toasts ──────────────────────────────────────── */
@@ -46,10 +82,10 @@
   function showToast(notif) {
     var urgent = notif.days_until <= 1;
     var color  = urgent ? '#F43F5E' : '#F59E0B';
-    var label  = urgent ? 'Congé DEMAIN' : 'Congé dans 7 jours';
+    var label  = urgent ? 'Congé DEMAIN !' : 'Congé dans 7 jours';
     var icon   = urgent
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
 
     var toast = document.createElement('div');
     toast.style.cssText = [
@@ -70,13 +106,13 @@
         '<div style="font-size:.80rem;font-weight:600;color:#EEF0F8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + notif.agent + '</div>' +
         '<div style="font-size:.73rem;color:#8B8FA8;margin-top:2px;">' + notif.type_conge + ' — début le ' + notif.date_debut + '</div>' +
       '</div>' +
-      '<button style="background:none;border:none;cursor:pointer;color:#52566E;font-size:1rem;padding:0 0 0 6px;flex-shrink:0;line-height:1;" onclick="this.closest(\'div\').remove()">✕</button>';
+      '<button style="background:none;border:none;cursor:pointer;color:#52566E;font-size:1rem;padding:0 0 0 6px;flex-shrink:0;line-height:1;" onclick="this.closest(\'[id]\').remove ? this.parentElement.parentElement.remove() : this.parentElement.remove()">✕</button>';
 
     getContainer().appendChild(toast);
     setTimeout(function () {
       toast.style.animation = 'sygToastOut .3s ease forwards';
-      setTimeout(function () { toast.remove(); }, 300);
-    }, 9000);
+      setTimeout(function () { if (toast.parentNode) toast.remove(); }, 300);
+    }, 10000);
   }
 
   /* ── Keyframes (injectés une seule fois) ───────────────────────── */
@@ -105,27 +141,32 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data || !data.notifications) return;
-        var seen = getSeenKeys();
+        var seen  = getSeenKeys();
         var fresh = data.notifications.filter(function (n) { return !seen.has(n.key); });
         if (!fresh.length) return;
 
         injectStyles();
         var hasUrgent = fresh.some(function (n) { return n.days_until <= 1; });
-        playSound(hasUrgent);
 
+        /* Afficher les toasts d'abord (interaction visuelle), puis le son */
         fresh.forEach(function (n) {
           showToast(n);
           seen.add(n.key);
         });
         saveSeenKeys(seen);
+
+        /* Jouer le son (résumé automatique si contexte suspendu) */
+        playSound(hasUrgent);
       })
       .catch(function () {});
   }
 
   /* ── Démarrage ─────────────────────────────────────────────────── */
   function init() {
-    setTimeout(checkNotifications, 1800);         // 1er check après chargement
-    setInterval(checkNotifications, 5 * 60 * 1000); // re-check toutes les 5 min
+    /* Pré-créer le contexte pour qu'il soit prêt */
+    getCtx();
+    setTimeout(checkNotifications, 2000);
+    setInterval(checkNotifications, 5 * 60 * 1000);
   }
 
   if (document.readyState === 'loading') {

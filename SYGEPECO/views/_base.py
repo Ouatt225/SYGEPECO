@@ -25,6 +25,8 @@ from ..utils import (
 )
 from ..decorators import contractuel_required, rh_required, administrateur_required
 from ..utils import get_manager_direction
+import logging
+logger = logging.getLogger('SYGEPECO')
 
 
 def redirect_by_role(user):
@@ -55,7 +57,7 @@ def build_alertes_conges(conges_qs, today):
 def get_entreprise_for_user(user):
     try:
         profile = user.profile
-    except Exception:
+    except Exception:  # UserProfile.DoesNotExist ou AttributeError
         return None
     if profile.role in ('ADMINISTRATEUR', 'DRH'):
         return None

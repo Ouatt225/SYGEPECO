@@ -57,11 +57,12 @@ class Direction(models.Model):
 
 class Poste(models.Model):
     titre = models.CharField(max_length=100)
-    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, related_name='postes')
+    direction = models.ForeignKey(Direction, on_delete=models.SET_NULL, null=True, blank=True, related_name='postes')
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.titre} ({self.direction.nom})"
+        dir_nom = self.direction.nom if self.direction else "—"
+        return f"{self.titre} ({dir_nom})"
 
     class Meta:
         verbose_name = "Poste"
@@ -147,7 +148,7 @@ class Contractuel(models.Model):
     lieu_naissance = models.CharField(max_length=100, blank=True)
     nationalite = models.CharField(max_length=50, default='Ivoirienne')
     email = models.EmailField(unique=True)
-    telephone = models.CharField(max_length=20)
+    telephone = models.CharField(max_length=20, blank=True)
     adresse = models.TextField(blank=True)
     photo = models.ImageField(upload_to='contractuels/', blank=True, null=True)
     # ── Infos sociales (renseignées par l'agent) ──────────────
@@ -334,9 +335,13 @@ class ActionLog(models.Model):
 
 
 # ─── Synchronisation direction Contractuel ↔ UserProfile ─────────────────────
+import logging
+import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
+logger = logging.getLogger('SYGEPECO')
 
 @receiver(post_save, sender='SYGEPECO.Contractuel')
 def _sync_contractuel_dir_to_profile(sender, instance, **kwargs):
@@ -369,4 +374,4 @@ def _sync_profile_dir_to_contractuel(sender, instance, **kwargs):
             direction_id=instance.direction_id
         ).update(direction=instance.direction)
     except Exception:
-        pass
+        logger.exception('Erreur sync direction Profile→Contractuel (pk=%s)', getattr(instance, 'pk', '?'))

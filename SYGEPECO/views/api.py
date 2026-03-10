@@ -62,7 +62,7 @@ def api_postes_entreprise(request):
         if not postes.exists():
             postes = Poste.objects.select_related('direction').all().order_by('titre')
     data = [{'id': p.id, 'titre': p.titre,
-             'direction_id': p.direction_id, 'direction_nom': p.direction.nom}
+             'direction_id': p.direction_id, 'direction_nom': p.direction.nom if p.direction else ''}
             for p in postes]
     return JsonResponse({'postes': data})
 

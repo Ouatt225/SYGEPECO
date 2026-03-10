@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger('SYGEPECO')
+
 from django.conf import settings
 from django.http import FileResponse, Http404
 from django.contrib.auth.decorators import login_required
@@ -40,6 +44,7 @@ def _find_conge(rel_path):
             .first()
         )
     except Exception:
+        logger.warning('media_serve._find_conge: erreur DB pour path=%s', rel_path, exc_info=True)
         return None
 
 
@@ -64,7 +69,7 @@ def _has_doc_access(user, rel_path):
             if ent and conge.contractuel.entreprise_id == ent.pk:
                 return True
     except Exception:
-        pass
+        logger.warning('media_serve._has_doc_access: erreur pour user=%s path=%s', getattr(user, "username", "?"), rel_path, exc_info=True)
 
     return False
 

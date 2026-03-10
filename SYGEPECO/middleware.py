@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger('SYGEPECO')
 from django.shortcuts import redirect
 
 
@@ -26,7 +29,7 @@ class RoleRoutingMiddleware:
             if not any(path.startswith(p) for p in self.ALWAYS_ALLOWED):
                 try:
                     role = user.profile.role
-                except Exception:
+                except Exception:  # Superuser ou compte sans UserProfile
                     role = None
 
                 if role == 'ENTREPRISE':
