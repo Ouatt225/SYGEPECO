@@ -212,7 +212,7 @@ class Contractuel(models.Model):
     poste = models.ForeignKey(Poste, on_delete=models.SET_NULL, null=True, related_name='contractuels')
     direction = models.ForeignKey(Direction, on_delete=models.SET_NULL, null=True, related_name='contractuels')
     date_embauche = models.DateField()
-    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='ACTIF')
+    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='ACTIF', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -253,7 +253,7 @@ class Contrat(models.Model):
     date_fin = models.DateField(null=True, blank=True)
     salaire = models.DecimalField(max_digits=12, decimal_places=2)
     observations = models.TextField(blank=True)
-    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='EN_COURS')
+    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='EN_COURS', db_index=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='contrats_crees')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -289,7 +289,7 @@ class Presence(models.Model):
         ('PERMISSION', 'En permission'),
     ]
     contractuel = models.ForeignKey(Contractuel, on_delete=models.CASCADE, related_name='presences')
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(default=timezone.now, db_index=True)  # filtre par mois/annee
     heure_arrivee = models.TimeField(null=True, blank=True)
     heure_depart = models.TimeField(null=True, blank=True)
     statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='PRESENT')
@@ -328,10 +328,10 @@ class Conge(models.Model):
     ]
     contractuel = models.ForeignKey(Contractuel, on_delete=models.CASCADE, related_name='conges')
     type_conge = models.CharField(max_length=15, choices=TYPE_CHOICES)
-    date_debut = models.DateField()
+    date_debut = models.DateField(db_index=True)  # filtre par annee (conges approuves)
     date_fin = models.DateField()
     motif = models.TextField()
-    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default='EN_ATTENTE')
+    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default='EN_ATTENTE', db_index=True)
     approuve_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='conges_approuves'
     )
@@ -381,7 +381,7 @@ class Permission(models.Model):
     date_debut = models.DateField()
     date_fin = models.DateField()
     motif = models.TextField()
-    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE')
+    statut = models.CharField(max_length=12, choices=STATUT_CHOICES, default='EN_ATTENTE', db_index=True)
     approuve_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name='permissions_approuvees'
     )

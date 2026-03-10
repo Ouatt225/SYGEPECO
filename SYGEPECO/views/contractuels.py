@@ -63,13 +63,23 @@ def contractuel_detail(request, pk):
     Returns:
         HttpResponse : template contractuels/detail.html.
 """
-    c = get_object_or_404(Contractuel, pk=pk)
+    # select_related evite N+1 sur poste, direction et entreprise
+    c = get_object_or_404(
+        Contractuel.objects.select_related('poste', 'direction', 'entreprise'),
+        pk=pk,
+    )
     return render(request, 'SYGEPECO/contractuels/detail.html', {
         'contractuel': c,
-        'contrats': c.contrats.all(),
-        'presences': c.presences.all()[:10],
-        'conges': c.conges.all()[:5],
-        'permissions': c.permissions.all()[:5],
+        # select_related sur type_contrat et created_by : 1 requete avec JOIN
+        'contrats': c.contrats.select_related('type_contrat', 'created_by')
+                               .order_by('-created_at'),
+        # Slicing dans le queryset (LIMIT en SQL) et non en Python
+        'presences': c.presences.order_by('-date')[:10],
+        # select_related sur approuve_par et valide_par_manager
+        'conges': c.conges.select_related('approuve_par', 'valide_par_manager')
+                           .order_by('-created_at')[:5],
+        'permissions': c.permissions.select_related('approuve_par')
+                                    .order_by('-created_at')[:5],
     })
 
 

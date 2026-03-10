@@ -24,15 +24,27 @@ def espace_home(request):
 """
     c = request.user.contractuel
     today = date.today()
-    contrat_actif = c.get_contrat_actif()
-    mes_conges = c.conges.all()
-    mes_permissions = c.permissions.all()
 
+    # 1 requete avec JOIN sur type_contrat (evite N+1 dans le template)
+    contrat_actif = (
+        c.contrats.select_related('type_contrat')
+         .filter(statut='EN_COURS')
+         .first()
+    )
+
+    # Requetes COUNT ciblees : pas de chargement des objets complets
+    conges_en_attente      = c.conges.filter(statut='EN_ATTENTE').count()
+    conges_approuves_count = c.conges.filter(statut='APPROUVE').count()
+    permissions_en_attente = c.permissions.filter(statut='EN_ATTENTE').count()
+
+    # Une seule requete conges pour calculer les jours pris cette annee
     conges_approuves_annee = c.conges.filter(
-        type_conge='ANNUEL', statut='APPROUVE', date_debut__year=today.year)
+        type_conge='ANNUEL', statut='APPROUVE', date_debut__year=today.year,
+    )
     jours_pris = sum(cg.nb_jours() for cg in conges_approuves_annee)
     solde_conges = solde_conges_annuel(c)
 
+    # Presences du mois : 3 COUNT sur le meme queryset (Django reutilise le cache)
     presences_mois = c.presences.filter(date__month=today.month, date__year=today.year)
     nb_present = presences_mois.filter(statut='PRESENT').count()
     nb_absent  = presences_mois.filter(statut='ABSENT').count()
@@ -46,9 +58,9 @@ def espace_home(request):
     return render(request, 'SYGEPECO/espace/home.html', {
         'contractuel': c,
         'contrat_actif': contrat_actif,
-        'conges_en_attente': mes_conges.filter(statut='EN_ATTENTE').count(),
-        'permissions_en_attente': mes_permissions.filter(statut='EN_ATTENTE').count(),
-        'conges_approuves': mes_conges.filter(statut='APPROUVE').count(),
+        'conges_en_attente': conges_en_attente,
+        'permissions_en_attente': permissions_en_attente,
+        'conges_approuves': conges_approuves_count,
         'solde_conges': solde_conges,
         'jours_pris': jours_pris,
         'nb_present': nb_present,
@@ -116,7 +128,8 @@ def espace_mes_conges(request):
 """
     c = request.user.contractuel
     return render(request, 'SYGEPECO/espace/mes_conges.html', {
-        'conges': c.conges.all().order_by('-created_at'),
+        # select_related evite N+1 si le template affiche approuve_par / valide_par_manager
+        'conges': c.conges.select_related('approuve_par', 'valide_par_manager').order_by('-created_at'),
         'contractuel': c,
     })
 
@@ -172,7 +185,8 @@ def espace_mes_permissions(request):
 """
     c = request.user.contractuel
     return render(request, 'SYGEPECO/espace/mes_permissions.html', {
-        'permissions': c.permissions.all().order_by('-created_at'),
+        # select_related evite N+1 si le template affiche approuve_par
+        'permissions': c.permissions.select_related('approuve_par').order_by('-created_at'),
         'contractuel': c,
     })
 
@@ -215,9 +229,20 @@ def espace_mon_contrat(request):
         HttpResponse : template espace/mon_contrat.html.
 """
     c = request.user.contractuel
-    contrat_actif = c.get_contrat_actif()
-    autres = (c.contrats.exclude(pk=contrat_actif.pk).order_by('-created_at')
-              if contrat_actif else c.contrats.all().order_by('-created_at'))
+    # select_related sur type_contrat et created_by : 1 requete avec JOIN
+    contrat_actif = (
+        c.contrats.select_related('type_contrat', 'created_by')
+         .filter(statut='EN_COURS')
+         .first()
+    )
+    if contrat_actif:
+        autres = (
+            c.contrats.select_related('type_contrat')
+             .exclude(pk=contrat_actif.pk)
+             .order_by('-created_at')
+        )
+    else:
+        autres = c.contrats.select_related('type_contrat').order_by('-created_at')
     return render(request, 'SYGEPECO/espace/mon_contrat.html', {
         'contractuel': c,
         'contrat_actif': contrat_actif,
