@@ -14,6 +14,15 @@ import_azing_ivoir_mdp.py
 import_azing1.py
 import_cafor.py
 import_ivoir_gardiennage.py
+import_comptes_entreprise.py
+
+# ── Scripts temporaires / one-shot (refactoring, génération) ─────
+utils_refactor.py
+write_perm_template.py
+
+# ── Fichiers de sauvegarde ───────────────────────────────────────
+*_backup.py
+*.bak
 
 # ── Fichiers Excel générés (identifiants) ────────────────────────
 Identifiants_*.xlsx
