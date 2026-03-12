@@ -208,24 +208,24 @@ class Contractuel(models.Model):
         ('DIVORCE', 'Divorcé(e)'), ('VEUF', 'Veuf / Veuve'), ('UNION_LIBRE', 'Union libre'),
     ], verbose_name="Situation familiale")
     nombre_enfants    = models.PositiveIntegerField(default=0, verbose_name="Nombre d'enfants")
-    # ── Pièce d'identité ──────────────────────────────────────
+    # ── Pièce d'identité (obligatoire) ────────────────────────
     numero_piece_identite = models.CharField(
-        max_length=30, blank=True,
+        max_length=30,
         verbose_name="Numéro de la pièce d'identité"
     )
     piece_identite_recto = models.ImageField(
-        upload_to='contractuels/cni/', blank=True, null=True,
+        upload_to='contractuels/cni/', null=True,
         verbose_name="Carte d'identité (recto)"
     )
     piece_identite_verso = models.ImageField(
-        upload_to='contractuels/cni/', blank=True, null=True,
+        upload_to='contractuels/cni/', null=True,
         verbose_name="Carte d'identité (verso)"
     )
     document_prise_service = models.FileField(
-        upload_to='contractuels/prise_service/', blank=True, null=True,
+        upload_to='contractuels/prise_service/', null=True,
         verbose_name="Document de prise de service"
     )
-    # ── Contact d'urgence ─────────────────────────────────────
+    # ── Contact d'urgence (obligatoire) ───────────────────────
     LIEN_URGENCE_CHOICES = [
         ('CONJOINT',    'Conjoint(e)'),
         ('PARENT',      'Parent (père / mère)'),
@@ -233,9 +233,9 @@ class Contractuel(models.Model):
         ('AMI',         'Ami(e)'),
         ('AUTRE',       'Autre'),
     ]
-    urgence_nom       = models.CharField(max_length=100, blank=True, verbose_name="Personne à contacter (nom)")
-    urgence_lien      = models.CharField(max_length=20,  blank=True, choices=LIEN_URGENCE_CHOICES, verbose_name="Lien")
-    urgence_telephone = models.CharField(max_length=20,  blank=True, verbose_name="Téléphone d'urgence")
+    urgence_nom       = models.CharField(max_length=100, verbose_name="Personne à contacter (nom)")
+    urgence_lien      = models.CharField(max_length=20,  choices=LIEN_URGENCE_CHOICES, verbose_name="Lien")
+    urgence_telephone = models.CharField(max_length=20,  verbose_name="Téléphone d'urgence")
     entreprise  = models.ForeignKey('Entreprise', on_delete=models.SET_NULL, null=True, blank=True, related_name='contractuels', verbose_name="Entreprise")
     poste = models.ForeignKey(Poste, on_delete=models.SET_NULL, null=True, related_name='contractuels')
     direction = models.ForeignKey(Direction, on_delete=models.SET_NULL, null=True, related_name='contractuels')
