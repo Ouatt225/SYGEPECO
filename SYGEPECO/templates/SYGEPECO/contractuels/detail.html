@@ -55,6 +55,99 @@
   </div>
 </div>
 
+<!-- Documents officiels & Contact d'urgence -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <h3 class="card-title">🪪 Documents officiels &amp; Contact d'urgence</h3>
+  </div>
+
+  <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;border-bottom:1px solid var(--border);">
+
+    <!-- CNI Recto -->
+    <div>
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">CNI — Recto</div>
+      {% if contractuel.piece_identite_recto %}
+      <a href="{{ contractuel.piece_identite_recto.url }}" target="_blank" style="display:block;margin-bottom:8px;">
+        <img src="{{ contractuel.piece_identite_recto.url }}"
+             style="width:100%;max-height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" alt="Recto">
+      </a>
+      <a href="{{ contractuel.piece_identite_recto.url }}" download
+         class="btn btn-secondary btn-sm" style="width:100%;text-align:center;">
+        ⬇ Télécharger
+      </a>
+      {% else %}
+      <div style="height:90px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.75rem;">
+        Non fourni
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- CNI Verso -->
+    <div>
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">CNI — Verso</div>
+      {% if contractuel.piece_identite_verso %}
+      <a href="{{ contractuel.piece_identite_verso.url }}" target="_blank" style="display:block;margin-bottom:8px;">
+        <img src="{{ contractuel.piece_identite_verso.url }}"
+             style="width:100%;max-height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" alt="Verso">
+      </a>
+      <a href="{{ contractuel.piece_identite_verso.url }}" download
+         class="btn btn-secondary btn-sm" style="width:100%;text-align:center;">
+        ⬇ Télécharger
+      </a>
+      {% else %}
+      <div style="height:90px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.75rem;">
+        Non fourni
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- N° pièce + prise de service -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">N° Pièce d'identité</div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--text);">
+          {{ contractuel.numero_piece_identite|default:"—" }}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Prise de service</div>
+        {% if contractuel.document_prise_service %}
+        <a href="{{ contractuel.document_prise_service.url }}" download
+           class="btn btn-secondary btn-sm" style="width:100%;text-align:center;">
+          ⬇ Télécharger
+        </a>
+        <a href="{{ contractuel.document_prise_service.url }}" target="_blank"
+           style="display:block;margin-top:6px;font-size:.72rem;color:var(--text-muted);text-align:center;">
+          Ouvrir dans un onglet
+        </a>
+        {% else %}
+        <span style="font-size:.8rem;color:var(--text-muted);">Non fourni</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Contact d'urgence -->
+    <div style="border-left:2px solid rgba(220,38,38,.35);padding-left:14px;">
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(220,38,38,.8);margin-bottom:10px;">🚨 Contact d'urgence</div>
+      {% if contractuel.urgence_nom %}
+      <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px;">{{ contractuel.urgence_nom }}</div>
+      {% if contractuel.urgence_lien %}
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;">{{ contractuel.get_urgence_lien_display }}</div>
+      {% endif %}
+      {% if contractuel.urgence_telephone %}
+      <a href="tel:{{ contractuel.urgence_telephone }}"
+         style="font-size:.82rem;color:var(--accent-teal);font-weight:500;text-decoration:none;">
+        📞 {{ contractuel.urgence_telephone }}
+      </a>
+      {% endif %}
+      {% else %}
+      <div style="font-size:.8rem;color:var(--text-muted);">Non renseigné</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
 <!-- Contrats -->
 {% if request.user.profile.role != 'MANAGER' %}
 <div class="card" style="margin-bottom:20px;">
