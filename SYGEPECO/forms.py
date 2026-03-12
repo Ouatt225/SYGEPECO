@@ -67,12 +67,35 @@ class ContractuelForm(forms.ModelForm):
             _check_upload_mime(photo, _ALLOWED_IMG, photo.name)
         return photo
 
+    def clean_piece_identite_recto(self):
+        f = self.cleaned_data.get('piece_identite_recto')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_IMG, f.name)
+        return f
+
+    def clean_piece_identite_verso(self):
+        f = self.cleaned_data.get('piece_identite_verso')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_IMG, f.name)
+        return f
+
+    def clean_document_prise_service(self):
+        f = self.cleaned_data.get('document_prise_service')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_DOC, f.name)
+        return f
+
     class Meta:
         model = Contractuel
         fields = [
             'matricule', 'nom', 'prenom', 'genre', 'date_naissance', 'lieu_naissance',
             'nationalite', 'email', 'telephone', 'adresse', 'photo',
             'poste', 'direction', 'date_embauche', 'statut',
+            # Pièce d'identité
+            'numero_piece_identite', 'piece_identite_recto', 'piece_identite_verso',
+            'document_prise_service',
+            # Contact d'urgence
+            'urgence_nom', 'urgence_lien', 'urgence_telephone',
         ]
         widgets = {
             'matricule': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: CTR-001'}),
@@ -90,6 +113,15 @@ class ContractuelForm(forms.ModelForm):
             'direction': forms.Select(attrs={'class': 'form-select'}),
             'date_embauche': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'statut': forms.Select(attrs={'class': 'form-select'}),
+            # Pièce d'identité
+            'numero_piece_identite':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: CI-123456'}),
+            'piece_identite_recto':   forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'piece_identite_verso':   forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'document_prise_service': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}),
+            # Contact d'urgence
+            'urgence_nom':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom complet'}),
+            'urgence_lien':      forms.Select(attrs={'class': 'form-select'}),
+            'urgence_telephone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 07 XX XX XX XX'}),
         }
 
 
@@ -193,6 +225,24 @@ class EspaceProfilForm(forms.ModelForm):
             _check_upload_mime(photo, _ALLOWED_IMG, photo.name)
         return photo
 
+    def clean_piece_identite_recto(self):
+        f = self.cleaned_data.get('piece_identite_recto')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_IMG, f.name)
+        return f
+
+    def clean_piece_identite_verso(self):
+        f = self.cleaned_data.get('piece_identite_verso')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_IMG, f.name)
+        return f
+
+    def clean_document_prise_service(self):
+        f = self.cleaned_data.get('document_prise_service')
+        if f and hasattr(f, 'read'):
+            _check_upload_mime(f, _ALLOWED_DOC, f.name)
+        return f
+
     # Champ salaire hors modèle Contractuel (lié au contrat actif)
     salaire = forms.DecimalField(
         required=False,
@@ -214,6 +264,11 @@ class EspaceProfilForm(forms.ModelForm):
             'email', 'telephone', 'adresse',
             # Infos sociales
             'commune', 'ville', 'situation_famille', 'nombre_enfants', 'numero_cnps',
+            # Pièce d'identité
+            'numero_piece_identite', 'piece_identite_recto', 'piece_identite_verso',
+            'document_prise_service',
+            # Contact d'urgence
+            'urgence_nom', 'urgence_lien', 'urgence_telephone',
         ]
         widgets = {
             'photo':             forms.FileInput(attrs={'accept': 'image/*'}),
@@ -234,6 +289,15 @@ class EspaceProfilForm(forms.ModelForm):
             'situation_famille': forms.Select(),
             'nombre_enfants':    forms.NumberInput(attrs={'min': '0', 'max': '20'}),
             'numero_cnps':       forms.TextInput(),
+            # Pièce d'identité
+            'numero_piece_identite':  forms.TextInput(attrs={'placeholder': 'Ex: CI-123456'}),
+            'piece_identite_recto':   forms.FileInput(attrs={'accept': 'image/*'}),
+            'piece_identite_verso':   forms.FileInput(attrs={'accept': 'image/*'}),
+            'document_prise_service': forms.FileInput(attrs={'accept': '.pdf,image/*'}),
+            # Contact d'urgence
+            'urgence_nom':       forms.TextInput(attrs={'placeholder': 'Nom complet'}),
+            'urgence_lien':      forms.Select(),
+            'urgence_telephone': forms.TextInput(attrs={'placeholder': 'Ex: 07 XX XX XX XX'}),
         }
 
     def __init__(self, *args, **kwargs):

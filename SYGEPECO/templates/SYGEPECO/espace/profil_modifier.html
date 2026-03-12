@@ -432,7 +432,104 @@ textarea.fiche-input { resize: none; }
   </div>
 
   <!-- ═══════════════════════════════════════════════════
-       SECTION 3 : EMPLOI
+       SECTION 3 : PIÈCE D'IDENTITÉ & DOCUMENTS
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-section-hdr">Pièce d'identité &amp; Documents officiels</div>
+
+  <div class="fiche-grid cols-3">
+
+    <!-- Numéro CNI -->
+    <div class="fiche-cell editable span-2">
+      <div class="fiche-lbl">Numéro de la pièce d'identité</div>
+      {{ form.numero_piece_identite }}
+      <div style="font-size:.65rem;color:var(--txt-3);margin-top:4px;">CNI, passeport, carte de séjour…</div>
+    </div>
+
+    <!-- Prise de service -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Document de prise de service</div>
+      {% if contractuel.document_prise_service %}
+      <div style="margin-bottom:6px;">
+        <a href="{{ contractuel.document_prise_service.url }}" target="_blank"
+           style="font-size:.72rem;color:var(--teal);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Voir le document actuel
+        </a>
+      </div>
+      {% endif %}
+      <label class="photo-btn" for="id_document_prise_service">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        {% if contractuel.document_prise_service %}Remplacer{% else %}Téléverser{% endif %}
+      </label>
+      <div style="display:none;">{{ form.document_prise_service }}</div>
+      <div style="font-size:.65rem;color:var(--txt-3);margin-top:6px;">PDF, JPG ou PNG</div>
+    </div>
+
+    <!-- CNI recto -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Carte d'identité — Recto</div>
+      {% if contractuel.piece_identite_recto %}
+      <img src="{{ contractuel.piece_identite_recto.url }}" id="cniRectoPreview"
+           style="width:100%;max-height:90px;object-fit:cover;border-radius:4px;border:1px solid var(--line);margin-bottom:6px;" alt="Recto">
+      {% else %}
+      <img id="cniRectoPreview" src="" style="width:100%;max-height:90px;object-fit:cover;border-radius:4px;border:1px solid var(--line);margin-bottom:6px;display:none;" alt="">
+      {% endif %}
+      <label class="photo-btn" for="id_piece_identite_recto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        {% if contractuel.piece_identite_recto %}Remplacer{% else %}Ajouter{% endif %}
+      </label>
+      <div style="display:none;">{{ form.piece_identite_recto }}</div>
+    </div>
+
+    <!-- CNI verso -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Carte d'identité — Verso</div>
+      {% if contractuel.piece_identite_verso %}
+      <img src="{{ contractuel.piece_identite_verso.url }}" id="cniVersoPreview"
+           style="width:100%;max-height:90px;object-fit:cover;border-radius:4px;border:1px solid var(--line);margin-bottom:6px;" alt="Verso">
+      {% else %}
+      <img id="cniVersoPreview" src="" style="width:100%;max-height:90px;object-fit:cover;border-radius:4px;border:1px solid var(--line);margin-bottom:6px;display:none;" alt="">
+      {% endif %}
+      <label class="photo-btn" for="id_piece_identite_verso">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        {% if contractuel.piece_identite_verso %}Remplacer{% else %}Ajouter{% endif %}
+      </label>
+      <div style="display:none;">{{ form.piece_identite_verso }}</div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 4 : CONTACT D'URGENCE
+  ═══════════════════════════════════════════════════ -->
+  <div class="fiche-section-hdr" style="background:rgba(220,38,38,.18);color:var(--rose);">
+    Contact d'urgence
+  </div>
+
+  <div class="fiche-grid cols-3">
+
+    <!-- Nom personne d'urgence -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Nom &amp; prénom</div>
+      {{ form.urgence_nom }}
+    </div>
+
+    <!-- Lien -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Lien avec l'agent</div>
+      {{ form.urgence_lien }}
+    </div>
+
+    <!-- Téléphone d'urgence -->
+    <div class="fiche-cell editable">
+      <div class="fiche-lbl">Téléphone</div>
+      {{ form.urgence_telephone }}
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 5 : EMPLOI
   ═══════════════════════════════════════════════════ -->
   <div class="fiche-section-hdr">Emploi</div>
 
@@ -509,7 +606,7 @@ document.querySelectorAll('#ficheForm input:not([type=submit]):not([type=file]),
   el.classList.add('fiche-input');
 });
 
-/* ── Aperçu photo ─────────────────────────────────────── */
+/* ── Aperçu photo profil ──────────────────────────────── */
 var photoInput = document.getElementById('id_photo');
 if (photoInput) {
   photoInput.addEventListener('change', function() {
@@ -528,6 +625,27 @@ if (photoInput) {
     reader.readAsDataURL(file);
   });
 }
+
+/* ── Aperçu CNI recto ─────────────────────────────────── */
+(function() {
+  function bindImgPreview(inputId, previewId) {
+    var inp = document.getElementById(inputId);
+    var prv = document.getElementById(previewId);
+    if (!inp || !prv) return;
+    inp.addEventListener('change', function() {
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        prv.src = e.target.result;
+        prv.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  bindImgPreview('id_piece_identite_recto', 'cniRectoPreview');
+  bindImgPreview('id_piece_identite_verso', 'cniVersoPreview');
+})();
 
 /* ── Calcul retraite + solde congés ───────────────────── */
 (function() {
